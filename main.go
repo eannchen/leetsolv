@@ -18,10 +18,48 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Print("Enter command (status/upsert/delete/quit): ")
+		fmt.Print("Enter command (status/list/upsert/delete/quit): ")
 		scanner.Scan()
 		cmd := scanner.Text()
 		switch cmd {
+		case "list":
+			const pageSize = 5
+			page := 0
+
+			for {
+				questions, totalPages, err := commands.PaginatedListQuestions(storage, pageSize, page)
+				if err != nil {
+					fmt.Println("Error:", err)
+					break
+				}
+
+				if len(questions) == 0 {
+					fmt.Println("No questions available.")
+					break
+				}
+
+				// Display the current page
+				fmt.Printf("-- Page %d/%d --\n", page+1, totalPages)
+				for _, q := range questions {
+					fmt.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
+					fmt.Printf("   Note: %s\n", q.Note)
+				}
+
+				// Handle user input for pagination
+				if page+1 == totalPages {
+					fmt.Println("\nEnd of list.")
+					break
+				}
+
+				fmt.Print("\nPress [Enter] for next page, [q] to quit: ")
+				scanner.Scan()
+				input := strings.TrimSpace(scanner.Text())
+				if input == "q" {
+					break
+				}
+
+				page++
+			}
 		case "status":
 			due, upcoming, total, err := commands.ListQuestionsSummary(storage)
 			if err != nil {

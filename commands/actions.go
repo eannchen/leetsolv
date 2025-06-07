@@ -39,6 +39,40 @@ func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Ques
 	return due, upcoming, total, nil
 }
 
+func PaginatedListQuestions(storage storage.Storage, pageSize, page int) ([]core.Question, int, error) {
+	questions, err := storage.Load()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Sort questions by ID in descending order
+	sort.Slice(questions, func(i, j int) bool {
+		return questions[i].ID > questions[j].ID
+	})
+
+	totalQuestions := len(questions)
+	if totalQuestions == 0 {
+		return nil, 0, nil
+	}
+
+	// Calculate total pages
+	totalPages := (totalQuestions + pageSize - 1) / pageSize
+
+	// Ensure the requested page is within bounds
+	if page < 0 || page >= totalPages {
+		return nil, totalPages, fmt.Errorf("invalid page number")
+	}
+
+	// Get the questions for the current page
+	start := page * pageSize
+	end := start + pageSize
+	if end > totalQuestions {
+		end = totalQuestions
+	}
+
+	return questions[start:end], totalPages, nil
+}
+
 func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note string, familiarity core.Familiarity) (*core.Question, error) {
 	questions, err := storage.Load()
 	if err != nil {
