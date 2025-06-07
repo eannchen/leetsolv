@@ -43,10 +43,10 @@ func main() {
 		case "upsert":
 			fmt.Print("URL: ")
 			scanner.Scan()
-			url := scanner.Text()
+			url := strings.TrimSpace(scanner.Text())
 			fmt.Print("Note: ")
 			scanner.Scan()
-			note := scanner.Text()
+			note := strings.TrimSpace(scanner.Text())
 
 			fmt.Println("Familiarity:")
 			fmt.Println("1. Struggled    - Solved, but barely. Needed heavy effort or help.")
@@ -56,7 +56,7 @@ func main() {
 			fmt.Println("5. Fluent       - Solved perfectly and instantly.")
 			fmt.Print("\nEnter a number (1-5): ")
 			scanner.Scan()
-			famInput := scanner.Text()
+			famInput := strings.TrimSpace(scanner.Text())
 			fam, err := strconv.Atoi(famInput)
 			if err != nil || fam < 1 || fam > 5 {
 				fmt.Println("Invalid familiarity level. Please enter a number between 1 and 5.")
@@ -66,22 +66,33 @@ func main() {
 			// Adjust familiarity to match the `Familiarity` enum (0-based index)
 			familiarity := core.Familiarity(fam - 1)
 
-			if err := commands.UpsertQuestion(storage, scheduler, url, note, familiarity); err != nil {
+			// Call the updated UpsertQuestion function
+			upsertedQuestion, err := commands.UpsertQuestion(storage, scheduler, url, note, familiarity)
+			if err != nil {
 				fmt.Println("Error:", err)
 			} else {
-				fmt.Println("Question upserted.")
+				// Display the upserted question
+				fmt.Println("Question upserted:")
+				fmt.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
+				fmt.Printf("   Note: %s\n", upsertedQuestion.Note)
+				fmt.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity)
+				fmt.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02 15:04:05"))
+				fmt.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02 15:04:05"))
+				fmt.Printf("   Review Count: %d\n", upsertedQuestion.ReviewCount)
+				fmt.Printf("   Ease Factor: %.2f\n", upsertedQuestion.EaseFactor)
+				fmt.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02 15:04:05"))
 			}
 			fmt.Printf("\n")
 		case "delete":
-			fmt.Print("Enter URL or type '--last' to delete the most recently added: ")
+			fmt.Print("Enter ID, URL or type '--last' to delete the most recently added: ")
 			scanner.Scan()
-			input := scanner.Text()
+			input := strings.TrimSpace(scanner.Text())
 
 			// Confirm before deleting
 			fmt.Print("Do you want to delete the question? [y/N]: ")
 			scanner.Scan()
 			confirm := strings.ToLower(strings.TrimSpace(scanner.Text()))
-			if confirm != "y" && confirm != "Y" && confirm != "Yes" && confirm != "yes" {
+			if confirm != "y" && confirm != "yes" {
 				fmt.Println("Cancelled.")
 				fmt.Printf("\n")
 				continue

@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"leetsolv/core"
@@ -38,12 +39,13 @@ func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Ques
 	return due, upcoming, total, nil
 }
 
-func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note string, familiarity core.Familiarity) error {
+func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note string, familiarity core.Familiarity) (*core.Question, error) {
 	questions, err := storage.Load()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var upsertedQuestion *core.Question
 	found := false
 	for i := range questions {
 		if questions[i].URL == url {
@@ -51,6 +53,7 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 			questions[i].Note = note
 			questions[i].Familiarity = familiarity
 			scheduler.Schedule(&questions[i], familiarity)
+			upsertedQuestion = &questions[i]
 			found = true
 			break
 		}
@@ -66,21 +69,27 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 		}
 
 		// Add new question
+		now := time.Now()
 		q := core.Question{
 			ID:           newID,
 			URL:          url,
 			Note:         note,
 			Familiarity:  familiarity,
-			LastReviewed: time.Now(),
-			NextReview:   time.Now(),
+			LastReviewed: now,
+			NextReview:   now,
 			ReviewCount:  0,
 			EaseFactor:   2.5,
+			CreatedAt:    now,
 		}
 		scheduler.Schedule(&q, familiarity)
 		questions = append(questions, q)
+		upsertedQuestion = &q
 	}
 
-	return storage.Save(questions)
+	if err := storage.Save(questions); err != nil {
+		return nil, err
+	}
+	return upsertedQuestion, nil
 }
 
 func DeleteQuestion(storage storage.Storage, target string) error {
@@ -92,21 +101,23 @@ func DeleteQuestion(storage storage.Storage, target string) error {
 	var newQuestions []core.Question
 	var deletedQuestion *core.Question
 
+	// Check if the target is an ID
+	id, err := strconv.Atoi(target)
+	isID := err == nil
+
 	if target == "--last" {
 		if len(questions) == 0 {
 			return fmt.Errorf("no questions to delete")
 		}
 		last := questions[len(questions)-1]
-		for _, q := range questions[:len(questions)-1] {
-			newQuestions = append(newQuestions, q)
-		}
+		newQuestions = questions[:len(questions)-1]
 		deletedQuestion = &last
 	} else {
 		for _, q := range questions {
-			if q.URL != target {
-				newQuestions = append(newQuestions, q)
-			} else {
+			if (isID && q.ID == id) || (!isID && q.URL == target) {
 				deletedQuestion = &q
+			} else {
+				newQuestions = append(newQuestions, q)
 			}
 		}
 	}
@@ -117,6 +128,6 @@ func DeleteQuestion(storage storage.Storage, target string) error {
 	if err := storage.Save(newQuestions); err != nil {
 		return err
 	}
-	fmt.Printf("Deleted: %s\n", deletedQuestion.URL)
+	fmt.Printf("Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
 	return nil
 }
