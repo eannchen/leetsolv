@@ -6,9 +6,9 @@ type Scheduler interface {
 	Schedule(q *Question, grade Familiarity)
 }
 
-type SimpleScheduler struct{}
+type SM2Scheduler struct{}
 
-func (s SimpleScheduler) Schedule(q *Question, grade Familiarity) {
+func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	// Increment the review count every time the question is reviewed
 	q.ReviewCount++
 

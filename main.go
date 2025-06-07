@@ -14,7 +14,7 @@ import (
 
 func main() {
 	storage := &storage.FileStorage{File: "questions.json"}
-	scheduler := core.SimpleScheduler{}
+	scheduler := core.SM2Scheduler{}
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -79,12 +79,8 @@ func main() {
 			}
 			fmt.Printf("\n")
 		case "upsert":
-			fmt.Print("URL: ")
-			scanner.Scan()
-			url := strings.TrimSpace(scanner.Text())
-			fmt.Print("Note: ")
-			scanner.Scan()
-			note := strings.TrimSpace(scanner.Text())
+			url := readLine(scanner, "URL: ")
+			note := readLine(scanner, "Note: ")
 
 			fmt.Println("Familiarity:")
 			fmt.Println("1. Struggled    - Solved, but barely. Needed heavy effort or help.")
@@ -92,9 +88,7 @@ func main() {
 			fmt.Println("3. Decent       - Solved mostly right, but not smooth.")
 			fmt.Println("4. Smooth       - Solved confidently and clearly.")
 			fmt.Println("5. Fluent       - Solved perfectly and instantly.")
-			fmt.Print("\nEnter a number (1-5): ")
-			scanner.Scan()
-			famInput := strings.TrimSpace(scanner.Text())
+			famInput := readLine(scanner, "\nEnter a number (1-5): ")
 			fam, err := strconv.Atoi(famInput)
 			if err != nil || fam < 1 || fam > 5 {
 				fmt.Println("Invalid familiarity level. Please enter a number between 1 and 5.")
@@ -122,14 +116,10 @@ func main() {
 			}
 			fmt.Printf("\n")
 		case "delete":
-			fmt.Print("Enter ID, URL or type '--last' to delete the most recently added: ")
-			scanner.Scan()
-			input := strings.TrimSpace(scanner.Text())
+			input := readLine(scanner, "Enter ID, URL or type '--last' to delete the most recently added: ")
 
 			// Confirm before deleting
-			fmt.Print("Do you want to delete the question? [y/N]: ")
-			scanner.Scan()
-			confirm := strings.ToLower(strings.TrimSpace(scanner.Text()))
+			confirm := strings.ToLower(readLine(scanner, "Do you want to delete the question? [y/N]: "))
 			if confirm != "y" && confirm != "yes" {
 				fmt.Println("Cancelled.")
 				fmt.Printf("\n")
@@ -148,4 +138,10 @@ func main() {
 			fmt.Println("Unknown command.")
 		}
 	}
+}
+
+func readLine(scanner *bufio.Scanner, prompt string) string {
+	fmt.Print(prompt)
+	scanner.Scan()
+	return strings.TrimSpace(scanner.Text())
 }
