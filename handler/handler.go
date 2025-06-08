@@ -30,7 +30,7 @@ func HandleList(scanner *bufio.Scanner, storage storage.Storage) {
 		// Display the current page
 		fmt.Printf("-- Page %d/%d --\n", page+1, totalPages)
 		for _, q := range questions {
-			fmt.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
+			fmt.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02")) // Date only
 			fmt.Printf("   Note: %s\n", q.Note)
 		}
 

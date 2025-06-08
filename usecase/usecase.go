@@ -16,16 +16,17 @@ func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Ques
 		return nil, nil, 0, err
 	}
 
-	now := time.Now()
-	twoWeeksLater := now.Add(14 * 24 * time.Hour)
+	now := time.Now().Truncate(24 * time.Hour) // Use only the date
+	twoWeeksLater := now.AddDate(0, 0, 14)     // Add 14 days to the current date
 
 	due := []core.Question{}
 	upcoming := []core.Question{}
 
 	for _, q := range questions {
-		if !q.NextReview.After(now) {
+		nextReviewDate := q.NextReview.Truncate(24 * time.Hour) // Truncate time
+		if !nextReviewDate.After(now) {
 			due = append(due, q)
-		} else if q.NextReview.Before(twoWeeksLater) {
+		} else if nextReviewDate.Before(twoWeeksLater) {
 			upcoming = append(upcoming, q)
 		}
 	}
@@ -68,6 +69,11 @@ func PaginatedListQuestions(storage storage.Storage, pageSize, page int) ([]core
 	end := start + pageSize
 	if end > totalQuestions {
 		end = totalQuestions
+	}
+
+	// Truncate NextReview to date only for display purposes
+	for i := range questions[start:end] {
+		questions[start:end][i].NextReview = questions[start:end][i].NextReview.Truncate(24 * time.Hour)
 	}
 
 	return questions[start:end], totalPages, nil

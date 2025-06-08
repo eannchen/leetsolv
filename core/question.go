@@ -2,6 +2,15 @@ package core
 
 import "time"
 
+type Importance int
+
+const (
+	LowImportance Importance = iota
+	MediumImportance
+	HighImportance
+	CriticalImportance
+)
+
 type Familiarity int
 
 const (
@@ -17,6 +26,7 @@ type Question struct {
 	URL          string      `json:"url"`
 	Note         string      `json:"note"`
 	Familiarity  Familiarity `json:"familiarity"`
+	Importance   Importance  `json:"importance"`
 	LastReviewed time.Time   `json:"last_reviewed"`
 	NextReview   time.Time   `json:"next_review"`
 	ReviewCount  int         `json:"review_count"`
