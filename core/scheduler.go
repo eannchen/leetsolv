@@ -81,7 +81,7 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 			// First review uses base interval, with familiarity boost for solved problems
 			intervalDays = baseInterval
 			if grade >= Easy {
-				intervalDays += 2 // Add 2 days for Easy/VeryEasy to reflect prior solving
+				intervalDays += 3 // Add 3 days for Easy/VeryEasy to reflect prior solving
 			}
 		} else {
 			// For subsequent reviews, calculate based on last review date and ease factor
