@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "url": "https://leetcode.com/problems/group-anagrams/",
+    "note": "Just implement it again, you may forget how to turn strings’ uint as key.",
+    "familiarity": 4,
+    "importance": 3,
+    "last_reviewed": "2025-06-09T08:00:00+08:00",
+    "next_review": "2025-06-17T08:00:00+08:00",
+    "review_count": 1,
+    "ease_factor": 2,
+    "created_at": "2025-06-09T21:14:45.590573+08:00"
+  }
+]
