@@ -25,7 +25,7 @@ type SM2Scheduler struct {
 func NewSM2Scheduler() *SM2Scheduler {
 	return &SM2Scheduler{
 		baseIntervals: map[Importance]int{
-			LowImportance:      6, // Others
+			LowImportance:      7, // Others
 			MediumImportance:   5, // NeetCode 250
 			HighImportance:     4, // NeetCode 150
 			CriticalImportance: 3, // NeetCode 75
@@ -40,7 +40,7 @@ func NewSM2Scheduler() *SM2Scheduler {
 			CriticalImportance: 0.55, // Tightest intervals
 		},
 		easeAdjustments: map[Importance]float64{
-			LowImportance:      0.12, // Grow faster, reviewed less often
+			LowImportance:      0.13, // Grow faster, reviewed less often
 			MediumImportance:   0.10,
 			HighImportance:     0.07,
 			CriticalImportance: 0.05, // Slow growth to keep reviews tight
@@ -62,10 +62,8 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 		penaltyFactor := 0.02 + float64(overdueDays-3)*0.01 // increase gradually
 		q.EaseFactor -= penaltyFactor
 
-		// Clamp EaseFactor after penalty (optional but recommended)
-		if q.EaseFactor < s.minEaseFactor {
-			q.EaseFactor = s.minEaseFactor
-		}
+		// Clamp ease factor within bounds
+		s.clampEaseFactor(q)
 	}
 
 	// Get base interval based on importance
@@ -112,21 +110,25 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 		penalty := float64(5-grade) * (0.04 + float64(5-grade)*0.008) // Penalty for lower grades
 		q.EaseFactor += easeBonus - penalty
 
-		// Dampen ease growth for mature questions
-		// After 3+ successful reviews, the curve could become too flat — ease keeps increasing even though recall is stable.
+		// After 3+ reviews, ease keeps increasing even though recall is stable
 		if q.ReviewCount >= 3 {
-			q.EaseFactor += easeBonus * 0.5 // dampen ease growth
+			q.EaseFactor += easeBonus * 0.5
 		}
 
 		// Clamp ease factor within bounds
-		if q.EaseFactor < s.minEaseFactor {
-			q.EaseFactor = s.minEaseFactor
-		} else if q.EaseFactor > s.maxEaseFactor {
-			q.EaseFactor = s.maxEaseFactor
-		}
+		s.clampEaseFactor(q)
 	}
 
 	// Update last reviewed date and familiarity
 	q.LastReviewed = now
 	q.Familiarity = grade
+}
+
+// Clamp ease factor within bounds
+func (s SM2Scheduler) clampEaseFactor(q *Question) {
+	if q.EaseFactor < s.minEaseFactor {
+		q.EaseFactor = s.minEaseFactor
+	} else if q.EaseFactor > s.maxEaseFactor {
+		q.EaseFactor = s.maxEaseFactor
+	}
 }
