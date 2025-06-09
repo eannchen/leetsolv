@@ -22,34 +22,26 @@ type SM2Scheduler struct {
 	maxEaseFactor     float64
 	// Interval multipliers for importance levels
 	intervalMultipliers map[Importance]float64
-	// Ease factor adjustments for importance levels
-	easeAdjustments map[Importance]float64
 }
 
 // NewSM2Scheduler creates a new scheduler with configured parameters
 func NewSM2Scheduler() *SM2Scheduler {
 	return &SM2Scheduler{
 		baseIntervals: map[Importance]int{
-			LowImportance:      7, // Others
-			MediumImportance:   5, // NeetCode 250
-			HighImportance:     3, // NeetCode 150
-			CriticalImportance: 3, // NeetCode 75
+			LowImportance:      10, // Others
+			MediumImportance:   7,  // NeetCode 250
+			HighImportance:     5,  // NeetCode 150
+			CriticalImportance: 4,  // NeetCode 75
 		},
-		maxInterval:       60, // Cap at ~2 months to ensure retention
-		defaultEaseFactor: 1.3,
-		minEaseFactor:     1.3, // Lower bound for ease factor
+		maxInterval:       90, // Cap at ~3 months to ensure retention
+		defaultEaseFactor: 1.8,
+		minEaseFactor:     1.5, // Lower bound for ease factor
 		maxEaseFactor:     2.5, // Upper bound to prevent overly long intervals
 		intervalMultipliers: map[Importance]float64{
-			LowImportance:      1.2,  // Slightly longer intervals
-			MediumImportance:   1.0,  // Standard
-			HighImportance:     0.75, // Tighter intervals
-			CriticalImportance: 0.55, // Tightest intervals
-		},
-		easeAdjustments: map[Importance]float64{
-			LowImportance:      0.13, // Grow faster, reviewed less often
-			MediumImportance:   0.10, // Standard
-			HighImportance:     0.07,
-			CriticalImportance: 0.05, // Slow growth to keep reviews tight
+			LowImportance:      1.2,
+			MediumImportance:   1.0, // Standard
+			HighImportance:     0.9, // Tighter intervals
+			CriticalImportance: 0.9, // Tighter intervals
 		},
 	}
 }
@@ -76,10 +68,10 @@ func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Famili
 	switch grade {
 	case Easy:
 		intervalDays += 3
-		s.setEaseFactor(q, 1.8)
+		s.setEaseFactor(q, 2.0)
 	case VeryEasy:
 		intervalDays += 5
-		s.setEaseFactor(q, 2.0)
+		s.setEaseFactor(q, 2.2)
 	}
 
 	s.setNextReview(q, today, intervalDays)
@@ -92,12 +84,6 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	q.ReviewCount++
 
 	today := s.today()
-
-	// Skip scheduling if reviewed today
-	if q.LastReviewed == today {
-		q.Familiarity = grade
-		return
-	}
 
 	// Get base interval based on importance
 	baseInterval := s.baseIntervals[q.Importance]
@@ -113,18 +99,15 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 
 	// Adjust EaseFactor if question is overdue
 	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
-	if overdueDays > 3 && q.Importance > LowImportance && q.Familiarity < VeryEasy {
-		penaltyFactor := math.Min(0.02+float64(overdueDays-3)*0.01, 0.1) // increase gradually
+	if overdueDays > 3 && q.Importance > LowImportance && grade != VeryEasy {
+		penaltyFactor := math.Min(float64(overdueDays-3)*0.01, 0.1) // max penalty: 13 days
 		q.EaseFactor -= penaltyFactor
 		s.secureEaseFactorBounds(q)
 	}
 
-	dayElapsed := float64(today.Sub(q.LastReviewed).Hours()) / 24.0
-	if dayElapsed < 2 {
-		dayElapsed = 2
-	}
+	prevInterval := math.Min(float64(baseInterval), float64(q.NextReview.Sub(q.LastReviewed).Hours())/24.0)
 	intervalDays := int(math.Round(
-		dayElapsed * q.EaseFactor * s.intervalMultipliers[q.Importance], // Apply importance-based multiplier
+		prevInterval * q.EaseFactor * s.intervalMultipliers[q.Importance], // Apply importance-based multiplier
 	))
 	s.setNextReview(q, today, intervalDays)
 	s.setEaseFactorWithPenalty(q, grade)
@@ -148,16 +131,33 @@ func (s SM2Scheduler) setNextReview(q *Question, now time.Time, intervalDays int
 
 func (s SM2Scheduler) setEaseFactor(q *Question, easeFactor float64) {
 	q.EaseFactor = easeFactor
+	s.secureEaseFactorBounds(q)
 }
 
 // Update ease factor based on familiarity and importance
 func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
-	easeBonus := s.easeAdjustments[q.Importance]
-	penalty := math.Min(0.15, float64(5-grade)*0.035) // Penalty for lower grades
+	easeAdjustments := map[Importance]float64{
+		LowImportance:      0.5, // Penalty Tolerance: VeryHard
+		MediumImportance:   0.3, // Penalty Tolerance: Hard
+		HighImportance:     0.2, // Penalty Tolerance: Medium
+		CriticalImportance: 0.1, // Penalty Tolerance: Medium
+	}
+	easeBonus := easeAdjustments[q.Importance]
+
+	var penalty float64
+	switch grade {
+	case VeryHard:
+		penalty = 0.5
+	case Hard:
+		penalty = 0.3
+	case Medium:
+		penalty = 0.1
+	}
+
 	q.EaseFactor += easeBonus - penalty
-	// After 3+ reviews, ease keeps increasing even though recall is stable
+	// After 3+ reviews, add extra easeBonus if the question is not difficult
 	if q.ReviewCount >= 3 && grade >= Medium {
-		q.EaseFactor += easeBonus * 0.5
+		q.EaseFactor += easeBonus
 	}
 	s.secureEaseFactorBounds(q)
 }

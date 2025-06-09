@@ -1,8 +1,9 @@
-## TODO
+# TODO
 
-### SM2Scheduler
+## SM2Scheduler
 
-1. Burnout Protection: Modify the SRS tool to limit reviews per day (e.g., max 12 problems). If a review is due but the day is full, shift it to the next day.
+### Burnout Protection
+1. Modify the SRS tool to limit reviews per day (e.g., max 12 problems). If a review is due but the day is full, shift it to the next day.
 example.
 ```go
 func (s *SM2Scheduler) ScheduleWithLimit(q *Question, grade Familiarity, dailyLimit int, currentLoad int) bool {
@@ -13,5 +14,15 @@ func (s *SM2Scheduler) ScheduleWithLimit(q *Question, grade Familiarity, dailyLi
     return true
 }
 ```
-2. A Priority Queue for Review Scheduling
-3. The algorithm is entirely personal to my current condition. (Jun, 2025) It is subject to modification for the general public or the change of my condition.
+2. A Priority Queue for showing due questions
+example.
+```go
+const (
+    importanceWeight  = 0.5
+    familiarityWeight = 0.3
+    overdueWeight     = 0.2
+)
+priority := importanceWeight*float64(q.Importance) +
+			familiarityWeight*float64(5-q.Familiarity) +
+			overdueWeight*overdueDays
+```
