@@ -110,18 +110,14 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 		}
 
 		// Add new question
-		now := time.Now()
 		q := core.Question{
-			ID:           newID,
-			URL:          url,
-			Note:         note,
-			Familiarity:  familiarity,
-			Importance:   importance,
-			LastReviewed: now,
-			NextReview:   now,
-			ReviewCount:  0,
-			EaseFactor:   2.5,
-			CreatedAt:    now,
+			ID:          newID,
+			URL:         url,
+			Note:        note,
+			Familiarity: familiarity,
+			Importance:  importance,
+			ReviewCount: 0,
+			CreatedAt:   time.Now(),
 		}
 		scheduler.Schedule(&q, familiarity)
 		questions = append(questions, q)

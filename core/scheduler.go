@@ -60,7 +60,7 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	now := time.Now().Truncate(24 * time.Hour)
 
 	// Skip scheduling if reviewed today
-	if !q.LastReviewed.IsZero() && now.Sub(q.LastReviewed) < 24*time.Hour {
+	if q.LastReviewed == now {
 		return
 	}
 
