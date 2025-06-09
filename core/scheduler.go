@@ -155,6 +155,10 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
 	easeBonus := s.easeAdjustments[q.Importance]
 	penalty := math.Min(0.15, float64(5-grade)*0.035) // Penalty for lower grades
 	q.EaseFactor += easeBonus - penalty
+	// After 3+ reviews, ease keeps increasing even though recall is stable
+	if q.ReviewCount >= 3 && grade >= Medium {
+		q.EaseFactor += easeBonus * 0.5
+	}
 	s.secureEaseFactorBounds(q)
 }
 

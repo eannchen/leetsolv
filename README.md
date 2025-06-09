@@ -13,13 +13,5 @@ func (s *SM2Scheduler) ScheduleWithLimit(q *Question, grade Familiarity, dailyLi
     return true
 }
 ```
-2. A Decay for Neglected Questions: To better handle questions I forget/ignore to review, you might implement a “penalty decay”
-example.
-```go
-overdueDays := int(now.Sub(q.NextReview).Hours() / 24)
-if overdueDays > 0 {
-    q.EaseFactor -= 0.02 * float64(overdueDays)
-}
-```
-3. A Priority Queue for Review Scheduling
-4. The algorithm is entirely personal to my current condition. (Jun, 2025) It is subject to modification for the general public or the change of my condition.
+2. A Priority Queue for Review Scheduling
+3. The algorithm is entirely personal to my current condition. (Jun, 2025) It is subject to modification for the general public or the change of my condition.
