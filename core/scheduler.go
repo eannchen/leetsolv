@@ -15,20 +15,36 @@ type SM2Scheduler struct {
 	// Minimum and maximum ease factors
 	minEaseFactor float64
 	maxEaseFactor float64
+	// Interval multipliers for importance levels
+	intervalMultipliers map[Importance]float64
+	// Ease factor adjustments for importance levels
+	easeAdjustments map[Importance]float64
 }
 
 // NewSM2Scheduler creates a new scheduler with configured parameters
 func NewSM2Scheduler() *SM2Scheduler {
 	return &SM2Scheduler{
 		baseIntervals: map[Importance]int{
-			LowImportance:      5, // Others
-			MediumImportance:   4, // NeetCode 250
-			HighImportance:     3, // NeetCode 150
-			CriticalImportance: 2, // NeetCode 75
+			LowImportance:      6, // Others
+			MediumImportance:   5, // NeetCode 250
+			HighImportance:     4, // NeetCode 150
+			CriticalImportance: 3, // NeetCode 75
 		},
 		maxInterval:   60,  // Cap at ~2 months to ensure retention
 		minEaseFactor: 1.3, // Lower bound for ease factor
 		maxEaseFactor: 2.5, // Upper bound to prevent overly long intervals
+		intervalMultipliers: map[Importance]float64{
+			LowImportance:      1.2,  // Slightly longer intervals
+			MediumImportance:   1.0,  // Standard
+			HighImportance:     0.75, // Tighter intervals
+			CriticalImportance: 0.55, // Tightest intervals
+		},
+		easeAdjustments: map[Importance]float64{
+			LowImportance:      0.04, // Slower ease growth for low priority
+			MediumImportance:   0.06, // Moderate ease growth
+			HighImportance:     0.08, // Faster ease growth
+			CriticalImportance: 0.10, // Fastest ease growth
+		},
 	}
 }
 
@@ -52,8 +68,11 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 		// Calculate next review interval using SM2 algorithm
 		var intervalDays int
 		if q.ReviewCount == 1 {
-			// First review uses base interval
+			// First review uses base interval, with familiarity boost for solved problems
 			intervalDays = baseInterval
+			if grade >= Easy {
+				intervalDays += 2 // Add 2 days for Easy/VeryEasy to reflect prior solving
+			}
 		} else {
 			// Subsequent reviews use previous interval * ease factor
 			previousInterval := float64(q.NextReview.Sub(q.LastReviewed).Hours()) / 24.0
@@ -65,14 +84,8 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 			intervalDays = s.maxInterval
 		}
 
-		// Apply importance-based multiplier to tighten intervals for critical questions
-		intervalMultiplier := map[Importance]float64{
-			LowImportance:      1.2, // Slightly longer intervals
-			MediumImportance:   1.0, // Standard
-			HighImportance:     0.8, // Tighter intervals
-			CriticalImportance: 0.6, // Tightest intervals
-		}
-		adjustedInterval := int(float64(intervalDays) * intervalMultiplier[q.Importance])
+		// Apply importance-based multiplier
+		adjustedInterval := int(float64(intervalDays) * s.intervalMultipliers[q.Importance])
 
 		// Ensure minimum interval of 1 day
 		if adjustedInterval < 1 {
@@ -83,14 +96,8 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 		q.NextReview = now.AddDate(0, 0, adjustedInterval)
 
 		// Update ease factor based on familiarity and importance
-		easeAdjustment := map[Importance]float64{
-			LowImportance:      0.05, // Slower ease growth for low priority
-			MediumImportance:   0.08, // Moderate ease growth
-			HighImportance:     0.10, // Faster ease growth
-			CriticalImportance: 0.12, // Fastest ease growth
-		}
-		easeBonus := easeAdjustment[q.Importance]
-		penalty := float64(5-grade) * (0.05 + float64(5-grade)*0.01) // Penalty for lower grades
+		easeBonus := s.easeAdjustments[q.Importance]
+		penalty := float64(5-grade) * (0.04 + float64(5-grade)*0.008) // Penalty for lower grades
 		q.EaseFactor += easeBonus - penalty
 
 		// Clamp ease factor within bounds
