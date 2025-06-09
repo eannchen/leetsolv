@@ -79,7 +79,7 @@ func PaginatedListQuestions(storage storage.Storage, pageSize, page int) ([]core
 	return questions[start:end], totalPages, nil
 }
 
-func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note string, familiarity core.Familiarity) (*core.Question, error) {
+func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
 	questions, err := storage.Load()
 	if err != nil {
 		return nil, err
@@ -92,6 +92,7 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 			// Update existing question
 			questions[i].Note = note
 			questions[i].Familiarity = familiarity
+			questions[i].Importance = importance
 			scheduler.Schedule(&questions[i], familiarity)
 			upsertedQuestion = &questions[i]
 			found = true
@@ -115,6 +116,7 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 			URL:          url,
 			Note:         note,
 			Familiarity:  familiarity,
+			Importance:   importance,
 			LastReviewed: now,
 			NextReview:   now,
 			ReviewCount:  0,

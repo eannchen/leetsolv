@@ -89,11 +89,24 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 		return
 	}
 
-	// Adjust familiarity to match the `Familiarity` enum (0-based index)
+	fmt.Println("Importance:")
+	fmt.Println("1. Low Importance")
+	fmt.Println("2. Medium Importance")
+	fmt.Println("3. High Importance")
+	fmt.Println("4. Critical Importance")
+	impInput := readLine(scanner, "\nEnter a number (1-4): ")
+	imp, err := strconv.Atoi(impInput)
+	if err != nil || imp < 1 || imp > 4 {
+		fmt.Println("Invalid importance level. Please enter a number between 1 and 4.")
+		return
+	}
+
+	// Adjust familiarity and importance to match enums
 	familiarity := core.Familiarity(fam - 1)
+	importance := core.Importance(imp - 1)
 
 	// Call the updated UpsertQuestion function
-	upsertedQuestion, err := usecase.UpsertQuestion(storage, scheduler, url, note, familiarity)
+	upsertedQuestion, err := usecase.UpsertQuestion(storage, scheduler, url, note, familiarity, importance)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -102,11 +115,12 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 		fmt.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
 		fmt.Printf("   Note: %s\n", upsertedQuestion.Note)
 		fmt.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity)
-		fmt.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02 15:04:05"))
-		fmt.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02 15:04:05"))
+		fmt.Printf("   Importance: %d\n", upsertedQuestion.Importance)
+		fmt.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02"))
+		fmt.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02"))
 		fmt.Printf("   Review Count: %d\n", upsertedQuestion.ReviewCount)
 		fmt.Printf("   Ease Factor: %.2f\n", upsertedQuestion.EaseFactor)
-		fmt.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02"))
 	}
 	fmt.Printf("\n")
 }
