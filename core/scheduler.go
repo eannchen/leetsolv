@@ -1,6 +1,9 @@
 package core
 
-import "time"
+import (
+	"math"
+	"time"
+)
 
 type Scheduler interface {
 	Schedule(q *Question, grade Familiarity)
@@ -27,7 +30,7 @@ func NewSM2Scheduler() *SM2Scheduler {
 		baseIntervals: map[Importance]int{
 			LowImportance:      7, // Others
 			MediumImportance:   5, // NeetCode 250
-			HighImportance:     4, // NeetCode 150
+			HighImportance:     3, // NeetCode 150
 			CriticalImportance: 3, // NeetCode 75
 		},
 		maxInterval:   60,  // Cap at ~2 months to ensure retention
@@ -41,7 +44,7 @@ func NewSM2Scheduler() *SM2Scheduler {
 		},
 		easeAdjustments: map[Importance]float64{
 			LowImportance:      0.13, // Grow faster, reviewed less often
-			MediumImportance:   0.10,
+			MediumImportance:   0.10, // Standard
 			HighImportance:     0.07,
 			CriticalImportance: 0.05, // Slow growth to keep reviews tight
 		},
@@ -56,76 +59,96 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	// Get current date (truncate to day for consistency)
 	now := time.Now().Truncate(24 * time.Hour)
 
-	// Adjust EaseFactor if question is overdue
-	overdueDays := int(now.Sub(q.NextReview).Hours() / 24)
-	if overdueDays > 3 && q.Importance > LowImportance {
-		penaltyFactor := 0.02 + float64(overdueDays-3)*0.01 // increase gradually
-		q.EaseFactor -= penaltyFactor
+	// Skip scheduling if reviewed today
+	if !q.LastReviewed.IsZero() && now.Sub(q.LastReviewed) < 24*time.Hour {
+		return
+	}
 
-		// Clamp ease factor within bounds
-		s.clampEaseFactor(q)
+	// Set default ease factor when new question is added
+	if q.LastReviewed.IsZero() || q.EaseFactor == 0 {
+		s.setDefaultEaseFactor(q)
 	}
 
 	// Get base interval based on importance
 	baseInterval := s.baseIntervals[q.Importance]
 
-	// Adjust scheduling based on familiarity
-	if grade < Medium {
-		// For low familiarity, reset to base interval and lower ease factor
-		q.NextReview = now.AddDate(0, 0, baseInterval)
-		q.EaseFactor = s.minEaseFactor
-	} else {
-		// Calculate next review interval using SM2 algorithm
-		var intervalDays int
-		if q.ReviewCount == 1 {
-			// First review uses base interval, with familiarity boost for solved problems
-			intervalDays = baseInterval
-			if grade >= Easy {
-				intervalDays += 3 // Add 3 days for Easy/VeryEasy to reflect prior solving
-			}
-		} else {
-			// For subsequent reviews, calculate based on last review date and ease factor
-			previousInterval := float64(now.Sub(q.LastReviewed).Hours()) / 24.0
-			intervalDays = int(previousInterval * q.EaseFactor)
+	// First review uses base interval, with interval boost for high familiarity
+	if q.ReviewCount == 1 {
+		intervalDays := baseInterval
+		if grade == Easy {
+			intervalDays += 3 // Add 3 days for Easy
+			s.setEaseFactor(q, 1.8)
+		} else if grade == VeryEasy {
+			intervalDays += 5 // Add 5 days for VeryEasy
+			s.setEaseFactor(q, 2)
 		}
-
-		// Cap the interval to prevent overly long gaps
-		if intervalDays > s.maxInterval {
-			intervalDays = s.maxInterval
-		}
-
-		// Apply importance-based multiplier
-		adjustedInterval := int(float64(intervalDays) * s.intervalMultipliers[q.Importance])
-
-		// Ensure minimum interval of 1 day
-		if adjustedInterval < 1 {
-			adjustedInterval = 1
-		}
-
-		// Set next review date
-		q.NextReview = now.AddDate(0, 0, adjustedInterval)
-
-		// Update ease factor based on familiarity and importance
-		easeBonus := s.easeAdjustments[q.Importance]
-		penalty := float64(5-grade) * (0.04 + float64(5-grade)*0.008) // Penalty for lower grades
-		q.EaseFactor += easeBonus - penalty
-
-		// After 3+ reviews, ease keeps increasing even though recall is stable
-		if q.ReviewCount >= 3 {
-			q.EaseFactor += easeBonus * 0.5
-		}
-
-		// Clamp ease factor within bounds
-		s.clampEaseFactor(q)
+		s.setNextReview(q, now, intervalDays)
+		q.LastReviewed = now
+		q.Familiarity = grade
+		return
 	}
 
-	// Update last reviewed date and familiarity
+	// Subsequent reviews
+
+	// For low familiarity, reset to base interval and lower ease factor
+	if grade < Medium {
+		s.setNextReview(q, now, baseInterval)
+		s.setEaseFactorWithPenalty(q, grade)
+		q.LastReviewed = now
+		q.Familiarity = grade
+		return
+	}
+
+	// Adjust EaseFactor if question is overdue
+	if !q.NextReview.IsZero() {
+		overdueDays := int(now.Sub(q.NextReview).Hours() / 24)
+		if overdueDays > 3 && q.Importance > LowImportance && q.Familiarity < VeryEasy {
+			penaltyFactor := math.Min(0.02+float64(overdueDays-3)*0.01, 0.1) // increase gradually
+			q.EaseFactor -= penaltyFactor
+			s.secureEaseFactorBounds(q)
+		}
+	}
+
+	dayElapsed := float64(now.Sub(q.LastReviewed).Hours()) / 24.0
+	if q.LastReviewed.IsZero() || dayElapsed < 2 {
+		dayElapsed = 2
+	}
+	intervalDays := int(math.Round(
+		dayElapsed * q.EaseFactor * s.intervalMultipliers[q.Importance], // Apply importance-based multiplier
+	))
+	s.setNextReview(q, now, intervalDays)
+	s.setEaseFactorWithPenalty(q, grade)
 	q.LastReviewed = now
 	q.Familiarity = grade
 }
 
-// Clamp ease factor within bounds
-func (s SM2Scheduler) clampEaseFactor(q *Question) {
+func (s SM2Scheduler) setNextReview(q *Question, now time.Time, intervalDays int) {
+	if intervalDays < 1 {
+		intervalDays = 1
+	} else if intervalDays > s.maxInterval {
+		intervalDays = s.maxInterval
+	}
+	q.NextReview = now.AddDate(0, 0, intervalDays)
+}
+
+func (s SM2Scheduler) setDefaultEaseFactor(q *Question) {
+	q.EaseFactor = s.minEaseFactor
+}
+
+func (s SM2Scheduler) setEaseFactor(q *Question, easeFactor float64) {
+	q.EaseFactor = easeFactor
+}
+
+// Update ease factor based on familiarity and importance
+func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
+	easeBonus := s.easeAdjustments[q.Importance]
+	penalty := math.Min(0.15, float64(5-grade)*0.035) // Penalty for lower grades
+	q.EaseFactor += easeBonus - penalty
+	s.secureEaseFactorBounds(q)
+}
+
+// Secure ease factor within bounds
+func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
 	if q.EaseFactor < s.minEaseFactor {
 		q.EaseFactor = s.minEaseFactor
 	} else if q.EaseFactor > s.maxEaseFactor {

@@ -89,6 +89,8 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 		return
 	}
 
+	fmt.Printf("\n")
+
 	fmt.Println("Importance:")
 	fmt.Println("1. Low Importance")
 	fmt.Println("2. Medium Importance")
@@ -114,8 +116,8 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 		fmt.Println("Question upserted:")
 		fmt.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
 		fmt.Printf("   Note: %s\n", upsertedQuestion.Note)
-		fmt.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity)
-		fmt.Printf("   Importance: %d\n", upsertedQuestion.Importance)
+		fmt.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity+1)
+		fmt.Printf("   Importance: %d\n", upsertedQuestion.Importance+1)
 		fmt.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02"))
 		fmt.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02"))
 		fmt.Printf("   Review Count: %d\n", upsertedQuestion.ReviewCount)
