@@ -40,10 +40,10 @@ func NewSM2Scheduler() *SM2Scheduler {
 			CriticalImportance: 0.55, // Tightest intervals
 		},
 		easeAdjustments: map[Importance]float64{
-			LowImportance:      0.04, // Slower ease growth for low priority
-			MediumImportance:   0.06, // Moderate ease growth
-			HighImportance:     0.08, // Faster ease growth
-			CriticalImportance: 0.10, // Fastest ease growth
+			LowImportance:      0.12, // Grow faster, reviewed less often
+			MediumImportance:   0.10,
+			HighImportance:     0.07,
+			CriticalImportance: 0.05, // Slow growth to keep reviews tight
 		},
 	}
 }
@@ -55,6 +55,18 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 
 	// Get current date (truncate to day for consistency)
 	now := time.Now().Truncate(24 * time.Hour)
+
+	// Adjust EaseFactor if question is overdue
+	overdueDays := int(now.Sub(q.NextReview).Hours() / 24)
+	if overdueDays > 3 && q.Importance > LowImportance {
+		penaltyFactor := 0.02 + float64(overdueDays-3)*0.01 // increase gradually
+		q.EaseFactor -= penaltyFactor
+
+		// Clamp EaseFactor after penalty (optional but recommended)
+		if q.EaseFactor < s.minEaseFactor {
+			q.EaseFactor = s.minEaseFactor
+		}
+	}
 
 	// Get base interval based on importance
 	baseInterval := s.baseIntervals[q.Importance]
@@ -74,8 +86,8 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 				intervalDays += 2 // Add 2 days for Easy/VeryEasy to reflect prior solving
 			}
 		} else {
-			// Subsequent reviews use previous interval * ease factor
-			previousInterval := float64(q.NextReview.Sub(q.LastReviewed).Hours()) / 24.0
+			// For subsequent reviews, calculate based on last review date and ease factor
+			previousInterval := float64(now.Sub(q.LastReviewed).Hours()) / 24.0
 			intervalDays = int(previousInterval * q.EaseFactor)
 		}
 
@@ -99,6 +111,12 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 		easeBonus := s.easeAdjustments[q.Importance]
 		penalty := float64(5-grade) * (0.04 + float64(5-grade)*0.008) // Penalty for lower grades
 		q.EaseFactor += easeBonus - penalty
+
+		// Dampen ease growth for mature questions
+		// After 3+ successful reviews, the curve could become too flat — ease keeps increasing even though recall is stable.
+		if q.ReviewCount >= 3 {
+			q.EaseFactor += easeBonus * 0.5 // dampen ease growth
+		}
 
 		// Clamp ease factor within bounds
 		if q.EaseFactor < s.minEaseFactor {
