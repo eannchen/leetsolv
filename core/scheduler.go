@@ -144,7 +144,7 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
 		Hard:     0.25,
 		Medium:   0.10,
 		Easy:     0.00,
-		VeryEasy: -0.12, // Negative penalty = small bonus
+		VeryEasy: -0.10, // Negative penalty = small bonus
 	}
 
 	bonus := importanceEaseBonus[q.Importance]
