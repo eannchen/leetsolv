@@ -68,7 +68,7 @@ func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Famili
 	case Easy:
 		intervalDays += 2
 	case VeryEasy:
-		intervalDays += 3
+		intervalDays += 5
 	case VeryHard:
 		intervalDays -= 1
 	}
@@ -144,7 +144,7 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
 		Hard:     0.25,
 		Medium:   0.10,
 		Easy:     0.00,
-		VeryEasy: -0.05, // Negative penalty = small bonus
+		VeryEasy: -0.12, // Negative penalty = small bonus
 	}
 
 	bonus := importanceEaseBonus[q.Importance]
