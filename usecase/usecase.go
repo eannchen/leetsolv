@@ -186,3 +186,7 @@ func NormalizeLeetCodeURL(inputURL string) (string, error) {
 	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
 	return normalizedURL, nil
 }
+
+func Undo(storage storage.Storage) error {
+	return storage.Undo()
+}

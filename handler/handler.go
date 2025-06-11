@@ -154,6 +154,23 @@ func HandleDelete(scanner *bufio.Scanner, storage storage.Storage) {
 	fmt.Printf("\n")
 }
 
+func HandleUndo(scanner *bufio.Scanner, storage storage.Storage) {
+	// Confirm before undo
+	confirm := strings.ToLower(readLine(scanner, "Do you want to undo the previous action? [y/N]: "))
+	if confirm != "y" && confirm != "yes" {
+		fmt.Println("Cancelled.")
+		fmt.Printf("\n")
+		return
+	}
+
+	err := usecase.Undo(storage)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Undo successful.")
+	}
+}
+
 func readLine(scanner *bufio.Scanner, prompt string) string {
 	fmt.Print(prompt)
 	scanner.Scan()

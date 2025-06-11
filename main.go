@@ -12,12 +12,12 @@ import (
 )
 
 func main() {
-	storage := &storage.FileStorage{File: "questions.json"}
+	storage := &storage.FileStorage{File: "questions.json", Snapshot: "snapshot.json"}
 	scheduler := core.NewSM2Scheduler()
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Print("Enter command (status/list/upsert/delete/quit): ")
+		fmt.Print("Enter command (status/list/upsert/delete/undo/quit): ")
 		scanner.Scan()
 		cmd := strings.TrimSpace(scanner.Text())
 		switch cmd {
@@ -29,6 +29,8 @@ func main() {
 			handler.HandleUpsert(scanner, storage, scheduler)
 		case "delete":
 			handler.HandleDelete(scanner, storage)
+		case "undo":
+			handler.HandleUndo(scanner, storage)
 		case "quit":
 			return
 		default:
