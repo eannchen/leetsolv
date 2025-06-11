@@ -1,9 +1,13 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
+	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"leetsolv/core"
@@ -157,4 +161,28 @@ func DeleteQuestion(storage storage.Storage, target string) error {
 	}
 	fmt.Printf("Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
 	return nil
+}
+
+// NormalizeLeetCodeURL validates and normalizes a LeetCode problem URL.
+func NormalizeLeetCodeURL(inputURL string) (string, error) {
+	parsedURL, err := url.Parse(inputURL)
+	if err != nil {
+		return "", errors.New("invalid URL format")
+	}
+
+	// Ensure the URL is from leetcode.com
+	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
+		return "", errors.New("URL must be from leetcode.com/problems/")
+	}
+
+	// Extract the problem name from the path
+	re := regexp.MustCompile(`^/problems/([^/]+)`)
+	matches := re.FindStringSubmatch(parsedURL.Path)
+	if len(matches) != 2 {
+		return "", errors.New("invalid LeetCode problem URL format")
+	}
+
+	// Normalize the URL to "https://leetcode.com/problems/{question-name}/"
+	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
+	return normalizedURL, nil
 }

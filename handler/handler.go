@@ -73,7 +73,15 @@ func HandleStatus(storage storage.Storage) {
 }
 
 func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler core.Scheduler) {
-	url := readLine(scanner, "URL: ")
+	rawURL := readLine(scanner, "URL: ")
+
+	// Normalize and validate the URL
+	url, err := usecase.NormalizeLeetCodeURL(rawURL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
 	note := readLine(scanner, "Note: ")
 
 	fmt.Println("Familiarity:")
