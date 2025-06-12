@@ -16,9 +16,9 @@ type Storage interface {
 }
 
 type FileStorage struct {
-	File     string
-	Snapshot string
-	mu       sync.Mutex
+	QuestionsFile string
+	SnapshotFile  string
+	mu            sync.Mutex
 }
 
 func (fs *FileStorage) Load() ([]core.Question, error) {
@@ -28,7 +28,7 @@ func (fs *FileStorage) Load() ([]core.Question, error) {
 }
 
 func (fs *FileStorage) load() ([]core.Question, error) {
-	f, err := os.Open(fs.File)
+	f, err := os.Open(fs.QuestionsFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return []core.Question{}, nil
@@ -58,7 +58,7 @@ func (fs *FileStorage) save(data []core.Question) error {
 		return err
 	}
 
-	f, err := os.Create(fs.File)
+	f, err := os.Create(fs.QuestionsFile)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (fs *FileStorage) save(data []core.Question) error {
 
 func (fs *FileStorage) pushUndoState(data []core.Question) error {
 	// Open the snapshot file
-	f, err := os.OpenFile(fs.Snapshot, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(fs.SnapshotFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (fs *FileStorage) Undo() error {
 	defer fs.mu.Unlock()
 
 	// Open the snapshot file
-	f, err := os.OpenFile(fs.Snapshot, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(fs.SnapshotFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
