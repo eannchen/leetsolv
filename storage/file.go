@@ -24,59 +24,84 @@ type FileStorage struct {
 func (fs *FileStorage) Load() ([]core.Question, error) {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
-	return fs.load()
+	return fs.loadQuestions()
 }
 
-func (fs *FileStorage) load() ([]core.Question, error) {
+func (fs *FileStorage) loadQuestions() ([]core.Question, error) {
+	var questions []core.Question
+
+	// Open the questions file (read-only access)
 	f, err := os.Open(fs.QuestionsFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return []core.Question{}, nil
+			return questions, nil
 		}
 		return nil, err
 	}
 	defer f.Close()
-	var data []core.Question
-	err = json.NewDecoder(f).Decode(&data)
-	return data, err
+
+	if err = json.NewDecoder(f).Decode(&questions); err != nil {
+		return nil, err
+	}
+	return questions, nil
 }
 
-func (fs *FileStorage) Save(data []core.Question) error {
+func (fs *FileStorage) Save(questions []core.Question) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
-	return fs.save(data)
+	return fs.saveQuestions(questions)
 }
 
-func (fs *FileStorage) save(data []core.Question) error {
-	// Load the current state and push it to the undo stack
-	currentState, err := fs.load()
+func (fs *FileStorage) saveQuestions(questions []core.Question) error {
+	// Load the current questions and push it to the undo stack
+	curQuestions, err := fs.loadQuestions()
 	if err != nil {
 		return err
 	}
-
-	if err := fs.pushUndoState(currentState); err != nil {
+	if err := fs.pushToSnapshot(curQuestions); err != nil {
 		return err
 	}
 
-	f, err := os.Create(fs.QuestionsFile)
+	// Create a temporary file in the same directory as the QuestionsFile
+	tempFile, err := os.CreateTemp("", "questions_temp_*.json")
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	enc := json.NewEncoder(f)
+	defer func() {
+		// Ensure the temporary file is removed if something goes wrong
+		tempFile.Close()
+		os.Remove(tempFile.Name())
+	}()
+
+	// Write the new questions to the temporary file
+	enc := json.NewEncoder(tempFile)
 	enc.SetIndent("", "  ")
-	return enc.Encode(data)
+	if err := enc.Encode(questions); err != nil {
+		return err
+	}
+
+	// Close the temporary file to flush the data to disk
+	if err := tempFile.Close(); err != nil {
+		return err
+	}
+
+	// Replace the original file with the temporary file
+	if err := os.Rename(tempFile.Name(), fs.QuestionsFile); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (fs *FileStorage) pushUndoState(data []core.Question) error {
-	// Open the snapshot file
+func (fs *FileStorage) pushToSnapshot(questions []core.Question) error {
+	// Open/Create the questions file (allow read/write)
 	f, err := os.OpenFile(fs.SnapshotFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	var snapshot [][]core.Question
+	snapshot := [][]core.Question{}
 
 	// Decode the snapshot file if it is not empty
 	fileInfo, err := f.Stat()
@@ -84,32 +109,45 @@ func (fs *FileStorage) pushUndoState(data []core.Question) error {
 		return err
 	}
 	if fileInfo.Size() > 0 {
-		err = json.NewDecoder(f).Decode(&snapshot)
-		if err != nil {
+		if err = json.NewDecoder(f).Decode(&snapshot); err != nil {
 			return err
 		}
-	} else {
-		// Initialize snapshot as an empty slice if the file is empty
-		snapshot = [][]core.Question{}
 	}
 
 	// Make a deep copy of the data to avoid modifying the original
-	copiedData := make([]core.Question, len(data))
-	copy(copiedData, data)
+	copiedData := make([]core.Question, len(questions))
+	copy(copiedData, questions)
 	snapshot = append(snapshot, copiedData)
 
-	// Truncate the file before writing the updated snapshot
-	if err := f.Truncate(0); err != nil {
+	// Create a temporary file for the snapshot
+	tempFile, err := os.CreateTemp("", "snapshot_temp_*.json")
+	if err != nil {
 		return err
 	}
-	if _, err := f.Seek(0, 0); err != nil {
+	defer func() {
+		// Ensure the temporary file is removed if something goes wrong
+		tempFile.Close()
+		os.Remove(tempFile.Name())
+	}()
+
+	// Write the updated snapshot to the temporary file
+	enc := json.NewEncoder(tempFile)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(snapshot); err != nil {
 		return err
 	}
 
-	// Write the updated snapshot back to the file
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "  ")
-	return enc.Encode(snapshot)
+	// Close the temporary file to flush the data to disk
+	if err := tempFile.Close(); err != nil {
+		return err
+	}
+
+	// Replace the original snapshot file with the temporary file
+	if err := os.Rename(tempFile.Name(), fs.SnapshotFile); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (fs *FileStorage) Undo() error {
@@ -144,7 +182,7 @@ func (fs *FileStorage) Undo() error {
 	// Remove it from the stack
 	snapshot = snapshot[:len(snapshot)-1]
 
-	if err = fs.save(lastState); err != nil {
+	if err = fs.saveQuestions(lastState); err != nil {
 		return err
 	}
 
