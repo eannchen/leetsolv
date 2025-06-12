@@ -21,7 +21,7 @@ func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Ques
 	}
 
 	now := time.Now().Truncate(24 * time.Hour) // Use only the date
-	twoWeeksLater := now.AddDate(0, 0, 14)     // Add 14 days to the current date
+	threeDaysLater := now.AddDate(0, 0, 3)     // Add 3 days to the current date
 
 	due := []core.Question{}
 	upcoming := []core.Question{}
@@ -30,7 +30,7 @@ func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Ques
 		nextReviewDate := q.NextReview.Truncate(24 * time.Hour) // Truncate time
 		if !nextReviewDate.After(now) {
 			due = append(due, q)
-		} else if nextReviewDate.Before(twoWeeksLater) {
+		} else if nextReviewDate.Before(threeDaysLater) {
 			upcoming = append(upcoming, q)
 		}
 	}

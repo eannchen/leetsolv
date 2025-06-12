@@ -65,7 +65,7 @@ func HandleStatus(storage storage.Storage) {
 		fmt.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
 	}
 
-	fmt.Printf("\nUpcoming Questions (within 14 days): %d\n", len(upcoming))
+	fmt.Printf("\nUpcoming Questions (within 3 days): %d\n", len(upcoming))
 	for _, q := range upcoming {
 		fmt.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
 	}
