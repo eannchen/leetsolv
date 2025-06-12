@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	storage := &storage.FileStorage{QuestionsFile: "questions.json", SnapshotFile: "snapshot.json"}
+	storage := &storage.FileStorage{QuestionsFile: "questions.json", SnapshotsFile: "snapshots.json"}
 	scheduler := core.NewSM2Scheduler()
 	scanner := bufio.NewScanner(os.Stdin)
 
