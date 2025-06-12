@@ -32,7 +32,7 @@ func NewSM2Scheduler() *SM2Scheduler {
 			HighImportance:     5, // Slightly tighter
 			CriticalImportance: 4, // Tightest
 		},
-		maxInterval:   90,  // Cap at ~3 months to ensure retention
+		maxInterval:   45,  // Ensure at least 2-3 reviews within 90 days
 		minEaseFactor: 1.3, // Lower bound for ease factor
 		maxEaseFactor: 2.6, // Upper bound to prevent overly long intervals
 	}
