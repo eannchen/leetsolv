@@ -17,7 +17,7 @@ type Storage interface {
 
 type FileStorage struct {
 	QuestionsFile string
-	SnapshotFile  string
+	SnapshotsFile string
 	mu            sync.Mutex
 }
 
@@ -36,7 +36,7 @@ func (fs *FileStorage) Save(questions []core.Question) error {
 		return err
 	}
 
-	snapshot, err := fs.loadSnapshot()
+	snapshots, err := fs.loadSnapshots()
 	if err != nil {
 		return err
 	}
@@ -45,9 +45,9 @@ func (fs *FileStorage) Save(questions []core.Question) error {
 	copiedQuestions := make([]core.Question, len(currentQuestions))
 	copy(copiedQuestions, currentQuestions)
 
-	snapshot = append(snapshot, copiedQuestions)
+	snapshots = append(snapshots, copiedQuestions)
 
-	if err := fs.saveSnapshot(snapshot); err != nil {
+	if err := fs.saveSnapshots(snapshots); err != nil {
 		return err
 	}
 	return fs.saveQuestions(questions)
@@ -57,23 +57,23 @@ func (fs *FileStorage) Undo() error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
-	snapshot, err := fs.loadSnapshot()
+	snapshots, err := fs.loadSnapshots()
 	if err != nil {
 		return err
 	}
 
-	if len(snapshot) == 0 {
+	if len(snapshots) == 0 {
 		return errors.New("no actions to undo")
 	}
 
-	// Get the last state and remove it from snapshot
-	lastQuestions := snapshot[len(snapshot)-1]
-	snapshot = snapshot[:len(snapshot)-1]
+	// Get the last state and remove it from snapshots
+	lastQuestions := snapshots[len(snapshots)-1]
+	snapshots = snapshots[:len(snapshots)-1]
 
 	if err := fs.saveQuestions(lastQuestions); err != nil {
 		return err
 	}
-	return fs.saveSnapshot(snapshot)
+	return fs.saveSnapshots(snapshots)
 }
 
 // Private helper methods
@@ -88,14 +88,14 @@ func (fs *FileStorage) saveQuestions(questions []core.Question) error {
 	return fs.saveJSONToFile(questions, fs.QuestionsFile)
 }
 
-func (fs *FileStorage) loadSnapshot() ([][]core.Question, error) {
-	var snapshot [][]core.Question
-	err := fs.loadJSONFromFile(&snapshot, fs.SnapshotFile)
-	return snapshot, err
+func (fs *FileStorage) loadSnapshots() ([][]core.Question, error) {
+	var snapshots [][]core.Question
+	err := fs.loadJSONFromFile(&snapshots, fs.SnapshotsFile)
+	return snapshots, err
 }
 
-func (fs *FileStorage) saveSnapshot(snapshot [][]core.Question) error {
-	return fs.saveJSONToFile(snapshot, fs.SnapshotFile)
+func (fs *FileStorage) saveSnapshots(snapshots [][]core.Question) error {
+	return fs.saveJSONToFile(snapshots, fs.SnapshotsFile)
 }
 
 // loadFile is a generic helper to load JSON data from a file into the provided data structure.
