@@ -136,7 +136,7 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 }
 
 func HandleDelete(scanner *bufio.Scanner, storage storage.Storage) {
-	input := readLine(scanner, "Enter ID, URL or type '--last' to delete the most recently added: ")
+	input := readLine(scanner, "Enter ID or URL to delete the question: ")
 
 	// Confirm before deleting
 	confirm := strings.ToLower(readLine(scanner, "Do you want to delete the question? [y/N]: "))

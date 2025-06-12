@@ -136,20 +136,11 @@ func DeleteQuestion(storage storage.Storage, target string) error {
 	id, err := strconv.Atoi(target)
 	isID := err == nil
 
-	if target == "--last" {
-		if len(questions) == 0 {
-			return fmt.Errorf("no questions to delete")
-		}
-		last := questions[len(questions)-1]
-		newQuestions = questions[:len(questions)-1]
-		deletedQuestion = &last
-	} else {
-		for _, q := range questions {
-			if (isID && q.ID == id) || (!isID && q.URL == target) {
-				deletedQuestion = &q
-			} else {
-				newQuestions = append(newQuestions, q)
-			}
+	for _, q := range questions {
+		if (isID && q.ID == id) || (!isID && q.URL == target) {
+			deletedQuestion = &q
+		} else {
+			newQuestions = append(newQuestions, q)
 		}
 	}
 
