@@ -45,8 +45,15 @@ func (fs *FileStorage) Save(questions []core.Question) error {
 	copiedQuestions := make([]core.Question, len(currentQuestions))
 	copy(copiedQuestions, currentQuestions)
 
+	// Append the current state to snapshots
 	snapshots = append(snapshots, copiedQuestions)
 
+	// Keep only the last 30 snapshots
+	if len(snapshots) > 30 {
+		snapshots = snapshots[len(snapshots)-30:]
+	}
+
+	// Save the updated snapshots and questions
 	if err := fs.saveSnapshots(snapshots); err != nil {
 		return err
 	}
