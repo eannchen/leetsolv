@@ -16,21 +16,23 @@ func main() {
 	scheduler := core.NewSM2Scheduler()
 	scanner := bufio.NewScanner(os.Stdin)
 
+	h := handler.NewHandler(storage, scheduler)
+
 	for {
 		fmt.Print("Enter command (status/list/upsert/delete/undo/quit): ")
 		scanner.Scan()
 		cmd := strings.TrimSpace(scanner.Text())
 		switch cmd {
 		case "list":
-			handler.HandleList(scanner, storage)
+			h.HandleList(scanner)
 		case "status":
-			handler.HandleStatus(storage, scheduler)
+			h.HandleStatus()
 		case "upsert":
-			handler.HandleUpsert(scanner, storage, scheduler)
+			h.HandleUpsert(scanner)
 		case "delete":
-			handler.HandleDelete(scanner, storage)
+			h.HandleDelete(scanner)
 		case "undo":
-			handler.HandleUndo(scanner, storage)
+			h.HandleUndo(scanner)
 		case "quit":
 			return
 		default:

@@ -11,12 +11,26 @@ import (
 	"leetsolv/usecase"
 )
 
-func HandleList(scanner *bufio.Scanner, storage storage.Storage) {
+// Handler struct to encapsulate dependencies
+type Handler struct {
+	Storage   storage.Storage
+	Scheduler core.Scheduler
+}
+
+// NewHandler creates a new Handler instance
+func NewHandler(storage storage.Storage, scheduler core.Scheduler) *Handler {
+	return &Handler{
+		Storage:   storage,
+		Scheduler: scheduler,
+	}
+}
+
+func (h *Handler) HandleList(scanner *bufio.Scanner) {
 	const pageSize = 5
 	page := 0
 
 	for {
-		questions, totalPages, err := usecase.PaginatedListQuestions(storage, pageSize, page)
+		questions, totalPages, err := usecase.PaginatedListQuestions(h.Storage, pageSize, page)
 		if err != nil {
 			fmt.Println("Error:", err)
 			break
@@ -51,8 +65,8 @@ func HandleList(scanner *bufio.Scanner, storage storage.Storage) {
 	}
 }
 
-func HandleStatus(storage storage.Storage, scheduler core.Scheduler) {
-	due, upcoming, total, err := usecase.ListQuestionsSummary(storage, scheduler)
+func (h *Handler) HandleStatus() {
+	due, upcoming, total, err := usecase.ListQuestionsSummary(h.Storage, h.Scheduler)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -72,7 +86,7 @@ func HandleStatus(storage storage.Storage, scheduler core.Scheduler) {
 	fmt.Printf("\n")
 }
 
-func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler core.Scheduler) {
+func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	rawURL := readLine(scanner, "URL: ")
 
 	// Normalize and validate the URL
@@ -116,7 +130,7 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 	importance := core.Importance(imp - 1)
 
 	// Call the updated UpsertQuestion function
-	upsertedQuestion, err := usecase.UpsertQuestion(storage, scheduler, url, note, familiarity, importance)
+	upsertedQuestion, err := usecase.UpsertQuestion(h.Storage, h.Scheduler, url, note, familiarity, importance)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -135,7 +149,7 @@ func HandleUpsert(scanner *bufio.Scanner, storage storage.Storage, scheduler cor
 	fmt.Printf("\n")
 }
 
-func HandleDelete(scanner *bufio.Scanner, storage storage.Storage) {
+func (h *Handler) HandleDelete(scanner *bufio.Scanner) {
 	input := readLine(scanner, "Enter ID or URL to delete the question: ")
 
 	// Confirm before deleting
@@ -146,7 +160,7 @@ func HandleDelete(scanner *bufio.Scanner, storage storage.Storage) {
 		return
 	}
 
-	if err := usecase.DeleteQuestion(storage, input); err != nil {
+	if err := usecase.DeleteQuestion(h.Storage, input); err != nil {
 		fmt.Println("Error:", err)
 	} else {
 		fmt.Println("Question deleted.")
@@ -154,7 +168,7 @@ func HandleDelete(scanner *bufio.Scanner, storage storage.Storage) {
 	fmt.Printf("\n")
 }
 
-func HandleUndo(scanner *bufio.Scanner, storage storage.Storage) {
+func (h *Handler) HandleUndo(scanner *bufio.Scanner) {
 	// Confirm before undo
 	confirm := strings.ToLower(readLine(scanner, "Do you want to undo the previous action? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
@@ -163,7 +177,7 @@ func HandleUndo(scanner *bufio.Scanner, storage storage.Storage) {
 		return
 	}
 
-	err := usecase.Undo(storage)
+	err := usecase.Undo(h.Storage)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
