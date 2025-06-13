@@ -14,20 +14,44 @@ import (
 	"leetsolv/storage"
 )
 
-func ListQuestionsSummary(storage storage.Storage, scheduler core.Scheduler) ([]core.Question, []core.Question, int, error) {
-	questions, err := storage.Load()
+// UseCaseInterface defines the interface for use cases
+type UseCaseInterface interface {
+	ListQuestionsSummary() ([]core.Question, []core.Question, int, error)
+	PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error)
+	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
+	DeleteQuestion(target string) error
+	NormalizeLeetCodeURL(inputURL string) (string, error)
+	Undo() error
+}
+
+// UseCase struct encapsulates dependencies for use cases
+type UseCase struct {
+	Storage   storage.Storage
+	Scheduler core.Scheduler
+}
+
+// NewUseCase creates a new UseCase instance
+func NewUseCase(storage storage.Storage, scheduler core.Scheduler) *UseCase {
+	return &UseCase{
+		Storage:   storage,
+		Scheduler: scheduler,
+	}
+}
+
+func (u *UseCase) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
+	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, nil, 0, err
 	}
 
-	now := time.Now().Truncate(24 * time.Hour) // Use only the date
-	threeDaysLater := now.AddDate(0, 0, 3)     // Add 3 days to the current date
+	now := time.Now().Truncate(24 * time.Hour)
+	threeDaysLater := now.AddDate(0, 0, 3)
 
 	due := []core.Question{}
 	upcoming := []core.Question{}
 
 	for _, q := range questions {
-		nextReviewDate := q.NextReview.Truncate(24 * time.Hour) // Truncate time
+		nextReviewDate := q.NextReview.Truncate(24 * time.Hour)
 		if !nextReviewDate.After(now) {
 			due = append(due, q)
 		} else if nextReviewDate.Before(threeDaysLater) {
@@ -35,12 +59,10 @@ func ListQuestionsSummary(storage storage.Storage, scheduler core.Scheduler) ([]
 		}
 	}
 
-	// Sort due questions by priority score
 	sort.Slice(due, func(i, j int) bool {
-		return scheduler.CalculatePriorityScore(&due[i]) > scheduler.CalculatePriorityScore(&due[j])
+		return u.Scheduler.CalculatePriorityScore(&due[i]) > u.Scheduler.CalculatePriorityScore(&due[j])
 	})
 
-	// Sort upcoming questions by NextReview date
 	sort.Slice(upcoming, func(i, j int) bool {
 		return upcoming[i].NextReview.Before(upcoming[j].NextReview)
 	})
@@ -49,13 +71,12 @@ func ListQuestionsSummary(storage storage.Storage, scheduler core.Scheduler) ([]
 	return due, upcoming, total, nil
 }
 
-func PaginatedListQuestions(storage storage.Storage, pageSize, page int) ([]core.Question, int, error) {
-	questions, err := storage.Load()
+func (u *UseCase) PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error) {
+	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// Sort questions by ID in descending order
 	sort.Slice(questions, func(i, j int) bool {
 		return questions[i].ID > questions[j].ID
 	})
@@ -65,22 +86,18 @@ func PaginatedListQuestions(storage storage.Storage, pageSize, page int) ([]core
 		return nil, 0, nil
 	}
 
-	// Calculate total pages
 	totalPages := (totalQuestions + pageSize - 1) / pageSize
 
-	// Ensure the requested page is within bounds
 	if page < 0 || page >= totalPages {
 		return nil, totalPages, fmt.Errorf("invalid page number")
 	}
 
-	// Get the questions for the current page
 	start := page * pageSize
 	end := start + pageSize
 	if end > totalQuestions {
 		end = totalQuestions
 	}
 
-	// Truncate NextReview to date only for display purposes
 	for i := range questions[start:end] {
 		questions[start:end][i].NextReview = questions[start:end][i].NextReview.Truncate(24 * time.Hour)
 	}
@@ -88,8 +105,8 @@ func PaginatedListQuestions(storage storage.Storage, pageSize, page int) ([]core
 	return questions[start:end], totalPages, nil
 }
 
-func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
-	questions, err := storage.Load()
+func (u *UseCase) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
+	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, err
 	}
@@ -98,11 +115,10 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 	found := false
 	for i := range questions {
 		if questions[i].URL == url {
-			// Update existing question
 			questions[i].Note = note
 			questions[i].Familiarity = familiarity
 			questions[i].Importance = importance
-			scheduler.Schedule(&questions[i], familiarity)
+			u.Scheduler.Schedule(&questions[i], familiarity)
 			upsertedQuestion = &questions[i]
 			found = true
 			break
@@ -110,26 +126,25 @@ func UpsertQuestion(storage storage.Storage, scheduler core.Scheduler, url, note
 	}
 
 	if !found {
-		// Generate a new unique ID
 		newID := 1
 		for _, q := range questions {
 			if q.ID >= newID {
 				newID = q.ID + 1
 			}
 		}
-		q := scheduler.ScheduleNewQuestion(newID, url, note, familiarity, importance)
+		q := u.Scheduler.ScheduleNewQuestion(newID, url, note, familiarity, importance)
 		questions = append(questions, *q)
 		upsertedQuestion = q
 	}
 
-	if err := storage.Save(questions); err != nil {
+	if err := u.Storage.Save(questions); err != nil {
 		return nil, err
 	}
 	return upsertedQuestion, nil
 }
 
-func DeleteQuestion(storage storage.Storage, target string) error {
-	questions, err := storage.Load()
+func (u *UseCase) DeleteQuestion(target string) error {
+	questions, err := u.Storage.Load()
 	if err != nil {
 		return err
 	}
@@ -137,7 +152,6 @@ func DeleteQuestion(storage storage.Storage, target string) error {
 	var newQuestions []core.Question
 	var deletedQuestion *core.Question
 
-	// Check if the target is an ID
 	id, err := strconv.Atoi(target)
 	isID := err == nil
 
@@ -152,37 +166,33 @@ func DeleteQuestion(storage storage.Storage, target string) error {
 	if deletedQuestion == nil {
 		return fmt.Errorf("no matching question found to delete")
 	}
-	if err := storage.Save(newQuestions); err != nil {
+	if err := u.Storage.Save(newQuestions); err != nil {
 		return err
 	}
 	fmt.Printf("Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
 	return nil
 }
 
-// NormalizeLeetCodeURL validates and normalizes a LeetCode problem URL.
-func NormalizeLeetCodeURL(inputURL string) (string, error) {
+func (u *UseCase) NormalizeLeetCodeURL(inputURL string) (string, error) {
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return "", errors.New("invalid URL format")
 	}
 
-	// Ensure the URL is from leetcode.com
 	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
 		return "", errors.New("URL must be from leetcode.com/problems/")
 	}
 
-	// Extract the problem name from the path
 	re := regexp.MustCompile(`^/problems/([^/]+)`)
 	matches := re.FindStringSubmatch(parsedURL.Path)
 	if len(matches) != 2 {
 		return "", errors.New("invalid LeetCode problem URL format")
 	}
 
-	// Normalize the URL to "https://leetcode.com/problems/{question-name}/"
 	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
 	return normalizedURL, nil
 }
 
-func Undo(storage storage.Storage) error {
-	return storage.Undo()
+func (u *UseCase) Undo() error {
+	return u.Storage.Undo()
 }

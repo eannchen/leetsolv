@@ -9,14 +9,16 @@ import (
 	"leetsolv/core"
 	"leetsolv/handler"
 	"leetsolv/storage"
+	"leetsolv/usecase"
 )
 
 func main() {
 	storage := &storage.FileStorage{QuestionsFile: "questions.json", SnapshotsFile: "snapshots.json"}
 	scheduler := core.NewSM2Scheduler()
-	scanner := bufio.NewScanner(os.Stdin)
+	useCase := usecase.NewUseCase(storage, scheduler)
+	h := handler.NewHandler(useCase)
 
-	h := handler.NewHandler(storage, scheduler)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
 		fmt.Print("Enter command (status/list/upsert/delete/undo/quit): ")

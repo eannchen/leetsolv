@@ -7,21 +7,16 @@ import (
 	"strings"
 
 	"leetsolv/core"
-	"leetsolv/storage"
 	"leetsolv/usecase"
 )
 
-// Handler struct to encapsulate dependencies
 type Handler struct {
-	Storage   storage.Storage
-	Scheduler core.Scheduler
+	UseCase usecase.UseCaseInterface
 }
 
-// NewHandler creates a new Handler instance
-func NewHandler(storage storage.Storage, scheduler core.Scheduler) *Handler {
+func NewHandler(useCase usecase.UseCaseInterface) *Handler {
 	return &Handler{
-		Storage:   storage,
-		Scheduler: scheduler,
+		UseCase: useCase,
 	}
 }
 
@@ -30,7 +25,7 @@ func (h *Handler) HandleList(scanner *bufio.Scanner) {
 	page := 0
 
 	for {
-		questions, totalPages, err := usecase.PaginatedListQuestions(h.Storage, pageSize, page)
+		questions, totalPages, err := h.UseCase.PaginatedListQuestions(pageSize, page)
 		if err != nil {
 			fmt.Println("Error:", err)
 			break
@@ -66,7 +61,7 @@ func (h *Handler) HandleList(scanner *bufio.Scanner) {
 }
 
 func (h *Handler) HandleStatus() {
-	due, upcoming, total, err := usecase.ListQuestionsSummary(h.Storage, h.Scheduler)
+	due, upcoming, total, err := h.UseCase.ListQuestionsSummary()
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -90,7 +85,7 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	rawURL := readLine(scanner, "URL: ")
 
 	// Normalize and validate the URL
-	url, err := usecase.NormalizeLeetCodeURL(rawURL)
+	url, err := h.UseCase.NormalizeLeetCodeURL(rawURL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -130,7 +125,7 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	importance := core.Importance(imp - 1)
 
 	// Call the updated UpsertQuestion function
-	upsertedQuestion, err := usecase.UpsertQuestion(h.Storage, h.Scheduler, url, note, familiarity, importance)
+	upsertedQuestion, err := h.UseCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -160,7 +155,7 @@ func (h *Handler) HandleDelete(scanner *bufio.Scanner) {
 		return
 	}
 
-	if err := usecase.DeleteQuestion(h.Storage, input); err != nil {
+	if err := h.UseCase.DeleteQuestion(input); err != nil {
 		fmt.Println("Error:", err)
 	} else {
 		fmt.Println("Question deleted.")
@@ -177,7 +172,7 @@ func (h *Handler) HandleUndo(scanner *bufio.Scanner) {
 		return
 	}
 
-	err := usecase.Undo(h.Storage)
+	err := h.UseCase.Undo()
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
