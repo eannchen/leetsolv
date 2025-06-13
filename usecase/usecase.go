@@ -14,8 +14,8 @@ import (
 	"leetsolv/storage"
 )
 
-// UseCaseInterface defines the interface for use cases
-type UseCaseInterface interface {
+// QuestionUseCase defines the interface for question use cases
+type QuestionUseCase interface {
 	ListQuestionsSummary() ([]core.Question, []core.Question, int, error)
 	PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
@@ -24,21 +24,21 @@ type UseCaseInterface interface {
 	Undo() error
 }
 
-// UseCase struct encapsulates dependencies for use cases
-type UseCase struct {
+// QuestionUseCaseImpl struct encapsulates dependencies for use cases
+type QuestionUseCaseImpl struct {
 	Storage   storage.Storage
 	Scheduler core.Scheduler
 }
 
-// NewUseCase creates a new UseCase instance
-func NewUseCase(storage storage.Storage, scheduler core.Scheduler) *UseCase {
-	return &UseCase{
+// NewQuestionUseCase creates a new QuestionUseCase instance
+func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler) *QuestionUseCaseImpl {
+	return &QuestionUseCaseImpl{
 		Storage:   storage,
 		Scheduler: scheduler,
 	}
 }
 
-func (u *UseCase) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
+func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
 	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, nil, 0, err
@@ -71,7 +71,7 @@ func (u *UseCase) ListQuestionsSummary() ([]core.Question, []core.Question, int,
 	return due, upcoming, total, nil
 }
 
-func (u *UseCase) PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error) {
+func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error) {
 	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, 0, err
@@ -105,7 +105,7 @@ func (u *UseCase) PaginatedListQuestions(pageSize, page int) ([]core.Question, i
 	return questions[start:end], totalPages, nil
 }
 
-func (u *UseCase) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
+func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
 	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (u *UseCase) UpsertQuestion(url, note string, familiarity core.Familiarity,
 	return upsertedQuestion, nil
 }
 
-func (u *UseCase) DeleteQuestion(target string) error {
+func (u *QuestionUseCaseImpl) DeleteQuestion(target string) error {
 	questions, err := u.Storage.Load()
 	if err != nil {
 		return err
@@ -173,7 +173,7 @@ func (u *UseCase) DeleteQuestion(target string) error {
 	return nil
 }
 
-func (u *UseCase) NormalizeLeetCodeURL(inputURL string) (string, error) {
+func (u *QuestionUseCaseImpl) NormalizeLeetCodeURL(inputURL string) (string, error) {
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return "", errors.New("invalid URL format")
@@ -193,6 +193,6 @@ func (u *UseCase) NormalizeLeetCodeURL(inputURL string) (string, error) {
 	return normalizedURL, nil
 }
 
-func (u *UseCase) Undo() error {
+func (u *QuestionUseCaseImpl) Undo() error {
 	return u.Storage.Undo()
 }

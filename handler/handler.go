@@ -11,12 +11,12 @@ import (
 )
 
 type Handler struct {
-	UseCase usecase.UseCaseInterface
+	QuestionUseCase usecase.QuestionUseCase
 }
 
-func NewHandler(useCase usecase.UseCaseInterface) *Handler {
+func NewHandler(questionUseCase usecase.QuestionUseCase) *Handler {
 	return &Handler{
-		UseCase: useCase,
+		QuestionUseCase: questionUseCase,
 	}
 }
 
@@ -25,7 +25,7 @@ func (h *Handler) HandleList(scanner *bufio.Scanner) {
 	page := 0
 
 	for {
-		questions, totalPages, err := h.UseCase.PaginatedListQuestions(pageSize, page)
+		questions, totalPages, err := h.QuestionUseCase.PaginatedListQuestions(pageSize, page)
 		if err != nil {
 			fmt.Println("Error:", err)
 			break
@@ -61,7 +61,7 @@ func (h *Handler) HandleList(scanner *bufio.Scanner) {
 }
 
 func (h *Handler) HandleStatus() {
-	due, upcoming, total, err := h.UseCase.ListQuestionsSummary()
+	due, upcoming, total, err := h.QuestionUseCase.ListQuestionsSummary()
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -85,7 +85,7 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	rawURL := readLine(scanner, "URL: ")
 
 	// Normalize and validate the URL
-	url, err := h.UseCase.NormalizeLeetCodeURL(rawURL)
+	url, err := h.QuestionUseCase.NormalizeLeetCodeURL(rawURL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -125,7 +125,7 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	importance := core.Importance(imp - 1)
 
 	// Call the updated UpsertQuestion function
-	upsertedQuestion, err := h.UseCase.UpsertQuestion(url, note, familiarity, importance)
+	upsertedQuestion, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -155,7 +155,7 @@ func (h *Handler) HandleDelete(scanner *bufio.Scanner) {
 		return
 	}
 
-	if err := h.UseCase.DeleteQuestion(input); err != nil {
+	if err := h.QuestionUseCase.DeleteQuestion(input); err != nil {
 		fmt.Println("Error:", err)
 	} else {
 		fmt.Println("Question deleted.")
@@ -172,7 +172,7 @@ func (h *Handler) HandleUndo(scanner *bufio.Scanner) {
 		return
 	}
 
-	err := h.UseCase.Undo()
+	err := h.QuestionUseCase.Undo()
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {

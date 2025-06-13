@@ -15,8 +15,8 @@ import (
 func main() {
 	storage := &storage.FileStorage{QuestionsFile: "questions.json", SnapshotsFile: "snapshots.json"}
 	scheduler := core.NewSM2Scheduler()
-	useCase := usecase.NewUseCase(storage, scheduler)
-	h := handler.NewHandler(useCase)
+	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
+	h := handler.NewHandler(questionUseCase)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
