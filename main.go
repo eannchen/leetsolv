@@ -24,7 +24,7 @@ func main() {
 		case "list":
 			handler.HandleList(scanner, storage)
 		case "status":
-			handler.HandleStatus(storage)
+			handler.HandleStatus(storage, scheduler)
 		case "upsert":
 			handler.HandleUpsert(scanner, storage, scheduler)
 		case "delete":

@@ -14,7 +14,7 @@ import (
 	"leetsolv/storage"
 )
 
-func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Question, int, error) {
+func ListQuestionsSummary(storage storage.Storage, scheduler core.Scheduler) ([]core.Question, []core.Question, int, error) {
 	questions, err := storage.Load()
 	if err != nil {
 		return nil, nil, 0, err
@@ -34,6 +34,11 @@ func ListQuestionsSummary(storage storage.Storage) ([]core.Question, []core.Ques
 			upcoming = append(upcoming, q)
 		}
 	}
+
+	// Sort due questions by priority score
+	sort.Slice(due, func(i, j int) bool {
+		return scheduler.CalculatePriorityScore(&due[i]) > scheduler.CalculatePriorityScore(&due[j])
+	})
 
 	// Sort upcoming questions by NextReview date
 	sort.Slice(upcoming, func(i, j int) bool {

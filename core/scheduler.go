@@ -8,6 +8,7 @@ import (
 type Scheduler interface {
 	ScheduleNewQuestion(id int, url, note string, grade Familiarity, importance Importance) *Question
 	Schedule(q *Question, grade Familiarity)
+	CalculatePriorityScore(q *Question) float64
 }
 
 // SM2Scheduler implements the spaced repetition scheduling logic
@@ -168,4 +169,35 @@ func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
 	} else if q.EaseFactor > s.maxEaseFactor {
 		q.EaseFactor = s.maxEaseFactor
 	}
+}
+
+func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
+	today := s.today()
+
+	// Constants: Tuned for prioritizing the most critical items.
+	const (
+		importanceWeight    = 3.0  // Prioritizes designated importance
+		overdueWeight       = 1.5  // Prioritizes items past their due date
+		familiarityWeight   = 2.0  // Prioritizes historically difficult items
+		reviewPenaltyWeight = -1.0 // De-prioritizes questions seen many times (prevents leeching)
+		easePenaltyWeight   = -0.5 // De-prioritizes "easier" questions to focus on struggles
+	)
+
+	// Compute overdue days (at least 0)
+	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
+	if overdueDays < 0 {
+		overdueDays = 0
+	}
+
+	// Invert Familiarity (VeryEasy = 0, VeryHard = 4)
+	// A higher score for harder questions.
+	famScore := 4 - int(q.Familiarity)
+
+	score := importanceWeight*float64(q.Importance) +
+		overdueWeight*float64(overdueDays) +
+		familiarityWeight*float64(famScore) +
+		reviewPenaltyWeight*float64(q.ReviewCount) +
+		easePenaltyWeight*q.EaseFactor
+
+	return score
 }

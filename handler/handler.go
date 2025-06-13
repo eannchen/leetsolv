@@ -51,8 +51,8 @@ func HandleList(scanner *bufio.Scanner, storage storage.Storage) {
 	}
 }
 
-func HandleStatus(storage storage.Storage) {
-	due, upcoming, total, err := usecase.ListQuestionsSummary(storage)
+func HandleStatus(storage storage.Storage, scheduler core.Scheduler) {
+	due, upcoming, total, err := usecase.ListQuestionsSummary(storage, scheduler)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
