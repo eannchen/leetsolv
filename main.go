@@ -13,13 +13,12 @@ import (
 )
 
 func main() {
-	storage := &storage.FileStorage{QuestionsFile: "questions.json", SnapshotsFile: "snapshots.json"}
+	storage := storage.NewFileStorage("questions.json", "snapshots.json")
 	scheduler := core.NewSM2Scheduler()
 	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
 	h := handler.NewHandler(questionUseCase)
 
 	scanner := bufio.NewScanner(os.Stdin)
-
 	for {
 		fmt.Print("Enter command (status/list/upsert/delete/undo/quit): ")
 		scanner.Scan()

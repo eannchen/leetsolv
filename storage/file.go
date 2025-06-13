@@ -15,6 +15,13 @@ type Storage interface {
 	Undo() error
 }
 
+func NewFileStorage(questionsFile, snapshotsFile string) *FileStorage {
+	return &FileStorage{
+		QuestionsFile: questionsFile,
+		SnapshotsFile: snapshotsFile,
+	}
+}
+
 type FileStorage struct {
 	QuestionsFile string
 	SnapshotsFile string
