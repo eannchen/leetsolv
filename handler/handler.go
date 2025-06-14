@@ -2,7 +2,10 @@ package handler
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -86,7 +89,7 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	rawURL := readLine(scanner, "URL: ")
 
 	// Normalize and validate the URL
-	url, err := h.QuestionUseCase.NormalizeLeetCodeURL(rawURL)
+	url, err := h.normalizeLeetCodeURL(rawURL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -101,8 +104,8 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	fmt.Println("4. Smooth       - Solved confidently and clearly.")
 	fmt.Println("5. Fluent       - Solved perfectly and instantly.")
 	famInput := readLine(scanner, "\nEnter a number (1-5): ")
-	fam, err := strconv.Atoi(famInput)
-	if err != nil || fam < 1 || fam > 5 {
+	familiarity, err := h.validateFamiliarity(famInput)
+	if err != nil {
 		fmt.Println("Invalid familiarity level. Please enter a number between 1 and 5.")
 		return
 	}
@@ -115,15 +118,11 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	fmt.Println("3. High Importance")
 	fmt.Println("4. Critical Importance")
 	impInput := readLine(scanner, "\nEnter a number (1-4): ")
-	imp, err := strconv.Atoi(impInput)
-	if err != nil || imp < 1 || imp > 4 {
+	importance, err := h.validateImportance(impInput)
+	if err != nil {
 		fmt.Println("Invalid importance level. Please enter a number between 1 and 4.")
 		return
 	}
-
-	// Adjust familiarity and importance to match enums
-	familiarity := core.Familiarity(fam - 1)
-	importance := core.Importance(imp - 1)
 
 	// Call the updated UpsertQuestion function
 	upsertedQuestion, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
@@ -143,6 +142,42 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 		fmt.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02"))
 	}
 	fmt.Printf("\n")
+}
+
+func (h *Handler) validateFamiliarity(input string) (core.Familiarity, error) {
+	fam, err := strconv.Atoi(input)
+	if err != nil || fam < 1 || fam > 5 {
+		return 0, fmt.Errorf("invalid familiarity level: %d", fam)
+	}
+	return core.Familiarity(fam - 1), nil
+}
+
+func (h *Handler) validateImportance(input string) (core.Importance, error) {
+	imp, err := strconv.Atoi(input)
+	if err != nil || imp < 1 || imp > 4 {
+		return 0, fmt.Errorf("invalid importance level: %d", imp)
+	}
+	return core.Importance(imp - 1), nil
+}
+
+func (h *Handler) normalizeLeetCodeURL(inputURL string) (string, error) {
+	parsedURL, err := url.Parse(inputURL)
+	if err != nil {
+		return "", errors.New("invalid URL format")
+	}
+
+	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
+		return "", errors.New("URL must be from leetcode.com/problems/")
+	}
+
+	re := regexp.MustCompile(`^/problems/([^/]+)`)
+	matches := re.FindStringSubmatch(parsedURL.Path)
+	if len(matches) != 2 {
+		return "", errors.New("invalid LeetCode problem URL format")
+	}
+
+	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
+	return normalizedURL, nil
 }
 
 func (h *Handler) HandleDelete(scanner *bufio.Scanner) {

@@ -1,13 +1,9 @@
 package usecase
 
 import (
-	"errors"
 	"fmt"
-	"net/url"
-	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"leetsolv/core"
@@ -20,7 +16,6 @@ type QuestionUseCase interface {
 	PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) error
-	NormalizeLeetCodeURL(inputURL string) (string, error)
 	Undo() error
 }
 
@@ -171,26 +166,6 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) error {
 	}
 	fmt.Printf("Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
 	return nil
-}
-
-func (u *QuestionUseCaseImpl) NormalizeLeetCodeURL(inputURL string) (string, error) {
-	parsedURL, err := url.Parse(inputURL)
-	if err != nil {
-		return "", errors.New("invalid URL format")
-	}
-
-	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
-		return "", errors.New("URL must be from leetcode.com/problems/")
-	}
-
-	re := regexp.MustCompile(`^/problems/([^/]+)`)
-	matches := re.FindStringSubmatch(parsedURL.Path)
-	if len(matches) != 2 {
-		return "", errors.New("invalid LeetCode problem URL format")
-	}
-
-	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
-	return normalizedURL, nil
 }
 
 func (u *QuestionUseCaseImpl) Undo() error {
