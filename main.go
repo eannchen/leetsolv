@@ -47,9 +47,7 @@ func main() {
 
 		// Combine all arguments into a single command string
 		cmd := strings.Join(os.Args[1:], " ")
-		if quit := commandRegistry.Execute(cmd, scanner); quit {
-			return
-		}
+		commandRegistry.Execute(cmd, scanner)
 		os.Exit(0)
 	}
 
