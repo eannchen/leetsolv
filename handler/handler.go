@@ -51,19 +51,24 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 		}
 
 		// Display the current page
-		h.IO.Printf("-- Page %d/%d --\n", page+1, totalPages)
+		h.IO.PrintfColored(ColorCyan, "-- Page %d/%d --\n", page+1, totalPages)
 		for _, q := range questions {
 			h.IO.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02")) // Date only
-			h.IO.Printf("   Note: %s\n", q.Note)
+			if q.Note == "" {
+				h.IO.Printf("   Note: (none)\n")
+			} else {
+				h.IO.Printf("   Note: %s\n", q.Note)
+			}
 		}
 
 		// Handle user input for pagination
 		if page+1 == totalPages {
-			h.IO.Println("\nEnd of list.")
+			h.IO.Println("\nEnd of list.\n")
 			break
 		}
 
-		h.IO.Println("\nPress [Enter] for next page, [q] to quit: ")
+		h.IO.Println("\n--- Navigation ---")
+		h.IO.Println("[Enter] Next Page    [q] Quit")
 		scanner.Scan()
 		input := strings.TrimSpace(scanner.Text())
 		if input == "q" {
@@ -81,14 +86,17 @@ func (h *HandlerImpl) HandleStatus() {
 		return
 	}
 
+	h.IO.PrintlnColored(ColorCyan, "========== Question Status ==========")
 	h.IO.Printf("Total Questions: %d\n\n", total)
 
-	h.IO.Printf("Due Questions: %d\n", len(due))
-	for _, q := range due {
-		h.IO.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
+	if len(due) > 0 {
+		h.IO.PrintlnColored(ColorCyan, "---------- Due Questions ----------")
+		for _, q := range due {
+			h.IO.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
+		}
 	}
 
-	h.IO.Printf("\nUpcoming Questions (within 3 days): %d\n", len(upcoming))
+	h.IO.PrintlnColored(ColorCyan, "---------- Upcoming Questions (within 3 days) ----------")
 	for _, q := range upcoming {
 		h.IO.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
 	}
@@ -140,7 +148,8 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 		h.IO.Println("Error:", err)
 	} else {
 		// Display the upserted question
-		h.IO.Println("Question upserted:")
+		h.IO.Printf("\n")
+		h.IO.PrintlnColored(ColorGreen, "[✔] Question upserted:")
 		h.IO.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
 		h.IO.Printf("   Note: %s\n", upsertedQuestion.Note)
 		h.IO.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity+1)
