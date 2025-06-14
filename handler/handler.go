@@ -3,7 +3,6 @@ package handler
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -166,7 +165,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 func (h *HandlerImpl) validateFamiliarity(input string) (core.Familiarity, error) {
 	fam, err := strconv.Atoi(input)
 	if err != nil || fam < 1 || fam > 5 {
-		return 0, fmt.Errorf("invalid familiarity level: %d", fam)
+		return 0, errors.New("invalid familiarity level")
 	}
 	return core.Familiarity(fam - 1), nil
 }
@@ -174,7 +173,7 @@ func (h *HandlerImpl) validateFamiliarity(input string) (core.Familiarity, error
 func (h *HandlerImpl) validateImportance(input string) (core.Importance, error) {
 	imp, err := strconv.Atoi(input)
 	if err != nil || imp < 1 || imp > 4 {
-		return 0, fmt.Errorf("invalid importance level: %d", imp)
+		return 0, errors.New("invalid importance level")
 	}
 	return core.Importance(imp - 1), nil
 }

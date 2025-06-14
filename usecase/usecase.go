@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"fmt"
+	"errors"
 	"sort"
 	"strconv"
 	"time"
@@ -85,7 +85,7 @@ func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core
 	totalPages := (totalQuestions + pageSize - 1) / pageSize
 
 	if page < 0 || page >= totalPages {
-		return nil, totalPages, fmt.Errorf("invalid page number")
+		return nil, totalPages, errors.New("invalid page number")
 	}
 
 	start := page * pageSize
@@ -164,7 +164,7 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 	}
 
 	if deletedQuestion == nil {
-		return nil, fmt.Errorf("no matching question found to delete")
+		return nil, errors.New("no matching question found to delete")
 	}
 	if err := u.Storage.Save(newQuestions); err != nil {
 		return nil, err
