@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"leetsolv/command"
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/handler"
@@ -24,6 +25,14 @@ func main() {
 	scheduler := core.NewSM2Scheduler()
 	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
 	h := handler.NewHandler(questionUseCase)
+
+	commandRegistry := command.NewCommandRegistry()
+	commandRegistry.Register("list", &command.ListCommand{Handler: h})
+	commandRegistry.Register("status", &command.StatusCommand{Handler: h})
+	commandRegistry.Register("upsert", &command.UpsertCommand{Handler: h})
+	commandRegistry.Register("delete", &command.DeleteCommand{Handler: h})
+	commandRegistry.Register("undo", &command.UndoCommand{Handler: h})
+	commandRegistry.Register("quit", &command.QuitCommand{})
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -51,21 +60,8 @@ func main() {
 			fmt.Print("Enter command (status/list/upsert/delete/undo/quit): ")
 			scanner.Scan()
 			cmd := strings.TrimSpace(scanner.Text())
-			switch cmd {
-			case "list":
-				h.HandleList(scanner)
-			case "status":
-				h.HandleStatus()
-			case "upsert":
-				h.HandleUpsert(scanner)
-			case "delete":
-				h.HandleDelete(scanner)
-			case "undo":
-				h.HandleUndo(scanner)
-			case "quit":
+			if quit := commandRegistry.Execute(cmd, scanner); quit {
 				return
-			default:
-				fmt.Println("Unknown command.")
 			}
 		}
 	}

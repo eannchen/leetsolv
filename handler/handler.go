@@ -14,17 +14,25 @@ import (
 	"leetsolv/usecase"
 )
 
-type Handler struct {
+type Handler interface {
+	HandleList(scanner *bufio.Scanner)
+	HandleStatus()
+	HandleUpsert(scanner *bufio.Scanner)
+	HandleDelete(scanner *bufio.Scanner)
+	HandleUndo(scanner *bufio.Scanner)
+}
+
+type HandlerImpl struct {
 	QuestionUseCase usecase.QuestionUseCase
 }
 
-func NewHandler(questionUseCase usecase.QuestionUseCase) *Handler {
-	return &Handler{
+func NewHandler(questionUseCase usecase.QuestionUseCase) *HandlerImpl {
+	return &HandlerImpl{
 		QuestionUseCase: questionUseCase,
 	}
 }
 
-func (h *Handler) HandleList(scanner *bufio.Scanner) {
+func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 	pageSize := config.Env().PageSize
 	page := 0
 
@@ -64,7 +72,7 @@ func (h *Handler) HandleList(scanner *bufio.Scanner) {
 	}
 }
 
-func (h *Handler) HandleStatus() {
+func (h *HandlerImpl) HandleStatus() {
 	due, upcoming, total, err := h.QuestionUseCase.ListQuestionsSummary()
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -85,7 +93,7 @@ func (h *Handler) HandleStatus() {
 	fmt.Printf("\n")
 }
 
-func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
+func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	rawURL := readLine(scanner, "URL: ")
 
 	// Normalize and validate the URL
@@ -144,7 +152,7 @@ func (h *Handler) HandleUpsert(scanner *bufio.Scanner) {
 	fmt.Printf("\n")
 }
 
-func (h *Handler) validateFamiliarity(input string) (core.Familiarity, error) {
+func (h *HandlerImpl) validateFamiliarity(input string) (core.Familiarity, error) {
 	fam, err := strconv.Atoi(input)
 	if err != nil || fam < 1 || fam > 5 {
 		return 0, fmt.Errorf("invalid familiarity level: %d", fam)
@@ -152,7 +160,7 @@ func (h *Handler) validateFamiliarity(input string) (core.Familiarity, error) {
 	return core.Familiarity(fam - 1), nil
 }
 
-func (h *Handler) validateImportance(input string) (core.Importance, error) {
+func (h *HandlerImpl) validateImportance(input string) (core.Importance, error) {
 	imp, err := strconv.Atoi(input)
 	if err != nil || imp < 1 || imp > 4 {
 		return 0, fmt.Errorf("invalid importance level: %d", imp)
@@ -160,7 +168,7 @@ func (h *Handler) validateImportance(input string) (core.Importance, error) {
 	return core.Importance(imp - 1), nil
 }
 
-func (h *Handler) normalizeLeetCodeURL(inputURL string) (string, error) {
+func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return "", errors.New("invalid URL format")
@@ -180,7 +188,7 @@ func (h *Handler) normalizeLeetCodeURL(inputURL string) (string, error) {
 	return normalizedURL, nil
 }
 
-func (h *Handler) HandleDelete(scanner *bufio.Scanner) {
+func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner) {
 	input := readLine(scanner, "Enter ID or URL to delete the question: ")
 
 	// Confirm before deleting
@@ -199,7 +207,7 @@ func (h *Handler) HandleDelete(scanner *bufio.Scanner) {
 	fmt.Printf("\n")
 }
 
-func (h *Handler) HandleUndo(scanner *bufio.Scanner) {
+func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	// Confirm before undo
 	confirm := strings.ToLower(readLine(scanner, "Do you want to undo the previous action? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
