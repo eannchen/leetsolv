@@ -8,6 +8,7 @@ import (
 
 	"leetsolv/config"
 	"leetsolv/core"
+	"leetsolv/logger"
 )
 
 type Storage interface {
@@ -121,6 +122,7 @@ func (fs *FileStorage) loadJSONFromFile(data interface{}, filename string) error
 		if os.IsNotExist(err) {
 			return nil // Return nil for non-existent file
 		}
+		logger.Logger().Error.Printf("Failed to open file: %s. Error: %v", filename, err)
 		return err
 	}
 	defer file.Close()
@@ -128,6 +130,7 @@ func (fs *FileStorage) loadJSONFromFile(data interface{}, filename string) error
 	// Check if file is empty
 	fileInfo, err := file.Stat()
 	if err != nil {
+		logger.Logger().Error.Printf("Failed to get file info: %s. Error: %v", filename, err)
 		return err
 	}
 	if fileInfo.Size() == 0 {
@@ -135,6 +138,7 @@ func (fs *FileStorage) loadJSONFromFile(data interface{}, filename string) error
 	}
 
 	if err := json.NewDecoder(file).Decode(data); err != nil {
+		logger.Logger().Error.Printf("Failed to decode JSON from file: %s. Error: %v", filename, err)
 		return err
 	}
 	return nil
@@ -144,6 +148,7 @@ func (fs *FileStorage) loadJSONFromFile(data interface{}, filename string) error
 func (fs *FileStorage) saveJSONToFile(data interface{}, filename string) error {
 	tempFile, err := os.CreateTemp("", "temp_*.json")
 	if err != nil {
+		logger.Logger().Error.Printf("Failed to create temporary file for %s. Error: %v", filename, err)
 		return err
 	}
 
@@ -158,15 +163,21 @@ func (fs *FileStorage) saveJSONToFile(data interface{}, filename string) error {
 	enc := json.NewEncoder(tempFile)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(data); err != nil {
+		logger.Logger().Error.Printf("Failed to encode JSON to temporary file: %s. Error: %v", tempFile.Name(), err)
 		return err
 	}
 
 	// Close temp file before rename
 	if err := tempFile.Close(); err != nil {
+		logger.Logger().Error.Printf("Failed to close temporary file: %s. Error: %v", tempFile.Name(), err)
 		return err
 	}
 
 	// Atomic replace - disable cleanup since we want to keep the file
 	cleanup = func() {} // No-op
-	return os.Rename(tempFile.Name(), filename)
+	if err := os.Rename(tempFile.Name(), filename); err != nil {
+		logger.Logger().Error.Printf("Failed to rename temporary file: %s. Error: %v", tempFile.Name(), err)
+		return err
+	}
+	return nil
 }

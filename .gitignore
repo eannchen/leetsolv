@@ -33,3 +33,5 @@ go.work.sum
 
 questions.json
 snapshots.json
+info.log
+error.log

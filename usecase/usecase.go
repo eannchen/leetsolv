@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"leetsolv/core"
+	"leetsolv/logger"
 	"leetsolv/storage"
 )
 
@@ -101,6 +102,8 @@ func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
+	logger.Logger().Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
+
 	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, err
@@ -139,6 +142,8 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 }
 
 func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {
+	logger.Logger().Info.Printf("Deleting question: Target=%s", target)
+
 	questions, err := u.Storage.Load()
 	if err != nil {
 		return nil, err
@@ -168,5 +173,6 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 }
 
 func (u *QuestionUseCaseImpl) Undo() error {
+	logger.Logger().Info.Printf("Undoing last action")
 	return u.Storage.Undo()
 }
