@@ -201,11 +201,13 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner) {
 		return
 	}
 
-	if err := h.QuestionUseCase.DeleteQuestion(input); err != nil {
+	deletedQuestion, err := h.QuestionUseCase.DeleteQuestion(input)
+	if err != nil {
 		h.IO.Println("Error:", err)
-	} else {
-		h.IO.Println("Question deleted.")
+		return
 	}
+
+	h.IO.Printf("Question Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
 	h.IO.Printf("\n")
 }
 

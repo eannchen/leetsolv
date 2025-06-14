@@ -15,7 +15,7 @@ type QuestionUseCase interface {
 	ListQuestionsSummary() ([]core.Question, []core.Question, int, error)
 	PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
-	DeleteQuestion(target string) error
+	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
 }
 
@@ -138,10 +138,10 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	return upsertedQuestion, nil
 }
 
-func (u *QuestionUseCaseImpl) DeleteQuestion(target string) error {
+func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {
 	questions, err := u.Storage.Load()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var newQuestions []core.Question
@@ -159,13 +159,12 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) error {
 	}
 
 	if deletedQuestion == nil {
-		return fmt.Errorf("no matching question found to delete")
+		return nil, fmt.Errorf("no matching question found to delete")
 	}
 	if err := u.Storage.Save(newQuestions); err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Printf("Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
-	return nil
+	return deletedQuestion, nil
 }
 
 func (u *QuestionUseCaseImpl) Undo() error {
