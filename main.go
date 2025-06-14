@@ -37,6 +37,22 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
+	// Check for command-line arguments
+	if len(os.Args) > 1 {
+		// Handle "help" command
+		if os.Args[1] == "help" {
+			printHelp()
+			os.Exit(0)
+		}
+
+		// Combine all arguments into a single command string
+		cmd := strings.Join(os.Args[1:], " ")
+		if quit := commandRegistry.Execute(cmd, scanner); quit {
+			return
+		}
+		os.Exit(0)
+	}
+
 	// Set up graceful shutdown signal listener
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
@@ -52,6 +68,7 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Interactive mode
 	for {
 		select {
 		case <-ctx.Done():
@@ -66,4 +83,15 @@ func main() {
 			}
 		}
 	}
+}
+
+func printHelp() {
+	fmt.Println("Usage: leetsolv [command]")
+	fmt.Println("\nAvailable commands:")
+	fmt.Println("  list       - List all questions with pagination.")
+	fmt.Println("  status     - Show the status of questions (due, upcoming, total).")
+	fmt.Println("  upsert     - Add or update a question.")
+	fmt.Println("  delete     - Delete a question by ID or URL.")
+	fmt.Println("  undo       - Undo the last action.")
+	fmt.Println("  help       - Show this help message.")
 }
