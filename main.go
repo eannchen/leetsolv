@@ -24,7 +24,8 @@ func main() {
 	storage := storage.NewFileStorage(env.QuestionsFile, env.SnapshotsFile)
 	scheduler := core.NewSM2Scheduler()
 	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
-	h := handler.NewHandler(questionUseCase)
+	ioHandler := handler.NewIOHandler()
+	h := handler.NewHandler(ioHandler, questionUseCase)
 
 	commandRegistry := command.NewCommandRegistry()
 	commandRegistry.Register("list", &command.ListCommand{Handler: h})

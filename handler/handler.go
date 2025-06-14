@@ -24,11 +24,13 @@ type Handler interface {
 
 type HandlerImpl struct {
 	QuestionUseCase usecase.QuestionUseCase
+	IO              IOHandler
 }
 
-func NewHandler(questionUseCase usecase.QuestionUseCase) *HandlerImpl {
+func NewHandler(IOHandler IOHandler, questionUseCase usecase.QuestionUseCase) *HandlerImpl {
 	return &HandlerImpl{
 		QuestionUseCase: questionUseCase,
+		IO:              IOHandler,
 	}
 }
 
@@ -39,29 +41,29 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 	for {
 		questions, totalPages, err := h.QuestionUseCase.PaginatedListQuestions(pageSize, page)
 		if err != nil {
-			fmt.Println("Error:", err)
+			h.IO.Println("Error:", err)
 			break
 		}
 
 		if len(questions) == 0 {
-			fmt.Println("No questions available.")
+			h.IO.Println("No questions available.")
 			break
 		}
 
 		// Display the current page
-		fmt.Printf("-- Page %d/%d --\n", page+1, totalPages)
+		h.IO.Printf("-- Page %d/%d --\n", page+1, totalPages)
 		for _, q := range questions {
-			fmt.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02")) // Date only
-			fmt.Printf("   Note: %s\n", q.Note)
+			h.IO.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02")) // Date only
+			h.IO.Printf("   Note: %s\n", q.Note)
 		}
 
 		// Handle user input for pagination
 		if page+1 == totalPages {
-			fmt.Println("\nEnd of list.")
+			h.IO.Println("\nEnd of list.")
 			break
 		}
 
-		fmt.Print("\nPress [Enter] for next page, [q] to quit: ")
+		h.IO.Println("\nPress [Enter] for next page, [q] to quit: ")
 		scanner.Scan()
 		input := strings.TrimSpace(scanner.Text())
 		if input == "q" {
@@ -75,81 +77,81 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 func (h *HandlerImpl) HandleStatus() {
 	due, upcoming, total, err := h.QuestionUseCase.ListQuestionsSummary()
 	if err != nil {
-		fmt.Println("Error:", err)
+		h.IO.Println("Error:", err)
 		return
 	}
 
-	fmt.Printf("Total Questions: %d\n\n", total)
+	h.IO.Printf("Total Questions: %d\n\n", total)
 
-	fmt.Printf("Due Questions: %d\n", len(due))
+	h.IO.Printf("Due Questions: %d\n", len(due))
 	for _, q := range due {
-		fmt.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
+		h.IO.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
 	}
 
-	fmt.Printf("\nUpcoming Questions (within 3 days): %d\n", len(upcoming))
+	h.IO.Printf("\nUpcoming Questions (within 3 days): %d\n", len(upcoming))
 	for _, q := range upcoming {
-		fmt.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
+		h.IO.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
 	}
-	fmt.Printf("\n")
+	h.IO.Printf("\n")
 }
 
 func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
-	rawURL := readLine(scanner, "URL: ")
+	rawURL := h.IO.ReadLine(scanner, "URL: ")
 
 	// Normalize and validate the URL
 	url, err := h.normalizeLeetCodeURL(rawURL)
 	if err != nil {
-		fmt.Println("Error:", err)
+		h.IO.Println("Error:", err)
 		return
 	}
 
-	note := readLine(scanner, "Note: ")
+	note := h.IO.ReadLine(scanner, "Note: ")
 
-	fmt.Println("Familiarity:")
-	fmt.Println("1. Struggled    - Solved, but barely. Needed heavy effort or help.")
-	fmt.Println("2. Clumsy       - Solved with partial understanding, some errors.")
-	fmt.Println("3. Decent       - Solved mostly right, but not smooth.")
-	fmt.Println("4. Smooth       - Solved confidently and clearly.")
-	fmt.Println("5. Fluent       - Solved perfectly and instantly.")
-	famInput := readLine(scanner, "\nEnter a number (1-5): ")
+	h.IO.Println("Familiarity:")
+	h.IO.Println("1. Struggled    - Solved, but barely. Needed heavy effort or help.")
+	h.IO.Println("2. Clumsy       - Solved with partial understanding, some errors.")
+	h.IO.Println("3. Decent       - Solved mostly right, but not smooth.")
+	h.IO.Println("4. Smooth       - Solved confidently and clearly.")
+	h.IO.Println("5. Fluent       - Solved perfectly and instantly.")
+	famInput := h.IO.ReadLine(scanner, "\nEnter a number (1-5): ")
 	familiarity, err := h.validateFamiliarity(famInput)
 	if err != nil {
-		fmt.Println("Invalid familiarity level. Please enter a number between 1 and 5.")
+		h.IO.Println("Invalid familiarity level. Please enter a number between 1 and 5.")
 		return
 	}
 
-	fmt.Printf("\n")
+	h.IO.Printf("\n")
 
-	fmt.Println("Importance:")
-	fmt.Println("1. Low Importance")
-	fmt.Println("2. Medium Importance")
-	fmt.Println("3. High Importance")
-	fmt.Println("4. Critical Importance")
-	impInput := readLine(scanner, "\nEnter a number (1-4): ")
+	h.IO.Println("Importance:")
+	h.IO.Println("1. Low Importance")
+	h.IO.Println("2. Medium Importance")
+	h.IO.Println("3. High Importance")
+	h.IO.Println("4. Critical Importance")
+	impInput := h.IO.ReadLine(scanner, "\nEnter a number (1-4): ")
 	importance, err := h.validateImportance(impInput)
 	if err != nil {
-		fmt.Println("Invalid importance level. Please enter a number between 1 and 4.")
+		h.IO.Println("Invalid importance level. Please enter a number between 1 and 4.")
 		return
 	}
 
 	// Call the updated UpsertQuestion function
 	upsertedQuestion, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
-		fmt.Println("Error:", err)
+		h.IO.Println("Error:", err)
 	} else {
 		// Display the upserted question
-		fmt.Println("Question upserted:")
-		fmt.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
-		fmt.Printf("   Note: %s\n", upsertedQuestion.Note)
-		fmt.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity+1)
-		fmt.Printf("   Importance: %d\n", upsertedQuestion.Importance+1)
-		fmt.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02"))
-		fmt.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02"))
-		fmt.Printf("   Review Count: %d\n", upsertedQuestion.ReviewCount)
-		fmt.Printf("   Ease Factor: %.2f\n", upsertedQuestion.EaseFactor)
-		fmt.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02"))
+		h.IO.Println("Question upserted:")
+		h.IO.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
+		h.IO.Printf("   Note: %s\n", upsertedQuestion.Note)
+		h.IO.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity+1)
+		h.IO.Printf("   Importance: %d\n", upsertedQuestion.Importance+1)
+		h.IO.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02"))
+		h.IO.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02"))
+		h.IO.Printf("   Review Count: %d\n", upsertedQuestion.ReviewCount)
+		h.IO.Printf("   Ease Factor: %.2f\n", upsertedQuestion.EaseFactor)
+		h.IO.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02"))
 	}
-	fmt.Printf("\n")
+	h.IO.Printf("\n")
 }
 
 func (h *HandlerImpl) validateFamiliarity(input string) (core.Familiarity, error) {
@@ -189,43 +191,37 @@ func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
 }
 
 func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner) {
-	input := readLine(scanner, "Enter ID or URL to delete the question: ")
+	input := h.IO.ReadLine(scanner, "Enter ID or URL to delete the question: ")
 
 	// Confirm before deleting
-	confirm := strings.ToLower(readLine(scanner, "Do you want to delete the question? [y/N]: "))
+	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to delete the question? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
-		fmt.Println("Cancelled.")
-		fmt.Printf("\n")
+		h.IO.Println("Cancelled.")
+		h.IO.Printf("\n")
 		return
 	}
 
 	if err := h.QuestionUseCase.DeleteQuestion(input); err != nil {
-		fmt.Println("Error:", err)
+		h.IO.Println("Error:", err)
 	} else {
-		fmt.Println("Question deleted.")
+		h.IO.Println("Question deleted.")
 	}
-	fmt.Printf("\n")
+	h.IO.Printf("\n")
 }
 
 func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	// Confirm before undo
-	confirm := strings.ToLower(readLine(scanner, "Do you want to undo the previous action? [y/N]: "))
+	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to undo the previous action? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
-		fmt.Println("Cancelled.")
-		fmt.Printf("\n")
+		h.IO.Println("Cancelled.")
+		h.IO.Printf("\n")
 		return
 	}
 
 	err := h.QuestionUseCase.Undo()
 	if err != nil {
-		fmt.Println("Error:", err)
+		h.IO.Println("Error:", err)
 	} else {
-		fmt.Println("Undo successful.")
+		h.IO.Println("Undo successful.")
 	}
-}
-
-func readLine(scanner *bufio.Scanner, prompt string) string {
-	fmt.Print(prompt)
-	scanner.Scan()
-	return strings.TrimSpace(scanner.Text())
 }
