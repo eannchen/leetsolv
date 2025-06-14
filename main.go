@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/handler"
 	"leetsolv/storage"
@@ -18,7 +19,8 @@ import (
 
 func main() {
 	// Setup dependencies once
-	storage := storage.NewFileStorage("questions.json", "snapshots.json")
+	env := config.Env()
+	storage := storage.NewFileStorage(env.QuestionsFile, env.SnapshotsFile)
 	scheduler := core.NewSM2Scheduler()
 	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
 	h := handler.NewHandler(questionUseCase)

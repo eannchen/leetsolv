@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/usecase"
 )
@@ -21,7 +22,7 @@ func NewHandler(questionUseCase usecase.QuestionUseCase) *Handler {
 }
 
 func (h *Handler) HandleList(scanner *bufio.Scanner) {
-	const pageSize = 5
+	pageSize := config.Env().PageSize
 	page := 0
 
 	for {

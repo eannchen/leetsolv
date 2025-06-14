@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"leetsolv/config"
 	"leetsolv/core"
 )
 
@@ -56,8 +57,9 @@ func (fs *FileStorage) Save(questions []core.Question) error {
 	snapshots = append(snapshots, copiedQuestions)
 
 	// Keep only the last 30 snapshots
-	if len(snapshots) > 30 {
-		snapshots = snapshots[len(snapshots)-30:]
+	maxSnapshots := config.Env().MaxSnapshots
+	if len(snapshots) > maxSnapshots {
+		snapshots = snapshots[len(snapshots)-maxSnapshots:]
 	}
 
 	// Save the updated snapshots and questions
