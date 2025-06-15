@@ -37,7 +37,7 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	// Check for command-line arguments
+	// --- CLI argument mode ---
 	if len(os.Args) > 1 {
 		// Handle "help" command
 		if os.Args[1] == "help" {
@@ -50,6 +50,8 @@ func main() {
 		commandRegistry.Execute(cmd, scanner)
 		os.Exit(0)
 	}
+
+	// --- Interactive mode ---
 
 	// Set up graceful shutdown signal listener
 	signalChan := make(chan os.Signal, 1)
@@ -66,7 +68,6 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Interactive mode
 	for {
 		select {
 		case <-ctx.Done():
