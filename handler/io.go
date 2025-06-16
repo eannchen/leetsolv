@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"leetsolv/core"
 )
 
 const (
@@ -23,6 +25,7 @@ type IOHandler interface {
 	PrintlnColored(color string, a ...interface{})
 	PrintfColored(color string, format string, a ...interface{})
 	ReadLine(scanner *bufio.Scanner, prompt string) string
+	PrintQuestionDetail(question *core.Question)
 }
 
 type IOHandlerImpl struct {
@@ -61,4 +64,17 @@ func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string
 	ioh.Printf("%s", prompt)
 	scanner.Scan()
 	return scanner.Text()
+}
+
+func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
+	ioh.Printf("[%d] %s\n", question.ID, question.URL)
+	ioh.Printf("   Note: %s\n", question.Note)
+	ioh.Printf("   Familiarity: %d\n", question.Familiarity+1)
+	ioh.Printf("   Importance: %d\n", question.Importance+1)
+	ioh.Printf("   Last Reviewed: %s\n", question.LastReviewed.Format("2006-01-02"))
+	ioh.Printf("   Next Review: %s\n", question.NextReview.Format("2006-01-02"))
+	ioh.Printf("   Review Count: %d\n", question.ReviewCount)
+	ioh.Printf("   Ease Factor: %.2f\n", question.EaseFactor)
+	ioh.Printf("   Created At: %s\n", question.CreatedAt.Format("2006-01-02"))
+	ioh.Printf("\n")
 }

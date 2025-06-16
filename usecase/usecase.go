@@ -15,6 +15,7 @@ import (
 type QuestionUseCase interface {
 	ListQuestionsSummary() ([]core.Question, []core.Question, int, error)
 	PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error)
+	GetQuestion(target string) (*core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
@@ -99,6 +100,37 @@ func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core
 	}
 
 	return questions[start:end], totalPages, nil
+}
+
+func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
+	logger.Logger().Info.Println("Fetching a random question")
+
+	questions, err := u.Storage.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(questions) == 0 {
+		return nil, errors.New("no questions available")
+	}
+
+	// Find the question by ID or URL
+	var foundQuestion *core.Question
+	for _, q := range questions {
+		if strconv.Itoa(q.ID) == target || q.URL == target {
+			foundQuestion = &q
+			break
+		}
+	}
+
+	if foundQuestion == nil {
+		return nil, errors.New("question not found")
+	}
+
+	// Truncate NextReview to the start of the day
+	foundQuestion.NextReview = foundQuestion.NextReview.Truncate(24 * time.Hour)
+
+	return foundQuestion, nil
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {

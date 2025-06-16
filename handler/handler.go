@@ -15,6 +15,7 @@ import (
 
 type Handler interface {
 	HandleList(scanner *bufio.Scanner)
+	HandleGet(scanner *bufio.Scanner, input string)
 	HandleStatus()
 	HandleUpsert(scanner *bufio.Scanner)
 	HandleDelete(scanner *bufio.Scanner)
@@ -76,6 +77,20 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 
 		page++
 	}
+}
+
+func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, input string) {
+	if input == "" {
+		input = h.IO.ReadLine(scanner, "Enter ID or URL to get the question details: ")
+	}
+
+	question, err := h.QuestionUseCase.GetQuestion(input)
+	if err != nil {
+		h.IO.Println("Error:", err)
+		return
+	}
+
+	h.IO.PrintQuestionDetail(question)
 }
 
 func (h *HandlerImpl) HandleStatus() {
@@ -149,15 +164,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 		// Display the upserted question
 		h.IO.Printf("\n")
 		h.IO.PrintlnColored(ColorGreen, "[✔] Question upserted:")
-		h.IO.Printf("[%d] %s\n", upsertedQuestion.ID, upsertedQuestion.URL)
-		h.IO.Printf("   Note: %s\n", upsertedQuestion.Note)
-		h.IO.Printf("   Familiarity: %d\n", upsertedQuestion.Familiarity+1)
-		h.IO.Printf("   Importance: %d\n", upsertedQuestion.Importance+1)
-		h.IO.Printf("   Last Reviewed: %s\n", upsertedQuestion.LastReviewed.Format("2006-01-02"))
-		h.IO.Printf("   Next Review: %s\n", upsertedQuestion.NextReview.Format("2006-01-02"))
-		h.IO.Printf("   Review Count: %d\n", upsertedQuestion.ReviewCount)
-		h.IO.Printf("   Ease Factor: %.2f\n", upsertedQuestion.EaseFactor)
-		h.IO.Printf("   Created At: %s\n", upsertedQuestion.CreatedAt.Format("2006-01-02"))
+		h.IO.PrintQuestionDetail(upsertedQuestion)
 	}
 	h.IO.Printf("\n")
 }

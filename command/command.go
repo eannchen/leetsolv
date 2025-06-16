@@ -3,6 +3,8 @@ package command
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"strings"
 
 	"leetsolv/handler"
 )
@@ -46,6 +48,19 @@ type ListCommand struct {
 
 func (c *ListCommand) Execute(scanner *bufio.Scanner) bool {
 	c.Handler.HandleList(scanner)
+	return false
+}
+
+type GetCommand struct {
+	Handler handler.Handler
+}
+
+func (c *GetCommand) Execute(scanner *bufio.Scanner) bool {
+	var input string
+	if len(os.Args) > 2 { // Check if input is provided in CLI argument mode
+		input = strings.Join(os.Args[2:], " ")
+	}
+	c.Handler.HandleGet(scanner, input)
 	return false
 }
 

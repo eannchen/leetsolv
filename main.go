@@ -29,6 +29,7 @@ func main() {
 
 	commandRegistry := command.NewCommandRegistry()
 	commandRegistry.Register("list", &command.ListCommand{Handler: h})
+	commandRegistry.Register("get", &command.GetCommand{Handler: h})
 	commandRegistry.Register("status", &command.StatusCommand{Handler: h})
 	commandRegistry.Register("upsert", &command.UpsertCommand{Handler: h})
 	commandRegistry.Register("delete", &command.DeleteCommand{Handler: h})
@@ -74,7 +75,7 @@ func main() {
 			fmt.Println("Shutting down gracefully...")
 			return
 		default:
-			fmt.Print("Enter command (status/list/upsert/delete/undo/quit): ")
+			fmt.Print("Enter command (status/list/get/upsert/delete/undo/quit): ")
 			scanner.Scan()
 			cmd := strings.TrimSpace(scanner.Text())
 			if quit := commandRegistry.Execute(cmd, scanner); quit {
@@ -88,6 +89,7 @@ func printHelp() {
 	fmt.Println("Usage: leetsolv [command]")
 	fmt.Println("\nAvailable commands:")
 	fmt.Println("  list       - List all questions with pagination.")
+	fmt.Println("  get        - Get details of a question by ID or URL.")
 	fmt.Println("  status     - Show the status of questions (due, upcoming, total).")
 	fmt.Println("  upsert     - Add or update a question.")
 	fmt.Println("  delete     - Delete a question by ID or URL.")
