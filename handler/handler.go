@@ -15,10 +15,10 @@ import (
 
 type Handler interface {
 	HandleList(scanner *bufio.Scanner)
-	HandleGet(scanner *bufio.Scanner, input string)
+	HandleGet(scanner *bufio.Scanner, target string)
 	HandleStatus()
 	HandleUpsert(scanner *bufio.Scanner)
-	HandleDelete(scanner *bufio.Scanner)
+	HandleDelete(scanner *bufio.Scanner, target string)
 	HandleUndo(scanner *bufio.Scanner)
 }
 
@@ -79,12 +79,12 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 	}
 }
 
-func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, input string) {
-	if input == "" {
-		input = h.IO.ReadLine(scanner, "Enter ID or URL to get the question details: ")
+func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {
+	if target == "" {
+		target = h.IO.ReadLine(scanner, "Enter ID or URL to get the question details: ")
 	}
 
-	question, err := h.QuestionUseCase.GetQuestion(input)
+	question, err := h.QuestionUseCase.GetQuestion(target)
 	if err != nil {
 		h.IO.Println("Error:", err)
 		return
@@ -205,8 +205,10 @@ func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
 	return normalizedURL, nil
 }
 
-func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner) {
-	input := h.IO.ReadLine(scanner, "Enter ID or URL to delete the question: ")
+func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
+	if target == "" {
+		target = h.IO.ReadLine(scanner, "Enter ID or URL to delete the question: ")
+	}
 
 	// Confirm before deleting
 	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to delete the question? [y/N]: "))
@@ -216,7 +218,7 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner) {
 		return
 	}
 
-	deletedQuestion, err := h.QuestionUseCase.DeleteQuestion(input)
+	deletedQuestion, err := h.QuestionUseCase.DeleteQuestion(target)
 	if err != nil {
 		h.IO.Println("Error:", err)
 		return

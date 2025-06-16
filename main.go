@@ -47,8 +47,7 @@ func main() {
 		}
 
 		// Combine all arguments into a single command string
-		cmd := strings.Join(os.Args[1:], " ")
-		commandRegistry.Execute(cmd, scanner)
+		commandRegistry.Execute(scanner, os.Args[1], os.Args[2:])
 		os.Exit(0)
 	}
 
@@ -78,7 +77,7 @@ func main() {
 			fmt.Print("Enter command (status/list/get/upsert/delete/undo/quit): ")
 			scanner.Scan()
 			cmd := strings.TrimSpace(scanner.Text())
-			if quit := commandRegistry.Execute(cmd, scanner); quit {
+			if quit := commandRegistry.Execute(scanner, cmd, nil); quit {
 				return
 			}
 		}
