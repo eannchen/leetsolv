@@ -61,6 +61,9 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 	})
 
 	sort.Slice(upcoming, func(i, j int) bool {
+		if upcoming[i].NextReview.Equal(upcoming[j].NextReview) {
+			return u.Scheduler.CalculatePriorityScore(&upcoming[i]) > u.Scheduler.CalculatePriorityScore(&upcoming[j])
+		}
 		return upcoming[i].NextReview.Before(upcoming[j].NextReview)
 	})
 
