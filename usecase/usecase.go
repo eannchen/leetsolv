@@ -102,7 +102,6 @@ func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core
 }
 
 func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
-	logger.Logger().Info.Println("Fetching a random question")
 
 	questions, err := u.Storage.Load()
 	if err != nil {
