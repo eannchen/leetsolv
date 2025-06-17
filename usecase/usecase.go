@@ -133,10 +133,6 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 	if foundQuestion == nil {
 		return nil, errors.New("question not found")
 	}
-
-	// Truncate NextReview to the start of the day
-	foundQuestion.NextReview = foundQuestion.NextReview.Truncate(24 * time.Hour)
-
 	return foundQuestion, nil
 }
 
