@@ -98,10 +98,6 @@ func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core
 		end = totalQuestions
 	}
 
-	for i := range questions[start:end] {
-		questions[start:end][i].NextReview = questions[start:end][i].NextReview.Truncate(24 * time.Hour)
-	}
-
 	return questions[start:end], totalPages, nil
 }
 
@@ -117,12 +113,20 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 		return nil, errors.New("no questions available")
 	}
 
+	// is target an ID or URL?
+	id, err := strconv.Atoi(target)
+	isID := err == nil
+
 	// Find the question by ID or URL
 	var foundQuestion *core.Question
-	for _, q := range questions {
-		if strconv.Itoa(q.ID) == target || q.URL == target {
-			foundQuestion = &q
-			break
+	if isID {
+		foundQuestion = u.findQuestionByID(questions, id)
+	} else {
+		for _, q := range questions {
+			if q.URL == target {
+				foundQuestion = &q
+				break
+			}
 		}
 	}
 
@@ -210,4 +214,22 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 func (u *QuestionUseCaseImpl) Undo() error {
 	logger.Logger().Info.Printf("Undoing last action")
 	return u.Storage.Undo()
+}
+
+func (u *QuestionUseCaseImpl) findQuestionByID(questions []core.Question, id int) *core.Question {
+	// Binary search
+	index := sort.Search(len(questions), func(i int) bool {
+		return questions[i].ID >= id
+	})
+	if index < len(questions) && questions[index].ID == id {
+		return &questions[index]
+	}
+
+	// Fallback to linear search
+	for _, q := range questions {
+		if q.ID == id {
+			return &q
+		}
+	}
+	return nil
 }
