@@ -33,3 +33,20 @@ type Question struct {
 	EaseFactor   float64     `json:"ease_factor"`
 	CreatedAt    time.Time   `json:"created_at"`
 }
+
+// ActionType defines the type of action performed.
+type ActionType string
+
+const (
+	ActionAdd    ActionType = "add"
+	ActionUpdate ActionType = "update"
+	ActionDelete ActionType = "delete"
+)
+
+type Delta struct {
+	Action     ActionType `json:"action"`
+	QuestionID int        `json:"question_id"`
+	OldState   *Question  `json:"old_state"`
+	NewState   *Question  `json:"new_state"`
+	CreatedAt  time.Time  `json:"created_at"`
+}

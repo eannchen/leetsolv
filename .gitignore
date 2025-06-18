@@ -32,6 +32,6 @@ go.work.sum
 # .vscode/
 
 questions.json
-snapshots.json
+deltas.json
 info.log
 error.log

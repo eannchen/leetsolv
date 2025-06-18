@@ -4,11 +4,11 @@ import "sync"
 
 type env struct {
 	QuestionsFile string
-	SnapshotsFile string
+	DeltasFile    string
 	InfoLogFile   string
 	ErrorLogFile  string
 	PageSize      int
-	MaxSnapshots  int
+	MaxDelta      int
 }
 
 var (
@@ -20,11 +20,11 @@ func Env() *env {
 	once.Do(func() {
 		envInstance = &env{
 			QuestionsFile: "questions.json", // Path for the questions file
-			SnapshotsFile: "snapshots.json", // Path for the snapshots file
+			DeltasFile:    "deltas.json",    // Path for the deltas file
 			InfoLogFile:   "info.log",       // Path for the info log file
 			ErrorLogFile:  "error.log",      // Path for the error log file
 			PageSize:      5,                // Default page size for pagination
-			MaxSnapshots:  30,               // Maximum number of snapshots to keep
+			MaxDelta:      50,               // Maximum number of deltas to keep
 		}
 	})
 	return envInstance

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/logger"
 	"leetsolv/storage"
@@ -36,7 +37,7 @@ func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler) *Ques
 }
 
 func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
-	questions, err := u.Storage.Load()
+	questions, err := u.Storage.LoadQuestions()
 	if err != nil {
 		return nil, nil, 0, err
 	}
@@ -72,7 +73,7 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 }
 
 func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error) {
-	questions, err := u.Storage.Load()
+	questions, err := u.Storage.LoadQuestions()
 	if err != nil {
 		return nil, 0, err
 	}
@@ -103,7 +104,7 @@ func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core
 
 func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
 
-	questions, err := u.Storage.Load()
+	questions, err := u.Storage.LoadQuestions()
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +120,7 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 	// Find the question by ID or URL
 	var foundQuestion *core.Question
 	if isID {
-		foundQuestion = u.findQuestionByID(questions, id)
+		_, foundQuestion = u.findQuestionByID(questions, id)
 	} else {
 		for _, q := range questions {
 			if q.URL == target {
@@ -138,93 +139,290 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
 	logger.Logger().Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
-	questions, err := u.Storage.Load()
+	u.Storage.Lock()
+	defer u.Storage.Unlock()
+
+	questions, err := u.Storage.LoadQuestions()
+	if err != nil {
+		return nil, err
+	}
+	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
 		return nil, err
 	}
 
-	var upsertedQuestion *core.Question
-	found := false
-	for i := range questions {
-		if questions[i].URL == url {
-			questions[i].Note = note
-			questions[i].Familiarity = familiarity
-			questions[i].Importance = importance
-			u.Scheduler.Schedule(&questions[i], familiarity)
-			upsertedQuestion = &questions[i]
-			found = true
+	var newState *core.Question
+
+	var foundQuestionIndex int
+	var foundQuestion *core.Question
+	for i, q := range questions {
+		if q.URL == url {
+			foundQuestion = &q
+			foundQuestionIndex = i
 			break
 		}
 	}
 
-	if !found {
+	if foundQuestion != nil {
+		// Update existing question
+		newState = &core.Question{
+			ID:           foundQuestion.ID,
+			URL:          url,
+			Note:         note,
+			Familiarity:  familiarity,
+			Importance:   importance,
+			LastReviewed: foundQuestion.LastReviewed,
+			NextReview:   foundQuestion.NextReview,
+			ReviewCount:  foundQuestion.ReviewCount,
+			EaseFactor:   foundQuestion.EaseFactor,
+			CreatedAt:    foundQuestion.CreatedAt,
+		}
+		u.Scheduler.Schedule(newState, familiarity)
+		questions[foundQuestionIndex] = *newState
+
+		// Create a delta for the update
+		deltas = u.appendDelta(deltas, core.Delta{
+			Action:     core.ActionUpdate,
+			QuestionID: foundQuestion.ID,
+			OldState:   foundQuestion,
+			NewState:   newState,
+			CreatedAt:  time.Now(),
+		})
+	} else {
+		// Create a new question
 		newID := 1
 		for _, q := range questions {
 			if q.ID >= newID {
 				newID = q.ID + 1
 			}
 		}
-		q := u.Scheduler.ScheduleNewQuestion(newID, url, note, familiarity, importance)
-		questions = append(questions, *q)
-		upsertedQuestion = q
+		newState = u.Scheduler.ScheduleNewQuestion(newID, url, note, familiarity, importance)
+		questions = append(questions, *newState)
+
+		// Create a delta for the new question
+		deltas = u.appendDelta(deltas, core.Delta{
+			Action:     core.ActionAdd,
+			QuestionID: newState.ID,
+			OldState:   nil,
+			NewState:   newState,
+			CreatedAt:  time.Now(),
+		})
 	}
 
-	if err := u.Storage.Save(questions); err != nil {
+	if err := u.Storage.SaveQuestions(questions); err != nil {
 		return nil, err
 	}
-	return upsertedQuestion, nil
+	if err := u.Storage.SaveDeltas(deltas); err != nil {
+		// TODO: Tell user that the delta was not saved, undo will not work
+		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
+	}
+	return newState, nil
 }
 
 func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {
 	logger.Logger().Info.Printf("Deleting question: Target=%s", target)
 
-	questions, err := u.Storage.Load()
+	u.Storage.Lock()
+	defer u.Storage.Unlock()
+
+	questions, err := u.Storage.LoadQuestions()
 	if err != nil {
 		return nil, err
 	}
 
-	var newQuestions []core.Question
 	var deletedQuestion *core.Question
+	var deletedIndex int
 
 	id, err := strconv.Atoi(target)
 	isID := err == nil
-
-	for _, q := range questions {
-		if (isID && q.ID == id) || (!isID && q.URL == target) {
-			deletedQuestion = &q
-		} else {
-			newQuestions = append(newQuestions, q)
+	if isID {
+		deletedIndex, deletedQuestion = u.findQuestionByID(questions, id)
+	} else {
+		for i, q := range questions {
+			if q.URL == target {
+				deletedIndex = i
+				deletedQuestion = &q
+				break
+			}
 		}
 	}
-
 	if deletedQuestion == nil {
 		return nil, errors.New("no matching question found to delete")
 	}
-	if err := u.Storage.Save(newQuestions); err != nil {
+
+	questions = append(questions[:deletedIndex], questions[deletedIndex+1:]...)
+	if err := u.Storage.SaveQuestions(questions); err != nil {
 		return nil, err
+	}
+
+	// Create a delta for the deletion
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		// TODO: Tell user that the delta was not saved, undo will not work
+		logger.Logger().Error.Printf("Failed to load deltas for deletion: %v", err)
+		return deletedQuestion, nil
+	}
+	deltas = u.appendDelta(deltas, core.Delta{
+		Action:     core.ActionDelete,
+		QuestionID: deletedQuestion.ID,
+		OldState:   deletedQuestion,
+		NewState:   nil,
+		CreatedAt:  time.Now(),
+	})
+	if err := u.Storage.SaveDeltas(deltas); err != nil {
+		// TODO: Tell user that the delta was not saved, undo will not work
+		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
 	}
 	return deletedQuestion, nil
 }
 
 func (u *QuestionUseCaseImpl) Undo() error {
 	logger.Logger().Info.Printf("Undoing last action")
-	return u.Storage.Undo()
+
+	u.Storage.Lock()
+	defer u.Storage.Unlock()
+
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		return err
+	}
+	if len(deltas) == 0 {
+		return errors.New("no actions to undo")
+	}
+
+	// Get the last delta
+	lastDelta := deltas[len(deltas)-1]
+
+	questions, err := u.Storage.LoadQuestions()
+	if err != nil {
+		return err
+	}
+
+	var deltaError error
+
+	switch lastDelta.Action {
+	case core.ActionAdd:
+		// Remove the last added question
+		if lastDelta.NewState == nil {
+			deltaError = errors.New("cannot undo add action with no new state")
+		} else {
+			questions, deltaError = u.deleteQuestionByID(questions, lastDelta.NewState.ID)
+		}
+	case core.ActionUpdate:
+		// Restore the previous state of the question
+		if lastDelta.OldState == nil {
+			deltaError = errors.New("cannot undo update action with no old state")
+		} else {
+			questions, deltaError = u.updateQuestionByID(questions, lastDelta.QuestionID, lastDelta.OldState)
+		}
+	case core.ActionDelete:
+		// restore the deleted question
+		if lastDelta.OldState == nil {
+			deltaError = errors.New("cannot undo delete action with no old state")
+		} else {
+			questions = append(questions, *lastDelta.OldState)
+		}
+	}
+
+	if deltaError != nil {
+		logger.Logger().Error.Printf("Undo failed: %v", deltaError)
+		return deltaError
+	}
+
+	// Save the updated questions
+	if err := u.Storage.SaveQuestions(questions); err != nil {
+		logger.Logger().Error.Printf("Failed to save questions: %v", err)
+		return err
+	}
+
+	// Remove the last delta only after successful undo
+	deltas = deltas[:len(deltas)-1]
+	if err := u.Storage.SaveDeltas(deltas); err != nil {
+		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
+		return err
+	}
+
+	return nil
 }
 
-func (u *QuestionUseCaseImpl) findQuestionByID(questions []core.Question, id int) *core.Question {
+func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta) []core.Delta {
+	deltas = append(deltas, delta)
+
+	maxDelta := config.Env().MaxDelta
+	if len(deltas) > maxDelta {
+		// Remove the oldest delta if we exceed the maximum limit
+		deltas = deltas[len(deltas)-maxDelta:]
+	}
+	return deltas
+}
+
+func (u *QuestionUseCaseImpl) findQuestionByID(questions []core.Question, id int) (index int, question *core.Question) {
 	// Binary search
-	index := sort.Search(len(questions), func(i int) bool {
-		return questions[i].ID >= id
-	})
-	if index < len(questions) && questions[index].ID == id {
-		return &questions[index]
+	L, R := 0, len(questions)-1
+	for L <= R {
+		mid := L + (R-L)/2
+		if questions[mid].ID == id {
+			return mid, &questions[mid]
+		} else if questions[mid].ID < id {
+			L = mid + 1
+		} else {
+			R = mid - 1
+		}
 	}
 
 	// Fallback to linear search
-	for _, q := range questions {
+	for i, q := range questions {
 		if q.ID == id {
-			return &q
+			return i, &q
 		}
 	}
-	return nil
+	return -1, nil
+}
+
+func (u *QuestionUseCaseImpl) updateQuestionByID(questions []core.Question, id int, newState *core.Question) ([]core.Question, error) {
+	// Binary search
+	L, R := 0, len(questions)-1
+	for L <= R {
+		mid := L + (R-L)/2
+		if questions[mid].ID == id {
+			questions[mid] = *newState
+			return questions, nil
+		} else if questions[mid].ID < id {
+			L = mid + 1
+		} else {
+			R = mid - 1
+		}
+	}
+
+	// Fallback to linear search
+	for i, q := range questions {
+		if q.ID == id {
+			questions[i] = *newState
+			return questions, nil
+		}
+	}
+	return questions, errors.New("question not found")
+}
+
+func (u *QuestionUseCaseImpl) deleteQuestionByID(questions []core.Question, id int) ([]core.Question, error) {
+	// Binary search
+	L, R := 0, len(questions)-1
+	for L <= R {
+		mid := L + (R-L)/2
+		if questions[mid].ID == id {
+			return append(questions[:mid], questions[mid+1:]...), nil
+		} else if questions[mid].ID < id {
+			L = mid + 1
+		} else {
+			R = mid - 1
+		}
+	}
+
+	// Fallback to linear search
+	for i, q := range questions {
+		if q.ID == id {
+			return append(questions[:i], questions[i+1:]...), nil
+		}
+	}
+	return questions, errors.New("question not found")
 }

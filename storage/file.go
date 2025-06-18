@@ -2,118 +2,64 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 	"sync"
 
-	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/logger"
 )
 
 type Storage interface {
-	Load() ([]core.Question, error)
-	Save([]core.Question) error
-	Undo() error
+	Lock()
+	Unlock()
+	LoadQuestions() ([]core.Question, error)
+	SaveQuestions([]core.Question) error
+	LoadDeltas() ([]core.Delta, error)
+	SaveDeltas([]core.Delta) error
 }
 
-func NewFileStorage(questionsFile, snapshotsFile string) *FileStorage {
+func NewFileStorage(questionsFile, deltasFile string) *FileStorage {
 	return &FileStorage{
 		QuestionsFile: questionsFile,
-		SnapshotsFile: snapshotsFile,
+		DeltasFile:    deltasFile,
 	}
 }
 
 type FileStorage struct {
 	QuestionsFile string
-	SnapshotsFile string
+	DeltasFile    string
 	mu            sync.Mutex
 }
 
-func (fs *FileStorage) Load() ([]core.Question, error) {
+func (fs *FileStorage) Lock() {
 	fs.mu.Lock()
-	defer fs.mu.Unlock()
-	return fs.loadQuestions()
 }
 
-func (fs *FileStorage) Save(questions []core.Question) error {
-	fs.mu.Lock()
-	defer fs.mu.Unlock()
-
-	currentQuestions, err := fs.loadQuestions()
-	if err != nil {
-		return err
-	}
-
-	snapshots, err := fs.loadSnapshots()
-	if err != nil {
-		return err
-	}
-
-	// Deep copy to avoid reference issues
-	copiedQuestions := make([]core.Question, len(currentQuestions))
-	copy(copiedQuestions, currentQuestions)
-
-	// Append the current state to snapshots
-	snapshots = append(snapshots, copiedQuestions)
-
-	// Keep only the last 30 snapshots
-	maxSnapshots := config.Env().MaxSnapshots
-	if len(snapshots) > maxSnapshots {
-		snapshots = snapshots[len(snapshots)-maxSnapshots:]
-	}
-
-	// Save the updated snapshots and questions
-	if err := fs.saveSnapshots(snapshots); err != nil {
-		return err
-	}
-	return fs.saveQuestions(questions)
+func (fs *FileStorage) Unlock() {
+	fs.mu.Unlock()
 }
 
-func (fs *FileStorage) Undo() error {
-	fs.mu.Lock()
-	defer fs.mu.Unlock()
-
-	snapshots, err := fs.loadSnapshots()
-	if err != nil {
-		return err
-	}
-
-	if len(snapshots) == 0 {
-		return errors.New("no actions to undo")
-	}
-
-	// Get the last state and remove it from snapshots
-	lastQuestions := snapshots[len(snapshots)-1]
-	snapshots = snapshots[:len(snapshots)-1]
-
-	if err := fs.saveQuestions(lastQuestions); err != nil {
-		return err
-	}
-	return fs.saveSnapshots(snapshots)
-}
-
-// Private helper methods
-
-func (fs *FileStorage) loadQuestions() ([]core.Question, error) {
+func (fs *FileStorage) LoadQuestions() ([]core.Question, error) {
 	var questions []core.Question
 	err := fs.loadJSONFromFile(&questions, fs.QuestionsFile)
 	return questions, err
 }
 
-func (fs *FileStorage) saveQuestions(questions []core.Question) error {
+func (fs *FileStorage) SaveQuestions(questions []core.Question) error {
 	return fs.saveJSONToFile(questions, fs.QuestionsFile)
 }
 
-func (fs *FileStorage) loadSnapshots() ([][]core.Question, error) {
-	var snapshots [][]core.Question
-	err := fs.loadJSONFromFile(&snapshots, fs.SnapshotsFile)
-	return snapshots, err
+func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
+	var deltas []core.Delta
+	err := fs.loadJSONFromFile(&deltas, fs.DeltasFile)
+	return deltas, err
 }
 
-func (fs *FileStorage) saveSnapshots(snapshots [][]core.Question) error {
-	return fs.saveJSONToFile(snapshots, fs.SnapshotsFile)
+func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
+	return fs.saveJSONToFile(deltas, fs.DeltasFile)
 }
+
+// Private helper methods
 
 // loadFile is a generic helper to load JSON data from a file into the provided data structure.
 func (fs *FileStorage) loadJSONFromFile(data interface{}, filename string) error {

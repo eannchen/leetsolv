@@ -21,7 +21,7 @@ import (
 func main() {
 	// Setup dependencies once
 	env := config.Env()
-	storage := storage.NewFileStorage(env.QuestionsFile, env.SnapshotsFile)
+	storage := storage.NewFileStorage(env.QuestionsFile, env.DeltasFile)
 	scheduler := core.NewSM2Scheduler()
 	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
 	ioHandler := handler.NewIOHandler()
