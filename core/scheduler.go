@@ -3,6 +3,8 @@ package core
 import (
 	"math"
 	"time"
+
+	"leetsolv/internal/clock"
 )
 
 type Scheduler interface {
@@ -13,6 +15,7 @@ type Scheduler interface {
 
 // SM2Scheduler implements the spaced repetition scheduling logic
 type SM2Scheduler struct {
+	Clock clock.Clock
 	// Base intervals for each importance level (in days)
 	baseIntervals map[Importance]int
 	// Maximum interval to prevent overly long gaps (in days)
@@ -25,8 +28,9 @@ type SM2Scheduler struct {
 }
 
 // NewSM2Scheduler creates a new scheduler with configured parameters
-func NewSM2Scheduler() *SM2Scheduler {
+func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 	return &SM2Scheduler{
+		Clock: clock,
 		baseIntervals: map[Importance]int{
 			LowImportance:      8, // Faster growth, so start more spaced
 			MediumImportance:   6, // Balanced
@@ -40,7 +44,7 @@ func NewSM2Scheduler() *SM2Scheduler {
 }
 
 func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Familiarity, importance Importance) *Question {
-	today := s.today()
+	today := s.Clock.Today()
 
 	// Dynamic default EaseFactor based on importance
 	startingEase := map[Importance]float64{
@@ -81,7 +85,7 @@ func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Famili
 // Schedule updates the question's review schedule based on familiarity and importance
 func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	q.ReviewCount++
-	today := s.today()
+	today := s.Clock.Today()
 
 	baseInterval := s.baseIntervals[q.Importance]
 
@@ -115,18 +119,13 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	q.Familiarity = grade
 }
 
-// Get current date (truncate to day for consistency)
-func (s SM2Scheduler) today() time.Time {
-	return time.Now().Truncate(24 * time.Hour)
-}
-
-func (s SM2Scheduler) setNextReview(q *Question, now time.Time, intervalDays int) {
+func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays int) {
 	if intervalDays < 1 {
 		intervalDays = 1
 	} else if intervalDays > s.maxInterval {
 		intervalDays = s.maxInterval
 	}
-	q.NextReview = now.AddDate(0, 0, intervalDays)
+	q.NextReview = s.Clock.AddDays(date, intervalDays)
 }
 
 // Update ease factor based on familiarity and importance
@@ -172,7 +171,7 @@ func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
 }
 
 func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
-	today := s.today()
+	today := s.Clock.Today()
 
 	// Constants: Tuned for prioritizing the most critical items.
 	const (

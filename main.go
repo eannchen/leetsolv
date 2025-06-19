@@ -14,6 +14,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/handler"
+	"leetsolv/internal/clock"
 	"leetsolv/storage"
 	"leetsolv/usecase"
 )
@@ -21,9 +22,10 @@ import (
 func main() {
 	// Setup dependencies once
 	env := config.Env()
+	clock := clock.NewClock()
 	storage := storage.NewFileStorage(env.QuestionsFile, env.DeltasFile)
-	scheduler := core.NewSM2Scheduler()
-	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler)
+	scheduler := core.NewSM2Scheduler(clock)
+	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler, clock)
 	ioHandler := handler.NewIOHandler()
 	h := handler.NewHandler(ioHandler, questionUseCase)
 

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"sort"
 	"strconv"
-	"time"
 
 	"leetsolv/config"
 	"leetsolv/core"
+	"leetsolv/internal/clock"
 	"leetsolv/logger"
 	"leetsolv/storage"
 )
@@ -27,13 +27,15 @@ type QuestionUseCase interface {
 type QuestionUseCaseImpl struct {
 	Storage   storage.Storage
 	Scheduler core.Scheduler
+	Clock     clock.Clock
 }
 
 // NewQuestionUseCase creates a new QuestionUseCase instance
-func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler) *QuestionUseCaseImpl {
+func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler, clock clock.Clock) *QuestionUseCaseImpl {
 	return &QuestionUseCaseImpl{
 		Storage:   storage,
 		Scheduler: scheduler,
+		Clock:     clock,
 	}
 }
 
@@ -43,15 +45,15 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 		return nil, nil, 0, err
 	}
 
-	now := time.Now().Truncate(24 * time.Hour)
-	threeDaysLater := now.AddDate(0, 0, 3)
+	today := u.Clock.Today()
+	threeDaysLater := u.Clock.AddDays(today, 3)
 
 	due := []core.Question{}
 	upcoming := []core.Question{}
 
 	for _, q := range questions {
-		nextReviewDate := q.NextReview.Truncate(24 * time.Hour)
-		if !nextReviewDate.After(now) {
+		nextReviewDate := u.Clock.ToDate(q.NextReview)
+		if !nextReviewDate.After(today) {
 			due = append(due, q)
 		} else if nextReviewDate.Before(threeDaysLater) {
 			upcoming = append(upcoming, q)
@@ -190,7 +192,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			QuestionID: foundQuestion.ID,
 			OldState:   foundQuestion,
 			NewState:   newState,
-			CreatedAt:  time.Now(),
+			CreatedAt:  u.Clock.Now(),
 		})
 	} else {
 		// Create a new question
@@ -209,7 +211,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			QuestionID: newState.ID,
 			OldState:   nil,
 			NewState:   newState,
-			CreatedAt:  time.Now(),
+			CreatedAt:  u.Clock.Now(),
 		})
 	}
 
@@ -271,7 +273,7 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		QuestionID: deletedQuestion.ID,
 		OldState:   deletedQuestion,
 		NewState:   nil,
-		CreatedAt:  time.Now(),
+		CreatedAt:  u.Clock.Now(),
 	})
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
 		// TODO: Tell user that the delta was not saved, undo will not work
