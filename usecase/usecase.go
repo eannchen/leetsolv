@@ -15,7 +15,8 @@ import (
 // QuestionUseCase defines the interface for question use cases
 type QuestionUseCase interface {
 	ListQuestionsSummary() ([]core.Question, []core.Question, int, error)
-	PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error)
+	ListQuestionsOrderByDesc() ([]core.Question, error)
+	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
@@ -72,33 +73,36 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 	return due, upcoming, total, nil
 }
 
-func (u *QuestionUseCaseImpl) PaginatedListQuestions(pageSize, page int) ([]core.Question, int, error) {
+func (u *QuestionUseCaseImpl) ListQuestionsOrderByDesc() ([]core.Question, error) {
 	questions, err := u.Storage.LoadQuestions()
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
-
 	sort.Slice(questions, func(i, j int) bool {
 		return questions[i].ID > questions[j].ID
 	})
+	return questions, nil
+}
 
+func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error) {
 	totalQuestions := len(questions)
 	if totalQuestions == 0 {
 		return nil, 0, nil
 	}
 
+	// Round up to get total pages needed; ensures partial last page is counted
 	totalPages := (totalQuestions + pageSize - 1) / pageSize
 
 	if page < 0 || page >= totalPages {
 		return nil, totalPages, errors.New("invalid page number")
 	}
 
+	// 0-index-based page
 	start := page * pageSize
 	end := start + pageSize
 	if end > totalQuestions {
 		end = totalQuestions
 	}
-
 	return questions[start:end], totalPages, nil
 }
 

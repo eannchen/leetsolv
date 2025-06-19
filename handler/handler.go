@@ -35,24 +35,30 @@ func NewHandler(IOHandler IOHandler, questionUseCase usecase.QuestionUseCase) *H
 }
 
 func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
+
+	questions, err := h.QuestionUseCase.ListQuestionsOrderByDesc()
+	if err != nil {
+		h.IO.Println("Error:", err)
+		return
+	}
+	if len(questions) == 0 {
+		h.IO.Println("No questions available.")
+		return
+	}
+
 	pageSize := config.Env().PageSize
 	page := 0
 
 	for {
-		questions, totalPages, err := h.QuestionUseCase.PaginatedListQuestions(pageSize, page)
+		paginatedQuestions, totalPages, err := h.QuestionUseCase.PaginateQuestions(questions, pageSize, page)
 		if err != nil {
 			h.IO.Println("Error:", err)
-			break
-		}
-
-		if len(questions) == 0 {
-			h.IO.Println("No questions available.")
-			break
+			return
 		}
 
 		// Display the current page
 		h.IO.PrintfColored(ColorCyan, "-- Page %d/%d --\n", page+1, totalPages)
-		for _, q := range questions {
+		for _, q := range paginatedQuestions {
 			h.IO.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02")) // Date only
 			if q.Note == "" {
 				h.IO.Printf("   Note: (none)\n")
