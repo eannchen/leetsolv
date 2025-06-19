@@ -8,7 +8,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/clock"
-	"leetsolv/logger"
+	"leetsolv/internal/logger"
 	"leetsolv/storage"
 )
 

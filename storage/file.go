@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"leetsolv/core"
-	"leetsolv/logger"
+	"leetsolv/internal/logger"
 )
 
 type Storage interface {
