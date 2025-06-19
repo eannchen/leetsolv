@@ -63,7 +63,7 @@ func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Famili
 		EaseFactor:   startingEase,
 		ReviewCount:  1,
 		LastReviewed: today,
-		CreatedAt:    today,
+		CreatedAt:    s.Clock.Now(),
 	}
 
 	intervalDays := s.baseIntervals[importance]
