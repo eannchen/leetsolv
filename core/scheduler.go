@@ -177,7 +177,7 @@ func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 	const (
 		importanceWeight    = 3.0  // Prioritizes designated importance
 		overdueWeight       = 1.5  // Prioritizes items past their due date
-		familiarityWeight   = 2.0  // Prioritizes historically difficult items
+		familiarityWeight   = 2.5  // Prioritizes historically difficult items
 		reviewPenaltyWeight = -1.0 // De-prioritizes questions seen many times (prevents leeching)
 		easePenaltyWeight   = -0.5 // De-prioritizes "easier" questions to focus on struggles
 	)
