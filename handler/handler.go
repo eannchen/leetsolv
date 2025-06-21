@@ -117,7 +117,7 @@ func (h *HandlerImpl) HandleStatus() {
 	}
 	h.IO.Printf("\n")
 
-	h.IO.PrintlnColored(ColorCyan, "---------- Upcoming Questions (within 3 days) ----------")
+	h.IO.PrintlnColored(ColorCyan, "---------- Upcoming Questions (within a day) ----------")
 	for _, q := range upcoming {
 		h.IO.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
 	}

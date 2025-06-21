@@ -46,7 +46,7 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 	}
 
 	today := u.Clock.Today()
-	threeDaysLater := u.Clock.AddDays(today, 3)
+	oneDayLater := u.Clock.AddDays(today, 1)
 
 	due := []core.Question{}
 	upcoming := []core.Question{}
@@ -55,7 +55,7 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 		nextReviewDate := u.Clock.ToDate(q.NextReview)
 		if !nextReviewDate.After(today) {
 			due = append(due, q)
-		} else if nextReviewDate.Before(threeDaysLater) {
+		} else if !nextReviewDate.After(oneDayLater) {
 			upcoming = append(upcoming, q)
 		}
 	}
