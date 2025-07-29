@@ -8,6 +8,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/clock"
+	"leetsolv/internal/errs"
 	"leetsolv/internal/logger"
 	"leetsolv/storage"
 )
@@ -109,37 +110,11 @@ func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageS
 }
 
 func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
-
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
 		return nil, err
 	}
-
-	if len(questions) == 0 {
-		return nil, errors.New("no questions available")
-	}
-
-	// is target an ID or URL?
-	id, err := strconv.Atoi(target)
-	isID := err == nil
-
-	// Find the question by ID or URL
-	var foundQuestion *core.Question
-	if isID {
-		_, foundQuestion = u.findQuestionByID(questions, id)
-	} else {
-		for _, q := range questions {
-			if q.URL == target {
-				foundQuestion = &q
-				break
-			}
-		}
-	}
-
-	if foundQuestion == nil {
-		return nil, errors.New("question not found")
-	}
-	return foundQuestion, nil
+	return u.findQuestionByIDOrURL(store, target)
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
@@ -148,7 +123,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	u.Storage.Lock()
 	defer u.Storage.Unlock()
 
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
 		return nil, err
 	}
@@ -159,14 +134,11 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 
 	var newState *core.Question
 
-	var foundQuestionIndex int
-	var foundQuestion *core.Question
-	for i, q := range questions {
-		if q.URL == url {
-			foundQuestion = &q
-			foundQuestionIndex = i
-			break
-		}
+	foundQuestion, err := u.findQuestionByIDOrURL(store, url)
+	if err != nil &&
+		!errors.Is(err, errs.Err400QuestionNotFound) &&
+		!errors.Is(err, errs.Err400NoQuestionsAvailable) {
+		return nil, err
 	}
 
 	if foundQuestion != nil {
@@ -184,7 +156,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			CreatedAt:    foundQuestion.CreatedAt,
 		}
 		u.Scheduler.Schedule(newState, familiarity)
-		questions[foundQuestionIndex] = *newState
+		store.Questions[foundQuestion.ID] = newState
 
 		// Create a delta for the update
 		deltas = u.appendDelta(deltas, core.Delta{
@@ -196,14 +168,10 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		})
 	} else {
 		// Create a new question
-		newID := 1
-		for _, q := range questions {
-			if q.ID >= newID {
-				newID = q.ID + 1
-			}
-		}
+		newID := store.MaxID + 1
 		newState = u.Scheduler.ScheduleNewQuestion(newID, url, note, familiarity, importance)
-		questions = append(questions, *newState)
+		store.Questions[newID] = newState
+		store.URLIndex[url] = newID
 
 		// Create a delta for the new question
 		deltas = u.appendDelta(deltas, core.Delta{
@@ -215,7 +183,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		})
 	}
 
-	if err := u.Storage.SaveQuestions(questions); err != nil {
+	if err := u.Storage.SaveQuestionStore(store); err != nil {
 		return nil, err
 	}
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
@@ -360,6 +328,35 @@ func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta)
 		deltas = deltas[len(deltas)-maxDelta:]
 	}
 	return deltas
+}
+
+func (u *QuestionUseCaseImpl) findQuestionByIDOrURL(store *storage.QuestionStore, target string) (*core.Question, error) {
+	if len(store.Questions) == 0 {
+		return nil, errs.Err400NoQuestionsAvailable
+	}
+
+	// is target an ID or URL?
+	id, err := strconv.Atoi(target)
+	isID := err == nil
+
+	var foundQuestion *core.Question
+	if isID {
+		foundQuestion, _ = store.Questions[id]
+	} else if id, ok := store.URLIndex[target]; ok {
+		foundQuestion, _ = store.Questions[id]
+	} else {
+		for _, q := range store.Questions {
+			if q.URL == target {
+				foundQuestion = q
+			}
+			break
+		}
+	}
+
+	if foundQuestion == nil {
+		return nil, errs.Err400QuestionNotFound
+	}
+	return foundQuestion, nil
 }
 
 func (u *QuestionUseCaseImpl) findQuestionByID(questions []core.Question, id int) (index int, question *core.Question) {
