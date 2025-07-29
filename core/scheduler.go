@@ -100,8 +100,8 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 
 	// Penalty for being overdue
 	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
-	if overdueDays > 3 && q.Importance > LowImportance && grade < VeryEasy {
-		penaltyFactor := math.Min(float64(overdueDays-3)*0.01, 0.1)
+	if overdueDays > 5 && q.Importance > LowImportance && grade < VeryEasy {
+		penaltyFactor := math.Min(float64(overdueDays-5)*0.01, 0.1)
 		q.EaseFactor -= penaltyFactor
 	}
 
@@ -175,11 +175,11 @@ func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 
 	// Constants: Tuned for prioritizing the most critical items.
 	const (
-		importanceWeight    = 3.0  // Prioritizes designated importance
-		overdueWeight       = 1.5  // Prioritizes items past their due date
+		importanceWeight    = 2.0  // Prioritizes designated importance
+		overdueWeight       = 1.0  // Prioritizes items past their due date
 		familiarityWeight   = 2.5  // Prioritizes historically difficult items
-		reviewPenaltyWeight = -1.0 // De-prioritizes questions seen many times (prevents leeching)
-		easePenaltyWeight   = -0.5 // De-prioritizes "easier" questions to focus on struggles
+		reviewPenaltyWeight = -0.5 // De-prioritizes questions seen many times (prevents leeching)
+		easePenaltyWeight   = -1.0 // De-prioritizes "easier" questions to focus on struggles
 	)
 
 	// Compute overdue days (at least 0)
