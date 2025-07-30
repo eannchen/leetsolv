@@ -6,6 +6,7 @@ import "errors"
 var (
 	Err400QuestionNotFound     = WrapError(InputErrorKind, errors.New("question not found"), "question not found")
 	Err400NoQuestionsAvailable = WrapError(InputErrorKind, errors.New("no questions available"), "no questions available")
+	Err400InvalidPageNumber    = WrapError(InputErrorKind, errors.New("invalid page number"), "invalid page number")
 )
 
 // // 5xx – System/Internal errors

@@ -43,7 +43,7 @@ func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler, clock
 func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, nil, 0, errs.WrapInternalError(err, "failed to load question store")
 	}
 
 	today := u.Clock.Today()
@@ -79,7 +79,7 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 func (u *QuestionUseCaseImpl) ListQuestionsOrderByDesc() ([]core.Question, error) {
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to load question store")
 	}
 	questions := make([]core.Question, 0, len(store.Questions))
 	for _, q := range store.Questions {
@@ -101,7 +101,7 @@ func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageS
 	totalPages := (totalQuestions + pageSize - 1) / pageSize
 
 	if page < 0 || page >= totalPages {
-		return nil, totalPages, errors.New("invalid page number")
+		return nil, totalPages, errs.Err400InvalidPageNumber
 	}
 
 	// 0-index-based page
@@ -116,7 +116,7 @@ func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageS
 func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to load question store")
 	}
 	return u.findQuestionByIDOrURL(store, target)
 }
@@ -129,11 +129,11 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to load question store")
 	}
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to load deltas")
 	}
 
 	var newState *core.Question
@@ -188,7 +188,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	}
 
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to save question store")
 	}
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
 		// TODO: Tell user that the delta was not saved, undo will not work
@@ -205,7 +205,7 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to load question store")
 	}
 	deletedQuestion, err := u.findQuestionByIDOrURL(store, target)
 	if err != nil {
@@ -216,7 +216,7 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 	delete(store.URLIndex, deletedQuestion.URL)
 
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "failed to save question store")
 	}
 
 	// Create a delta for the deletion

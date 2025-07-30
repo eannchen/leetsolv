@@ -31,3 +31,11 @@ func WrapError(kind ErrorKind, err error, msg string) error {
 		Message: msg,
 	}
 }
+
+func WrapInternalError(err error, msg string) error {
+	return WrapError(SystemErrorKind, err, msg)
+}
+
+func WrapClientError(err error, msg string) error {
+	return WrapError(InputErrorKind, err, msg)
+}
