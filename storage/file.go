@@ -14,8 +14,6 @@ type Storage interface {
 	Unlock()
 	LoadQuestionStore() (*QuestionStore, error)
 	SaveQuestionStore(*QuestionStore) error
-	LoadQuestions() (core.QuestionMap, error)
-	SaveQuestions(core.QuestionMap) error
 	LoadDeltas() ([]core.Delta, error)
 	SaveDeltas([]core.Delta) error
 }
