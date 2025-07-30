@@ -46,32 +46,22 @@ func (fs *FileStorage) Unlock() {
 }
 
 func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
-	var jf QuestionStore
-	err := fs.loadJSONFromFile(&jf, fs.QuestionsFile)
+	var store QuestionStore
+	err := fs.loadJSONFromFile(&store, fs.QuestionsFile)
 	if err != nil {
 		return nil, err
 	}
-	if jf.Questions == nil {
-		jf.Questions = make(map[int]*core.Question)
+	if store.Questions == nil {
+		store.Questions = make(map[int]*core.Question)
 	}
-	if jf.URLIndex == nil {
-		jf.URLIndex = make(map[string]int)
+	if store.URLIndex == nil {
+		store.URLIndex = make(map[string]int)
 	}
-	return &jf, nil
+	return &store, nil
 }
 
 func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
 	return fs.saveJSONToFile(store, fs.QuestionsFile)
-}
-
-func (fs *FileStorage) LoadQuestions() (core.QuestionMap, error) {
-	var questions core.QuestionMap
-	err := fs.loadJSONFromFile(&questions, fs.QuestionsFile)
-	return questions, err
-}
-
-func (fs *FileStorage) SaveQuestions(questions core.QuestionMap) error {
-	return fs.saveJSONToFile(questions, fs.QuestionsFile)
 }
 
 func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
