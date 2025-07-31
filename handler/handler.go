@@ -140,8 +140,8 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	h.IO.Println("1. Struggled    - Solved, but barely. Needed heavy effort or help.")
 	h.IO.Println("2. Clumsy       - Solved with partial understanding, some errors.")
 	h.IO.Println("3. Decent       - Solved mostly right, but not smooth.")
-	h.IO.Println("4. Smooth       - Solved confidently and clearly.")
-	h.IO.Println("5. Fluent       - Solved perfectly and instantly.")
+	h.IO.Println("4. Smooth       - Solved smoothly and clearly.")
+	h.IO.Println("5. Fluent       - Solved perfectly and confidently.")
 	famInput := h.IO.ReadLine(scanner, "\nEnter a number (1-5): ")
 	familiarity, err := h.validateFamiliarity(famInput)
 	if err != nil {
