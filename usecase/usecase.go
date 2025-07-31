@@ -131,12 +131,6 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	if err != nil {
 		return nil, errs.WrapInternalError(err, "failed to load question store")
 	}
-	deltas, err := u.Storage.LoadDeltas()
-	if err != nil {
-		return nil, errs.WrapInternalError(err, "failed to load deltas")
-	}
-
-	var newState *core.Question
 
 	foundQuestion, err := u.findQuestionByIDOrURL(store, url)
 	if err != nil &&
@@ -144,6 +138,13 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		!errors.Is(err, errs.Err400NoQuestionsAvailable) {
 		return nil, err
 	}
+
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		return nil, errs.WrapInternalError(err, "failed to load deltas")
+	}
+
+	var newState *core.Question
 
 	if foundQuestion != nil {
 		// Update existing question
@@ -191,7 +192,6 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		return nil, errs.WrapInternalError(err, "failed to save question store")
 	}
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		// TODO: Tell user that the delta was not saved, undo will not work
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
 	}
 	return newState, nil
@@ -212,6 +212,11 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		return nil, err
 	}
 
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		return nil, errs.WrapInternalError(err, "failed to load deltas")
+	}
+
 	delete(store.Questions, deletedQuestion.ID)
 	delete(store.URLIndex, deletedQuestion.URL)
 
@@ -220,12 +225,6 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 	}
 
 	// Create a delta for the deletion
-	deltas, err := u.Storage.LoadDeltas()
-	if err != nil {
-		// TODO: Tell user that the delta was not saved, undo will not work
-		logger.Logger().Error.Printf("Failed to load deltas for deletion: %v", err)
-		return deletedQuestion, nil
-	}
 	deltas = u.appendDelta(deltas, core.Delta{
 		Action:     core.ActionDelete,
 		QuestionID: deletedQuestion.ID,
@@ -234,7 +233,6 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		CreatedAt:  u.Clock.Now(),
 	})
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		// TODO: Tell user that the delta was not saved, undo will not work
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
 	}
 	return deletedQuestion, nil
@@ -248,19 +246,19 @@ func (u *QuestionUseCaseImpl) Undo() error {
 
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
-		return err
+		return errs.WrapInternalError(err, "failed to load deltas")
 	}
 	if len(deltas) == 0 {
-		return errors.New("no actions to undo")
+		return errs.Err400NoActionsToUndo
+	}
+
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return errs.WrapInternalError(err, "failed to load question store")
 	}
 
 	// Get the last delta
 	lastDelta := deltas[len(deltas)-1]
-
-	store, err := u.Storage.LoadQuestionStore()
-	if err != nil {
-		return err
-	}
 
 	var deltaError error
 
@@ -283,21 +281,18 @@ func (u *QuestionUseCaseImpl) Undo() error {
 	}
 
 	if deltaError != nil {
-		logger.Logger().Error.Printf("Undo failed: %v", deltaError)
-		return deltaError
+		return errs.WrapInternalError(deltaError, "failed to undo last action")
 	}
 
 	// Save the updated questions
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
-		logger.Logger().Error.Printf("Failed to save questions: %v", err)
-		return err
+		return errs.WrapInternalError(err, "failed to save question store")
 	}
 
 	// Remove the last delta only after successful undo
 	deltas = deltas[:len(deltas)-1]
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
-		return err
 	}
 
 	return nil

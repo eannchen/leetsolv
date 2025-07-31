@@ -14,10 +14,11 @@ type CodedError struct {
 }
 
 func (e *CodedError) Error() string {
-	if e.Message != "" {
-		return e.Message
+	base := e.Err.Error()
+	if e.Message != "" && e.Message != base {
+		return string(e.Kind) + ": " + e.Message + ": " + base
 	}
-	return e.Err.Error()
+	return string(e.Kind) + ": " + base
 }
 
 func (e *CodedError) Unwrap() error {

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"io"
 	"log"
 	"os"
 	"sync"
@@ -34,9 +35,12 @@ func Logger() *logger {
 			log.Fatalf("Failed to open error log file: %v", err)
 		}
 
+		// Combine terminal (os.Stdout / os.Stderr) and file
+		errorWriter := io.MultiWriter(os.Stderr, errorFile)
+
 		loggerInstance = &logger{
 			Info:  log.New(infoFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile),
-			Error: log.New(errorFile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile),
+			Error: log.New(errorWriter, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile),
 		}
 	})
 	return loggerInstance
