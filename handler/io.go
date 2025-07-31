@@ -91,9 +91,13 @@ func (ioh *IOHandlerImpl) PrintError(err error) {
 	var codedErr *errs.CodedError
 	if errors.As(err, &codedErr) {
 		switch codedErr.Kind {
-		case errs.InputErrorKind:
-			// Input errors - show in yellow with user-friendly message
-			ioh.PrintlnColored(ColorYellow, "⚠️ "+codedErr.Error())
+		case errs.ValidationErrorKind:
+			// Validation errors - show in yellow with user-friendly message
+			ioh.PrintlnColored(ColorYellow, "⚠️ "+codedErr.UserMessage())
+			return
+		case errs.BusinessErrorKind:
+			// Business errors - show in yellow with user-friendly message
+			ioh.PrintlnColored(ColorYellow, "⚠️ "+codedErr.UserMessage())
 			return
 		case errs.SystemErrorKind:
 			// System errors - show in red with technical details
@@ -102,29 +106,5 @@ func (ioh *IOHandlerImpl) PrintError(err error) {
 		}
 	}
 
-	// Handle non-coded errors (handler validation errors)
-	// Check for specific error types using errors.Is
-	switch {
-	case errors.Is(err, errs.ErrInvalidURLFormat):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Please provide a valid URL")
-	case errors.Is(err, errs.ErrInvalidLeetCodeURL):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Please provide a valid LeetCode problem URL")
-	case errors.Is(err, errs.ErrInvalidLeetCodeURLFormat):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Please provide a valid LeetCode problem URL format")
-	case errors.Is(err, errs.ErrInvalidFamiliarityLevel):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Please enter a familiarity level between 1 and 5")
-	case errors.Is(err, errs.ErrInvalidImportanceLevel):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Please enter an importance level between 1 and 4")
-	case errors.Is(err, errs.Err400QuestionNotFound):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Question not found. Please check the ID or URL")
-	case errors.Is(err, errs.Err400NoQuestionsAvailable):
-		ioh.PrintlnColored(ColorYellow, "ℹ️  No questions available yet")
-	case errors.Is(err, errs.Err400InvalidPageNumber):
-		ioh.PrintlnColored(ColorYellow, "⚠️  Invalid page number")
-	case errors.Is(err, errs.Err400NoActionsToUndo):
-		ioh.PrintlnColored(ColorYellow, "ℹ️  No actions to undo")
-	default:
-		// Fallback for unknown errors - show in red
-		ioh.PrintlnColored(ColorRed, "❌ Error: "+err.Error())
-	}
+	ioh.PrintlnColored(ColorRed, "❌ Error: "+err.Error())
 }
