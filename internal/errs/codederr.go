@@ -3,8 +3,8 @@ package errs
 type ErrorKind string
 
 const (
-	InputErrorKind  ErrorKind = "INPUT"
-	SystemErrorKind ErrorKind = "SYSTEM"
+	InputErrorKind  ErrorKind = "FAILED INPUT"
+	SystemErrorKind ErrorKind = "SYSTEM ERROR"
 )
 
 type CodedError struct {
