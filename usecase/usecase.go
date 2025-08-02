@@ -8,6 +8,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/clock"
+	"leetsolv/internal/errs"
 	"leetsolv/internal/logger"
 	"leetsolv/storage"
 )
@@ -40,9 +41,9 @@ func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler, clock
 }
 
 func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, nil, 0, errs.WrapInternalError(err, "Failed to load question store")
 	}
 
 	today := u.Clock.Today()
@@ -51,12 +52,12 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 	due := []core.Question{}
 	upcoming := []core.Question{}
 
-	for _, q := range questions {
+	for _, q := range store.Questions {
 		nextReviewDate := u.Clock.ToDate(q.NextReview)
 		if !nextReviewDate.After(today) {
-			due = append(due, q)
+			due = append(due, *q)
 		} else if !nextReviewDate.After(oneDayLater) {
-			upcoming = append(upcoming, q)
+			upcoming = append(upcoming, *q)
 		}
 	}
 
@@ -71,14 +72,18 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Qu
 		return upcoming[i].NextReview.Before(upcoming[j].NextReview)
 	})
 
-	total := len(questions)
+	total := len(store.Questions)
 	return due, upcoming, total, nil
 }
 
 func (u *QuestionUseCaseImpl) ListQuestionsOrderByDesc() ([]core.Question, error) {
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "Failed to load question store")
+	}
+	questions := make([]core.Question, 0, len(store.Questions))
+	for _, q := range store.Questions {
+		questions = append(questions, *q)
 	}
 	sort.Slice(questions, func(i, j int) bool {
 		return questions[i].ID > questions[j].ID
@@ -96,7 +101,7 @@ func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageS
 	totalPages := (totalQuestions + pageSize - 1) / pageSize
 
 	if page < 0 || page >= totalPages {
-		return nil, totalPages, errors.New("invalid page number")
+		return nil, totalPages, errs.ErrInvalidPageNumber
 	}
 
 	// 0-index-based page
@@ -109,37 +114,11 @@ func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageS
 }
 
 func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
-
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "Failed to load question store")
 	}
-
-	if len(questions) == 0 {
-		return nil, errors.New("no questions available")
-	}
-
-	// is target an ID or URL?
-	id, err := strconv.Atoi(target)
-	isID := err == nil
-
-	// Find the question by ID or URL
-	var foundQuestion *core.Question
-	if isID {
-		_, foundQuestion = u.findQuestionByID(questions, id)
-	} else {
-		for _, q := range questions {
-			if q.URL == target {
-				foundQuestion = &q
-				break
-			}
-		}
-	}
-
-	if foundQuestion == nil {
-		return nil, errors.New("question not found")
-	}
-	return foundQuestion, nil
+	return u.findQuestionByIDOrURL(store, target)
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
@@ -148,26 +127,24 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	u.Storage.Lock()
 	defer u.Storage.Unlock()
 
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to load question store")
+	}
+
+	foundQuestion, err := u.findQuestionByIDOrURL(store, url)
+	if err != nil &&
+		!errors.Is(err, errs.ErrQuestionNotFound) &&
+		!errors.Is(err, errs.ErrNoQuestionsAvailable) {
 		return nil, err
 	}
+
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
-		return nil, err
+		return nil, errs.WrapInternalError(err, "Failed to load deltas")
 	}
 
 	var newState *core.Question
-
-	var foundQuestionIndex int
-	var foundQuestion *core.Question
-	for i, q := range questions {
-		if q.URL == url {
-			foundQuestion = &q
-			foundQuestionIndex = i
-			break
-		}
-	}
 
 	if foundQuestion != nil {
 		// Update existing question
@@ -184,7 +161,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			CreatedAt:    foundQuestion.CreatedAt,
 		}
 		u.Scheduler.Schedule(newState, familiarity)
-		questions[foundQuestionIndex] = *newState
+		store.Questions[foundQuestion.ID] = newState
 
 		// Create a delta for the update
 		deltas = u.appendDelta(deltas, core.Delta{
@@ -196,14 +173,10 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		})
 	} else {
 		// Create a new question
-		newID := 1
-		for _, q := range questions {
-			if q.ID >= newID {
-				newID = q.ID + 1
-			}
-		}
-		newState = u.Scheduler.ScheduleNewQuestion(newID, url, note, familiarity, importance)
-		questions = append(questions, *newState)
+		store.MaxID++
+		newState = u.Scheduler.ScheduleNewQuestion(store.MaxID, url, note, familiarity, importance)
+		store.Questions[store.MaxID] = newState
+		store.URLIndex[url] = store.MaxID
 
 		// Create a delta for the new question
 		deltas = u.appendDelta(deltas, core.Delta{
@@ -215,11 +188,10 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		})
 	}
 
-	if err := u.Storage.SaveQuestions(questions); err != nil {
-		return nil, err
+	if err := u.Storage.SaveQuestionStore(store); err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to save question store")
 	}
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		// TODO: Tell user that the delta was not saved, undo will not work
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
 	}
 	return newState, nil
@@ -231,43 +203,28 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 	u.Storage.Lock()
 	defer u.Storage.Unlock()
 
-	questions, err := u.Storage.LoadQuestions()
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to load question store")
+	}
+	deletedQuestion, err := u.findQuestionByIDOrURL(store, target)
 	if err != nil {
 		return nil, err
 	}
 
-	var deletedQuestion *core.Question
-	var deletedIndex int
-
-	id, err := strconv.Atoi(target)
-	isID := err == nil
-	if isID {
-		deletedIndex, deletedQuestion = u.findQuestionByID(questions, id)
-	} else {
-		for i, q := range questions {
-			if q.URL == target {
-				deletedIndex = i
-				deletedQuestion = &q
-				break
-			}
-		}
-	}
-	if deletedQuestion == nil {
-		return nil, errors.New("no matching question found to delete")
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to load deltas")
 	}
 
-	questions = append(questions[:deletedIndex], questions[deletedIndex+1:]...)
-	if err := u.Storage.SaveQuestions(questions); err != nil {
-		return nil, err
+	delete(store.Questions, deletedQuestion.ID)
+	delete(store.URLIndex, deletedQuestion.URL)
+
+	if err := u.Storage.SaveQuestionStore(store); err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to save question store")
 	}
 
 	// Create a delta for the deletion
-	deltas, err := u.Storage.LoadDeltas()
-	if err != nil {
-		// TODO: Tell user that the delta was not saved, undo will not work
-		logger.Logger().Error.Printf("Failed to load deltas for deletion: %v", err)
-		return deletedQuestion, nil
-	}
 	deltas = u.appendDelta(deltas, core.Delta{
 		Action:     core.ActionDelete,
 		QuestionID: deletedQuestion.ID,
@@ -276,7 +233,6 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		CreatedAt:  u.Clock.Now(),
 	})
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		// TODO: Tell user that the delta was not saved, undo will not work
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
 	}
 	return deletedQuestion, nil
@@ -290,19 +246,19 @@ func (u *QuestionUseCaseImpl) Undo() error {
 
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
-		return err
+		return errs.WrapInternalError(err, "Failed to load deltas")
 	}
 	if len(deltas) == 0 {
-		return errors.New("no actions to undo")
+		return errs.ErrNoActionsToUndo
+	}
+
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return errs.WrapInternalError(err, "Failed to load question store")
 	}
 
 	// Get the last delta
 	lastDelta := deltas[len(deltas)-1]
-
-	questions, err := u.Storage.LoadQuestions()
-	if err != nil {
-		return err
-	}
 
 	var deltaError error
 
@@ -312,40 +268,31 @@ func (u *QuestionUseCaseImpl) Undo() error {
 		if lastDelta.NewState == nil {
 			deltaError = errors.New("cannot undo add action with no new state")
 		} else {
-			questions, deltaError = u.deleteQuestionByID(questions, lastDelta.NewState.ID)
+			delete(store.Questions, lastDelta.NewState.ID)
+			delete(store.URLIndex, lastDelta.NewState.URL)
 		}
-	case core.ActionUpdate:
+	case core.ActionUpdate, core.ActionDelete:
 		// Restore the previous state of the question
 		if lastDelta.OldState == nil {
-			deltaError = errors.New("cannot undo update action with no old state")
+			deltaError = errors.New("cannot undo update/delete action with no old state")
 		} else {
-			questions, deltaError = u.updateQuestionByID(questions, lastDelta.QuestionID, lastDelta.OldState)
-		}
-	case core.ActionDelete:
-		// restore the deleted question
-		if lastDelta.OldState == nil {
-			deltaError = errors.New("cannot undo delete action with no old state")
-		} else {
-			questions = append(questions, *lastDelta.OldState)
+			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
 		}
 	}
 
 	if deltaError != nil {
-		logger.Logger().Error.Printf("Undo failed: %v", deltaError)
-		return deltaError
+		return errs.WrapInternalError(deltaError, "Failed to undo last action")
 	}
 
 	// Save the updated questions
-	if err := u.Storage.SaveQuestions(questions); err != nil {
-		logger.Logger().Error.Printf("Failed to save questions: %v", err)
-		return err
+	if err := u.Storage.SaveQuestionStore(store); err != nil {
+		return errs.WrapInternalError(err, "Failed to save question store")
 	}
 
 	// Remove the last delta only after successful undo
 	deltas = deltas[:len(deltas)-1]
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
-		return err
 	}
 
 	return nil
@@ -362,73 +309,31 @@ func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta)
 	return deltas
 }
 
-func (u *QuestionUseCaseImpl) findQuestionByID(questions []core.Question, id int) (index int, question *core.Question) {
-	// Binary search
-	L, R := 0, len(questions)-1
-	for L <= R {
-		mid := L + (R-L)/2
-		if questions[mid].ID == id {
-			return mid, &questions[mid]
-		} else if questions[mid].ID < id {
-			L = mid + 1
-		} else {
-			R = mid - 1
+func (u *QuestionUseCaseImpl) findQuestionByIDOrURL(store *storage.QuestionStore, target string) (*core.Question, error) {
+	if len(store.Questions) == 0 {
+		return nil, errs.ErrNoQuestionsAvailable
+	}
+
+	// is target an ID or URL?
+	id, err := strconv.Atoi(target)
+	isID := err == nil
+
+	var foundQuestion *core.Question
+	if isID {
+		foundQuestion, _ = store.Questions[id]
+	} else if id, ok := store.URLIndex[target]; ok {
+		foundQuestion, _ = store.Questions[id]
+	} else {
+		for _, q := range store.Questions {
+			if q.URL == target {
+				foundQuestion = q
+			}
+			break
 		}
 	}
 
-	// Fallback to linear search
-	for i, q := range questions {
-		if q.ID == id {
-			return i, &q
-		}
+	if foundQuestion == nil {
+		return nil, errs.ErrQuestionNotFound
 	}
-	return -1, nil
-}
-
-func (u *QuestionUseCaseImpl) updateQuestionByID(questions []core.Question, id int, newState *core.Question) ([]core.Question, error) {
-	// Binary search
-	L, R := 0, len(questions)-1
-	for L <= R {
-		mid := L + (R-L)/2
-		if questions[mid].ID == id {
-			questions[mid] = *newState
-			return questions, nil
-		} else if questions[mid].ID < id {
-			L = mid + 1
-		} else {
-			R = mid - 1
-		}
-	}
-
-	// Fallback to linear search
-	for i, q := range questions {
-		if q.ID == id {
-			questions[i] = *newState
-			return questions, nil
-		}
-	}
-	return questions, errors.New("question not found")
-}
-
-func (u *QuestionUseCaseImpl) deleteQuestionByID(questions []core.Question, id int) ([]core.Question, error) {
-	// Binary search
-	L, R := 0, len(questions)-1
-	for L <= R {
-		mid := L + (R-L)/2
-		if questions[mid].ID == id {
-			return append(questions[:mid], questions[mid+1:]...), nil
-		} else if questions[mid].ID < id {
-			L = mid + 1
-		} else {
-			R = mid - 1
-		}
-	}
-
-	// Fallback to linear search
-	for i, q := range questions {
-		if q.ID == id {
-			return append(questions[:i], questions[i+1:]...), nil
-		}
-	}
-	return questions, errors.New("question not found")
+	return foundQuestion, nil
 }

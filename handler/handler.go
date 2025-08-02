@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bufio"
-	"errors"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 
 	"leetsolv/config"
 	"leetsolv/core"
+	"leetsolv/internal/errs"
 	"leetsolv/usecase"
 )
 
@@ -38,7 +38,7 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 
 	questions, err := h.QuestionUseCase.ListQuestionsOrderByDesc()
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 		return
 	}
 	if len(questions) == 0 {
@@ -52,7 +52,7 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 	for {
 		paginatedQuestions, totalPages, err := h.QuestionUseCase.PaginateQuestions(questions, pageSize, page)
 		if err != nil {
-			h.IO.Println("Error:", err)
+			h.IO.PrintError(err)
 			return
 		}
 
@@ -92,7 +92,7 @@ func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {
 
 	question, err := h.QuestionUseCase.GetQuestion(target)
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {
 func (h *HandlerImpl) HandleStatus() {
 	due, upcoming, total, err := h.QuestionUseCase.ListQuestionsSummary()
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	// Normalize and validate the URL
 	url, err := h.normalizeLeetCodeURL(rawURL)
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	famInput := h.IO.ReadLine(scanner, "\nEnter a number (1-5): ")
 	familiarity, err := h.validateFamiliarity(famInput)
 	if err != nil {
-		h.IO.Println("Invalid familiarity level. Please enter a number between 1 and 5.")
+		h.IO.PrintError(err)
 		return
 	}
 
@@ -159,14 +159,14 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	impInput := h.IO.ReadLine(scanner, "\nEnter a number (1-4): ")
 	importance, err := h.validateImportance(impInput)
 	if err != nil {
-		h.IO.Println("Invalid importance level. Please enter a number between 1 and 4.")
+		h.IO.PrintError(err)
 		return
 	}
 
 	// Call the updated UpsertQuestion function
 	upsertedQuestion, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 	} else {
 		// Display the upserted question
 		h.IO.Printf("\n")
@@ -179,7 +179,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 func (h *HandlerImpl) validateFamiliarity(input string) (core.Familiarity, error) {
 	fam, err := strconv.Atoi(input)
 	if err != nil || fam < 1 || fam > 5 {
-		return 0, errors.New("invalid familiarity level")
+		return 0, errs.ErrInvalidFamiliarityLevel
 	}
 	return core.Familiarity(fam - 1), nil
 }
@@ -187,7 +187,7 @@ func (h *HandlerImpl) validateFamiliarity(input string) (core.Familiarity, error
 func (h *HandlerImpl) validateImportance(input string) (core.Importance, error) {
 	imp, err := strconv.Atoi(input)
 	if err != nil || imp < 1 || imp > 4 {
-		return 0, errors.New("invalid importance level")
+		return 0, errs.ErrInvalidImportanceLevel
 	}
 	return core.Importance(imp - 1), nil
 }
@@ -195,17 +195,17 @@ func (h *HandlerImpl) validateImportance(input string) (core.Importance, error) 
 func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
-		return "", errors.New("invalid URL format")
+		return "", errs.ErrInvalidURLFormat
 	}
 
 	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
-		return "", errors.New("URL must be from leetcode.com/problems/")
+		return "", errs.ErrInvalidLeetCodeURL
 	}
 
 	re := regexp.MustCompile(`^/problems/([^/]+)`)
 	matches := re.FindStringSubmatch(parsedURL.Path)
 	if len(matches) != 2 {
-		return "", errors.New("invalid LeetCode problem URL format")
+		return "", errs.ErrInvalidLeetCodeURLFormat
 	}
 
 	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
@@ -227,7 +227,7 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 
 	deletedQuestion, err := h.QuestionUseCase.DeleteQuestion(target)
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 		return
 	}
 
@@ -246,7 +246,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 
 	err := h.QuestionUseCase.Undo()
 	if err != nil {
-		h.IO.Println("Error:", err)
+		h.IO.PrintError(err)
 	} else {
 		h.IO.Println("Undo successful.")
 	}

@@ -12,8 +12,8 @@ import (
 type Storage interface {
 	Lock()
 	Unlock()
-	LoadQuestions() ([]core.Question, error)
-	SaveQuestions([]core.Question) error
+	LoadQuestionStore() (*QuestionStore, error)
+	SaveQuestionStore(*QuestionStore) error
 	LoadDeltas() ([]core.Delta, error)
 	SaveDeltas([]core.Delta) error
 }
@@ -23,6 +23,12 @@ func NewFileStorage(questionsFile, deltasFile string) *FileStorage {
 		QuestionsFile: questionsFile,
 		DeltasFile:    deltasFile,
 	}
+}
+
+type QuestionStore struct {
+	MaxID     int                    `json:"max_id"`
+	Questions map[int]*core.Question `json:"questions"`
+	URLIndex  map[string]int         `json:"url_index"`
 }
 
 type FileStorage struct {
@@ -39,14 +45,23 @@ func (fs *FileStorage) Unlock() {
 	fs.mu.Unlock()
 }
 
-func (fs *FileStorage) LoadQuestions() ([]core.Question, error) {
-	var questions []core.Question
-	err := fs.loadJSONFromFile(&questions, fs.QuestionsFile)
-	return questions, err
+func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
+	var store QuestionStore
+	err := fs.loadJSONFromFile(&store, fs.QuestionsFile)
+	if err != nil {
+		return nil, err
+	}
+	if store.Questions == nil {
+		store.Questions = make(map[int]*core.Question)
+	}
+	if store.URLIndex == nil {
+		store.URLIndex = make(map[string]int)
+	}
+	return &store, nil
 }
 
-func (fs *FileStorage) SaveQuestions(questions []core.Question) error {
-	return fs.saveJSONToFile(questions, fs.QuestionsFile)
+func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
+	return fs.saveJSONToFile(store, fs.QuestionsFile)
 }
 
 func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
