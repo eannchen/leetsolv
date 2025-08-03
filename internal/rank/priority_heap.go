@@ -1,33 +1,5 @@
 package rank
 
-import (
-	"leetsolv/core"
-)
-
-func TopKSortedQuestions(questions []core.Question, k int, scoreFunc func(*core.Question) float64) []core.Question {
-	if k <= 0 || len(questions) == 0 {
-		return []core.Question{}
-	}
-
-	heap := NewTopKMinHeap(k)
-
-	for i := range questions {
-		heap.Push(HeapItem{
-			Item:  &questions[i],
-			Score: scoreFunc(&questions[i]),
-		})
-	}
-
-	// Pop items in reverse order to get the highest scores first
-	res := make([]core.Question, heap.Len())
-	for i := len(res) - 1; i > -1; i-- {
-		item, _ := heap.Pop()
-		res[i] = *(item.Item.(*core.Question))
-	}
-
-	return res
-}
-
 type HeapItem struct {
 	Item  any
 	Score float64
