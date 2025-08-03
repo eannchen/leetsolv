@@ -232,20 +232,28 @@ func TestQuestionUseCase_ListQuestionsSummary(t *testing.T) {
 	}
 
 	// Test listing questions summary
-	due, upcoming, total, err := useCase.ListQuestionsSummary()
+	summary, err := useCase.ListQuestionsSummary()
 	if err != nil {
 		t.Fatalf("Failed to list questions summary: %v", err)
 	}
 
-	if len(due) != 1 {
-		t.Errorf("Expected 1 due question, got %d", len(due))
+	if len(summary.TopDue) != 1 {
+		t.Errorf("Expected 1 due question, got %d", len(summary.TopDue))
 	}
 
-	if len(upcoming) != 1 {
-		t.Errorf("Expected 1 upcoming question, got %d", len(upcoming))
+	if len(summary.TopUpcoming) != 1 {
+		t.Errorf("Expected 1 upcoming question, got %d", len(summary.TopUpcoming))
 	}
 
-	if total != 2 {
-		t.Errorf("Expected total 2 questions, got %d", total)
+	if summary.Total != 2 {
+		t.Errorf("Expected total 2 questions, got %d", summary.Total)
+	}
+
+	if summary.TotalDue != 1 {
+		t.Errorf("Expected 1 total due question, got %d", summary.TotalDue)
+	}
+
+	if summary.TotalUpcoming != 1 {
+		t.Errorf("Expected 1 total upcoming question, got %d", summary.TotalUpcoming)
 	}
 }

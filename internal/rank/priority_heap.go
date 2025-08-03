@@ -50,6 +50,10 @@ func (h *TopKMinHeap) Len() int {
 }
 
 func (h *TopKMinHeap) Push(item HeapItem) {
+	if h.K <= 0 {
+		return
+	}
+
 	if len(h.Items) < h.K {
 		h.Items = append(h.Items, item)
 		h.percolateUp(len(h.Items) - 1)

@@ -9,6 +9,7 @@ import (
 
 	"leetsolv/core"
 	"leetsolv/internal/errs"
+	"leetsolv/usecase"
 )
 
 // MockIOHandler implements IOHandler for testing
@@ -69,19 +70,27 @@ type MockQuestionUseCase struct {
 	errorToReturn error
 	upserted      *core.Question
 	deleted       *core.Question
+	summary       usecase.QuestionsSummary
 }
 
 func NewMockQuestionUseCase() *MockQuestionUseCase {
 	return &MockQuestionUseCase{
 		questions: []core.Question{},
+		summary: usecase.QuestionsSummary{
+			TopDue:        []core.Question{},
+			TotalDue:      0,
+			TopUpcoming:   []core.Question{},
+			TotalUpcoming: 0,
+			Total:         0,
+		},
 	}
 }
 
-func (m *MockQuestionUseCase) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
+func (m *MockQuestionUseCase) ListQuestionsSummary() (usecase.QuestionsSummary, error) {
 	if m.shouldError {
-		return nil, nil, 0, m.errorToReturn
+		return usecase.QuestionsSummary{}, m.errorToReturn
 	}
-	return m.questions, m.questions, len(m.questions), nil
+	return m.summary, nil
 }
 
 func (m *MockQuestionUseCase) ListQuestionsOrderByDesc() ([]core.Question, error) {
@@ -248,18 +257,25 @@ func TestHandler_HandleGet_Error(t *testing.T) {
 func TestHandler_HandleStatus_Success(t *testing.T) {
 	handler, mockIO, mockUseCase := setupTestHandler(t)
 
-	// Set up test questions
-	mockUseCase.questions = []core.Question{
-		{
-			ID:   1,
-			URL:  "https://leetcode.com/problems/test1",
-			Note: "Test question 1",
+	// Set up test summary
+	mockUseCase.summary = usecase.QuestionsSummary{
+		TopDue: []core.Question{
+			{
+				ID:   1,
+				URL:  "https://leetcode.com/problems/test1",
+				Note: "Test question 1",
+			},
 		},
-		{
-			ID:   2,
-			URL:  "https://leetcode.com/problems/test2",
-			Note: "Test question 2",
+		TotalDue: 1,
+		TopUpcoming: []core.Question{
+			{
+				ID:   2,
+				URL:  "https://leetcode.com/problems/test2",
+				Note: "Test question 2",
+			},
 		},
+		TotalUpcoming: 1,
+		Total:         2,
 	}
 
 	handler.HandleStatus()

@@ -209,31 +209,39 @@ func TestQuestionUseCase_Integration_ListQuestionsSummary(t *testing.T) {
 	}
 
 	// Test listing questions summary
-	due, upcoming, total, err := useCase.ListQuestionsSummary()
+	summary, err := useCase.ListQuestionsSummary()
 	if err != nil {
 		t.Fatalf("Failed to list questions summary: %v", err)
 	}
 
-	if len(due) != 1 {
-		t.Errorf("Expected 1 due question, got %d", len(due))
+	if len(summary.TopDue) != 1 {
+		t.Errorf("Expected 1 due question, got %d", len(summary.TopDue))
 	}
 
-	if len(upcoming) != 1 {
-		t.Errorf("Expected 1 upcoming question, got %d", len(upcoming))
+	if len(summary.TopUpcoming) != 1 {
+		t.Errorf("Expected 1 upcoming question, got %d", len(summary.TopUpcoming))
 	}
 
-	if total != 2 {
-		t.Errorf("Expected total 2 questions, got %d", total)
+	if summary.Total != 2 {
+		t.Errorf("Expected total 2 questions, got %d", summary.Total)
+	}
+
+	if summary.TotalDue != 1 {
+		t.Errorf("Expected 1 total due question, got %d", summary.TotalDue)
+	}
+
+	if summary.TotalUpcoming != 1 {
+		t.Errorf("Expected 1 total upcoming question, got %d", summary.TotalUpcoming)
 	}
 
 	// Verify the due question
-	if due[0].URL != dueURL {
-		t.Errorf("Expected due question URL %s, got %s", dueURL, due[0].URL)
+	if summary.TopDue[0].URL != dueURL {
+		t.Errorf("Expected due question URL %s, got %s", dueURL, summary.TopDue[0].URL)
 	}
 
 	// Verify the upcoming question
-	if upcoming[0].URL != upcomingURL {
-		t.Errorf("Expected upcoming question URL %s, got %s", upcomingURL, upcoming[0].URL)
+	if summary.TopUpcoming[0].URL != upcomingURL {
+		t.Errorf("Expected upcoming question URL %s, got %s", upcomingURL, summary.TopUpcoming[0].URL)
 	}
 }
 
