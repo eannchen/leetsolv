@@ -13,6 +13,8 @@ type TestConfig struct {
 	ErrorLogFile  string
 	PageSize      int
 	MaxDelta      int
+	TopKDue       int
+	TopKUpcoming  int
 }
 
 // MockEnv creates a test environment with temporary files
@@ -57,6 +59,8 @@ func MockEnv(t *testing.T) *TestConfig {
 		ErrorLogFile:  errorLogFile.Name(),
 		PageSize:      5,
 		MaxDelta:      50,
+		TopKDue:       10,
+		TopKUpcoming:  10,
 	}
 }
 
@@ -69,5 +73,7 @@ func (tc *TestConfig) GetTestEnv() *env {
 		ErrorLogFile:  tc.ErrorLogFile,
 		PageSize:      tc.PageSize,
 		MaxDelta:      tc.MaxDelta,
+		TopKDue:       tc.TopKDue,
+		TopKUpcoming:  tc.TopKUpcoming,
 	}
 }

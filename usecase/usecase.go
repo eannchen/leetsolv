@@ -59,10 +59,10 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() (QuestionsSummary, error) {
 	oneDayLater := u.Clock.AddDays(today, 1)
 
 	var dueTotal int
-	dueHeap := rank.NewTopKMinHeap(10)
+	dueHeap := rank.NewTopKMinHeap(config.Env().TopKDue)
 
 	var upcomingTotal int
-	upcomingHeap := rank.NewTopKMinHeap(10)
+	upcomingHeap := rank.NewTopKMinHeap(config.Env().TopKUpcoming)
 
 	for _, q := range store.Questions {
 		nextReviewDate := u.Clock.ToDate(q.NextReview)
