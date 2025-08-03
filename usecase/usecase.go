@@ -10,12 +10,13 @@ import (
 	"leetsolv/internal/clock"
 	"leetsolv/internal/errs"
 	"leetsolv/internal/logger"
+	"leetsolv/internal/rank"
 	"leetsolv/storage"
 )
 
 // QuestionUseCase defines the interface for question use cases
 type QuestionUseCase interface {
-	ListQuestionsSummary() ([]core.Question, []core.Question, int, error)
+	ListQuestionsSummary() (QuestionsSummary, error)
 	ListQuestionsOrderByDesc() ([]core.Question, error)
 	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
@@ -40,40 +41,67 @@ func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler, clock
 	}
 }
 
-func (u *QuestionUseCaseImpl) ListQuestionsSummary() ([]core.Question, []core.Question, int, error) {
+type QuestionsSummary struct {
+	TopDue        []core.Question // Top-K due questions (by score)
+	TotalDue      int             // Total count of due questions
+	TopUpcoming   []core.Question // Top-K upcoming questions (by NextReview, then score)
+	TotalUpcoming int             // Total count of upcoming (within 1 day)
+	Total         int             // Total number of questions in the store
+}
+
+func (u *QuestionUseCaseImpl) ListQuestionsSummary() (QuestionsSummary, error) {
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
-		return nil, nil, 0, errs.WrapInternalError(err, "Failed to load question store")
+		return QuestionsSummary{}, errs.WrapInternalError(err, "Failed to load question store")
 	}
 
 	today := u.Clock.Today()
 	oneDayLater := u.Clock.AddDays(today, 1)
 
-	due := []core.Question{}
-	upcoming := []core.Question{}
+	var dueTotal int
+	dueHeap := rank.NewTopKMinHeap(10)
+
+	var upcomingTotal int
+	upcomingHeap := rank.NewTopKMinHeap(10)
 
 	for _, q := range store.Questions {
 		nextReviewDate := u.Clock.ToDate(q.NextReview)
 		if !nextReviewDate.After(today) {
-			due = append(due, *q)
+			dueHeap.Push(rank.HeapItem{
+				Item:  q,
+				Score: u.Scheduler.CalculatePriorityScore(q),
+			})
+			dueTotal++
 		} else if !nextReviewDate.After(oneDayLater) {
-			upcoming = append(upcoming, *q)
+			upcomingHeap.Push(rank.HeapItem{
+				Item:  q,
+				Score: u.Scheduler.CalculatePriorityScore(q),
+			})
+			upcomingTotal++
 		}
 	}
 
-	sort.Slice(due, func(i, j int) bool {
-		return u.Scheduler.CalculatePriorityScore(&due[i]) > u.Scheduler.CalculatePriorityScore(&due[j])
-	})
+	due := make([]core.Question, dueHeap.Len())
+	for i := len(due) - 1; i > -1; i-- {
+		item, _ := dueHeap.Pop()
+		due[i] = *(item.Item.(*core.Question))
+	}
 
-	sort.Slice(upcoming, func(i, j int) bool {
-		if upcoming[i].NextReview.Equal(upcoming[j].NextReview) {
-			return u.Scheduler.CalculatePriorityScore(&upcoming[i]) > u.Scheduler.CalculatePriorityScore(&upcoming[j])
-		}
-		return upcoming[i].NextReview.Before(upcoming[j].NextReview)
-	})
+	upcoming := make([]core.Question, upcomingHeap.Len())
+	for i := len(upcoming) - 1; i > -1; i-- {
+		item, _ := upcomingHeap.Pop()
+		upcoming[i] = *(item.Item.(*core.Question))
+	}
 
 	total := len(store.Questions)
-	return due, upcoming, total, nil
+
+	return QuestionsSummary{
+		TopDue:        due,
+		TotalDue:      dueTotal,
+		TopUpcoming:   upcoming,
+		TotalUpcoming: upcomingTotal,
+		Total:         total,
+	}, nil
 }
 
 func (u *QuestionUseCaseImpl) ListQuestionsOrderByDesc() ([]core.Question, error) {

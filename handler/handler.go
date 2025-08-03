@@ -100,25 +100,36 @@ func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {
 }
 
 func (h *HandlerImpl) HandleStatus() {
-	due, upcoming, total, err := h.QuestionUseCase.ListQuestionsSummary()
+	summary, err := h.QuestionUseCase.ListQuestionsSummary()
 	if err != nil {
 		h.IO.PrintError(err)
 		return
 	}
 
 	h.IO.PrintlnColored(ColorCyan, "========== Question Status ==========")
-	h.IO.Printf("Total Questions: %d\n\n", total)
+	h.IO.PrintfColored(ColorYellow, "Total Questions: %d\n", summary.Total)
+	h.IO.Printf("\n")
 
-	if len(due) > 0 {
+	if len(summary.TopDue) > 0 {
 		h.IO.PrintlnColored(ColorCyan, "---------- Due Questions ----------")
-		for _, q := range due {
+		if summary.TotalDue > len(summary.TopDue) {
+			h.IO.PrintfColored(ColorYellow, "Total Due: %d (showing top %d)\n", summary.TotalDue, len(summary.TopDue))
+		} else {
+			h.IO.PrintfColored(ColorYellow, "Total Due: %d\n", summary.TotalDue)
+		}
+		for _, q := range summary.TopDue {
 			h.IO.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
 		}
 	}
 	h.IO.Printf("\n")
 
 	h.IO.PrintlnColored(ColorCyan, "---------- Upcoming Questions (within a day) ----------")
-	for _, q := range upcoming {
+	if summary.TotalUpcoming > len(summary.TopUpcoming) {
+		h.IO.PrintfColored(ColorYellow, "Total Upcoming: %d (showing top %d)\n", summary.TotalUpcoming, len(summary.TopUpcoming))
+	} else {
+		h.IO.PrintfColored(ColorYellow, "Total Upcoming: %d\n", summary.TotalUpcoming)
+	}
+	for _, q := range summary.TopUpcoming {
 		h.IO.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
 	}
 	h.IO.Printf("\n")
