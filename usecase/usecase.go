@@ -81,12 +81,14 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() (QuestionsSummary, error) {
 		}
 	}
 
+	// Pop items in reverse order to get the highest scores first
 	due := make([]core.Question, dueHeap.Len())
 	for i := len(due) - 1; i > -1; i-- {
 		item, _ := dueHeap.Pop()
 		due[i] = *(item.Item.(*core.Question))
 	}
 
+	// Pop items in reverse order to get the highest scores first
 	upcoming := make([]core.Question, upcomingHeap.Len())
 	for i := len(upcoming) - 1; i > -1; i-- {
 		item, _ := upcomingHeap.Pop()
