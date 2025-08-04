@@ -237,6 +237,19 @@ func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
 func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 	if target == "" {
 		target = h.IO.ReadLine(scanner, "Enter ID or URL to delete the question: ")
+		if target == "" {
+			h.IO.PrintError(errs.ErrInvalidEmptyInput)
+			return
+		}
+	}
+	_, err := strconv.Atoi(target)
+	isID := err == nil
+	if !isID {
+		target, err = h.normalizeLeetCodeURL(target)
+		if err != nil {
+			h.IO.PrintError(err)
+			return
+		}
 	}
 
 	// Confirm before deleting
@@ -247,7 +260,7 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 		return
 	}
 
-	_, err := h.QuestionUseCase.DeleteQuestion(target)
+	_, err = h.QuestionUseCase.DeleteQuestion(target)
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
