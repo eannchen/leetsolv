@@ -13,10 +13,12 @@ import (
 
 const (
 	ColorSuccess = ColorGreen
+	ColorCancel  = ColorGray
 	ColorWarning = ColorYellow
 	ColorError   = ColorRed
 	ColorHeader  = ColorBlue
 
+	ColorLogo         = ColorOrange
 	ColorStatTotal    = ColorBlue
 	ColorStatDue      = ColorYellow
 	ColorStatUpcoming = ColorBlue
@@ -27,6 +29,8 @@ const (
 	ColorRed    = "\033[31m"
 	ColorGreen  = "\033[32m"
 	ColorYellow = "\033[33m"
+	ColorOrange = "\033[38;5;208m"
+	ColorGray   = "\033[38;5;245m"
 	ColorBlue   = "\033[34m"
 	Bold        = "\033[1m"
 )
@@ -105,7 +109,7 @@ func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 }
 
 func (ioh *IOHandlerImpl) PrintCancel(message string) {
-	ioh.PrintlnColored(ColorBlue, "[i] "+message)
+	ioh.PrintlnColored(ColorCancel, "[i] "+message)
 }
 
 func (ioh *IOHandlerImpl) PrintSuccess(message string) {
