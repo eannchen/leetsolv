@@ -72,8 +72,8 @@ func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string
 func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 	ioh.Printf("[%d] %s\n", question.ID, question.URL)
 	ioh.Printf("   Note: %s\n", question.Note)
-	ioh.Printf("   Familiarity: %d\n", question.Familiarity+1)
-	ioh.Printf("   Importance: %d\n", question.Importance+1)
+	ioh.Printf("   Familiarity: %d/%d\n", question.Familiarity+1, core.VeryEasy+1)
+	ioh.Printf("   Importance: %d/%d\n", question.Importance+1, core.CriticalImportance+1)
 	ioh.Printf("   Last Reviewed: %s\n", question.LastReviewed.Format("2006-01-02"))
 	ioh.Printf("   Next Review: %s\n", question.NextReview.Format("2006-01-02"))
 	ioh.Printf("   Review Count: %d\n", question.ReviewCount)
