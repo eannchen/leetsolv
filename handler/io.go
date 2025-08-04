@@ -12,12 +12,22 @@ import (
 )
 
 const (
+	ColorSuccess = ColorGreen
+	ColorWarning = ColorYellow
+	ColorError   = ColorRed
+	ColorHeader  = ColorBlue
+
+	ColorStatTotal    = ColorBlue
+	ColorStatDue      = ColorYellow
+	ColorStatUpcoming = ColorBlue
+)
+
+const (
 	ColorReset  = "\033[0m"
 	ColorRed    = "\033[31m"
 	ColorGreen  = "\033[32m"
 	ColorYellow = "\033[33m"
 	ColorBlue   = "\033[34m"
-	ColorCyan   = "\033[36m"
 	Bold        = "\033[1m"
 )
 
@@ -27,8 +37,11 @@ type IOHandler interface {
 	PrintlnColored(color string, a ...interface{})
 	PrintfColored(color string, format string, a ...interface{})
 	ReadLine(scanner *bufio.Scanner, prompt string) string
+	PrintQuestionBrief(q *core.Question)
 	PrintQuestionDetail(question *core.Question)
+	PrintSuccess(message string)
 	PrintError(err error)
+	PrintCancel(message string)
 }
 
 type IOHandlerImpl struct {
@@ -69,6 +82,15 @@ func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string
 	return scanner.Text()
 }
 
+func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {
+	ioh.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
+	if q.Note == "" {
+		ioh.Printf(" ↳ Note: (none)\n")
+	} else {
+		ioh.Printf(" ↳ Note: %s\n", q.Note)
+	}
+}
+
 func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 	ioh.Printf("[%d] %s\n", question.ID, question.URL)
 	ioh.Printf("   Note: %s\n", question.Note)
@@ -82,6 +104,14 @@ func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 	ioh.Printf("\n")
 }
 
+func (ioh *IOHandlerImpl) PrintCancel(message string) {
+	ioh.PrintlnColored(ColorBlue, "[i] "+message)
+}
+
+func (ioh *IOHandlerImpl) PrintSuccess(message string) {
+	ioh.PrintlnColored(ColorSuccess, "[✔] "+message)
+}
+
 func (ioh *IOHandlerImpl) PrintError(err error) {
 	if err == nil {
 		return
@@ -93,18 +123,18 @@ func (ioh *IOHandlerImpl) PrintError(err error) {
 		switch codedErr.Kind {
 		case errs.ValidationErrorKind:
 			// Validation errors - show in yellow with user-friendly message
-			ioh.PrintlnColored(ColorYellow, "⚠️ "+codedErr.UserMessage())
+			ioh.PrintlnColored(ColorWarning, "[!] "+codedErr.UserMessage())
 			return
 		case errs.BusinessErrorKind:
 			// Business errors - show in yellow with user-friendly message
-			ioh.PrintlnColored(ColorYellow, "⚠️ "+codedErr.UserMessage())
+			ioh.PrintlnColored(ColorWarning, "[!] "+codedErr.UserMessage())
 			return
 		case errs.SystemErrorKind:
 			// System errors - show in red with technical details
-			ioh.PrintlnColored(ColorRed, "❌ "+codedErr.Error())
+			ioh.PrintlnColored(ColorError, "[✘] "+codedErr.Error())
 			return
 		}
 	}
 
-	ioh.PrintlnColored(ColorRed, "❌ Error: "+err.Error())
+	ioh.PrintlnColored(ColorError, "[✘] Error: "+err.Error())
 }

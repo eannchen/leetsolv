@@ -53,13 +53,28 @@ func (m *MockIOHandler) ReadLine(scanner *bufio.Scanner, prompt string) string {
 	return scanner.Text()
 }
 
+func (m *MockIOHandler) PrintQuestionBrief(q *core.Question) {
+	m.writeCalls = append(m.writeCalls, "PrintQuestionBrief")
+	// Implementation for testing
+}
+
 func (m *MockIOHandler) PrintQuestionDetail(question *core.Question) {
 	m.writeCalls = append(m.writeCalls, "PrintQuestionDetail")
 	// Implementation for testing
 }
 
+func (m *MockIOHandler) PrintSuccess(message string) {
+	m.writeCalls = append(m.writeCalls, "PrintSuccess")
+	// Implementation for testing
+}
+
 func (m *MockIOHandler) PrintError(err error) {
 	m.writeCalls = append(m.writeCalls, "PrintError")
+	// Implementation for testing
+}
+
+func (m *MockIOHandler) PrintCancel(message string) {
+	m.writeCalls = append(m.writeCalls, "PrintCancel")
 	// Implementation for testing
 }
 

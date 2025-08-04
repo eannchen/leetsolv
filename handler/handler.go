@@ -57,14 +57,9 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 		}
 
 		// Display the current page
-		h.IO.PrintfColored(ColorCyan, "-- Page %d/%d --\n", page+1, totalPages)
+		h.IO.PrintfColored(ColorHeader, "-- Page %d/%d --\n", page+1, totalPages)
 		for _, q := range paginatedQuestions {
-			h.IO.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02")) // Date only
-			if q.Note == "" {
-				h.IO.Printf("   Note: (none)\n")
-			} else {
-				h.IO.Printf("   Note: %s\n", q.Note)
-			}
+			h.IO.PrintQuestionBrief(&q)
 		}
 
 		// Handle user input for pagination
@@ -106,31 +101,31 @@ func (h *HandlerImpl) HandleStatus() {
 		return
 	}
 
-	h.IO.PrintlnColored(ColorCyan, "========== Question Status ==========")
-	h.IO.PrintfColored(ColorYellow, "Total Questions: %d\n", summary.Total)
+	h.IO.PrintlnColored(ColorHeader, "───────────── Question Status ─────────────")
+	h.IO.PrintfColored(ColorStatTotal, "Total Questions: %d\n", summary.Total)
 	h.IO.Printf("\n")
 
 	if len(summary.TopDue) > 0 {
-		h.IO.PrintlnColored(ColorCyan, "---------- Due Questions ----------")
+		h.IO.PrintlnColored(ColorHeader, "-- Due Questions --")
 		if summary.TotalDue > len(summary.TopDue) {
-			h.IO.PrintfColored(ColorYellow, "Total Due: %d (showing top %d)\n", summary.TotalDue, len(summary.TopDue))
+			h.IO.PrintfColored(ColorStatDue, "Total Due: %d (showing top %d)\n", summary.TotalDue, len(summary.TopDue))
 		} else {
-			h.IO.PrintfColored(ColorYellow, "Total Due: %d\n", summary.TotalDue)
+			h.IO.PrintfColored(ColorStatDue, "Total Due: %d\n", summary.TotalDue)
 		}
 		for _, q := range summary.TopDue {
-			h.IO.Printf("[%d] %s\n   Note: %s\n", q.ID, q.URL, q.Note)
+			h.IO.PrintQuestionBrief(&q)
 		}
 	}
 	h.IO.Printf("\n")
 
-	h.IO.PrintlnColored(ColorCyan, "---------- Upcoming Questions (within a day) ----------")
+	h.IO.PrintlnColored(ColorHeader, "-- Upcoming Questions --")
 	if summary.TotalUpcoming > len(summary.TopUpcoming) {
-		h.IO.PrintfColored(ColorYellow, "Total Upcoming: %d (showing top %d)\n", summary.TotalUpcoming, len(summary.TopUpcoming))
+		h.IO.PrintfColored(ColorStatUpcoming, "Total Upcoming: %d (showing top %d)\n", summary.TotalUpcoming, len(summary.TopUpcoming))
 	} else {
-		h.IO.PrintfColored(ColorYellow, "Total Upcoming: %d\n", summary.TotalUpcoming)
+		h.IO.PrintfColored(ColorStatUpcoming, "Total Upcoming: %d\n", summary.TotalUpcoming)
 	}
 	for _, q := range summary.TopUpcoming {
-		h.IO.Printf("[%d] %s (Next: %s)\n   Note: %s\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"), q.Note)
+		h.IO.PrintQuestionBrief(&q)
 	}
 	h.IO.Printf("\n")
 }
@@ -181,7 +176,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	} else {
 		// Display the upserted question
 		h.IO.Printf("\n")
-		h.IO.PrintlnColored(ColorGreen, "[✔] Question Upserted:")
+		h.IO.PrintSuccess("Question Upserted")
 		h.IO.PrintQuestionDetail(upsertedQuestion)
 	}
 	h.IO.Printf("\n")
@@ -231,17 +226,16 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 	// Confirm before deleting
 	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to delete the question? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
-		h.IO.PrintlnColored(ColorYellow, "Cancelled.")
+		h.IO.PrintCancel("Cancelled")
 		h.IO.Printf("\n")
 		return
 	}
 
-	deletedQuestion, err := h.QuestionUseCase.DeleteQuestion(target)
+	_, err := h.QuestionUseCase.DeleteQuestion(target)
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
-		h.IO.PrintlnColored(ColorGreen, "[✔] Question Deleted:")
-		h.IO.PrintQuestionDetail(deletedQuestion)
+		h.IO.PrintSuccess("Question Deleted")
 	}
 	h.IO.Printf("\n")
 }
@@ -250,7 +244,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	// Confirm before undo
 	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to undo the previous action? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
-		h.IO.PrintlnColored(ColorYellow, "Cancelled.")
+		h.IO.PrintCancel("Cancelled")
 		h.IO.Printf("\n")
 		return
 	}
@@ -259,7 +253,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
-		h.IO.PrintlnColored(ColorGreen, "[✔] Undo successful.")
+		h.IO.PrintSuccess("Undo successful")
 	}
 	h.IO.Printf("\n")
 }
