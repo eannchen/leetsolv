@@ -50,6 +50,8 @@ func main() {
 	deleteCommand := &command.DeleteCommand{Handler: h}
 	commandRegistry.Register("remove", deleteCommand)
 	commandRegistry.Register("rm", deleteCommand)
+	commandRegistry.Register("delete", deleteCommand)
+	commandRegistry.Register("del", deleteCommand)
 
 	undoCommand := &command.UndoCommand{Handler: h}
 	commandRegistry.Register("undo", undoCommand)
