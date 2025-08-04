@@ -86,6 +86,19 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {
 	if target == "" {
 		target = h.IO.ReadLine(scanner, "Enter ID or URL to get the question details: ")
+		if target == "" {
+			h.IO.PrintError(errs.ErrInvalidEmptyInput)
+			return
+		}
+	}
+	_, err := strconv.Atoi(target)
+	isID := err == nil
+	if !isID {
+		target, err = h.normalizeLeetCodeURL(target)
+		if err != nil {
+			h.IO.PrintError(err)
+			return
+		}
 	}
 
 	question, err := h.QuestionUseCase.GetQuestion(target)
