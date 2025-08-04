@@ -31,7 +31,9 @@ func (r *CommandRegistry) Execute(scanner *bufio.Scanner, name string, args []st
 			return true
 		}
 	} else {
-		fmt.Println("Unknown command.")
+		fmt.Printf("Unknown command: '%s'\n", name)
+		fmt.Println("Available commands: list, get, status, upsert, delete, undo, quit")
+		fmt.Println("Type 'help' for more information")
 	}
 	return false
 }

@@ -70,17 +70,45 @@ func main() {
 		os.Exit(0)
 	}()
 
+	printWelcome()
+	printInteractiveHelp()
+
 	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("Shutting down gracefully...")
 			return
 		default:
-			printWelcome()
-			fmt.Print("> Command [status, list, upsert, get, delete, undo, quit, help]: ")
+			fmt.Print("\n> ")
 			scanner.Scan()
-			cmd := strings.TrimSpace(scanner.Text())
-			if quit := commandRegistry.Execute(scanner, cmd, nil); quit {
+			input := strings.TrimSpace(scanner.Text())
+
+			if input == "" {
+				continue
+			}
+
+			// Parse command and arguments
+			parts := strings.Fields(input)
+			cmd := parts[0]
+			args := parts[1:]
+
+			// Handle special commands
+			switch cmd {
+			case "help", "h":
+				printInteractiveHelp()
+				continue
+			case "quit", "q", "exit":
+				fmt.Println("Goodbye!")
+				return
+			case "clear", "cls":
+				fmt.Print("\033[H\033[2J") // Clear screen
+				printWelcome()
+				printInteractiveHelp()
+				continue
+			}
+
+			// Execute command
+			if quit := commandRegistry.Execute(scanner, cmd, args); quit {
 				return
 			}
 		}
@@ -89,8 +117,27 @@ func main() {
 
 func printWelcome() {
 	fmt.Println("╭────────────────────────────────────────╮")
+	fmt.Println("│                                        │")
 	fmt.Println("│    LeetSolv — CLI SRS for LeetCode     │")
+	fmt.Println("│                                        │")
 	fmt.Println("╰────────────────────────────────────────╯")
+}
+
+func printInteractiveHelp() {
+	fmt.Println("\n📚 Available Commands:")
+	fmt.Println("  status      - Show question status (due, upcoming, total)")
+	fmt.Println("  list        - List all questions with pagination")
+	fmt.Println("  get <id>    - Get details of a question by ID or URL")
+	fmt.Println("  upsert      - Add or update a question")
+	fmt.Println("  delete <id> - Delete a question by ID or URL")
+	fmt.Println("  undo        - Undo the last action")
+	fmt.Println("  help        - Show this help message")
+	fmt.Println("  quit        - Exit the application")
+	fmt.Println("  clear       - Clear the screen")
+	fmt.Println("\n💡 Tips:")
+	fmt.Println("  • Use 'h' for help, 'q' for quit")
+	fmt.Println("  • Commands are case-insensitive")
+	fmt.Println("  • Press Enter to continue pagination")
 }
 
 func printHelp() {
