@@ -12,12 +12,14 @@ type Command interface {
 }
 
 type CommandRegistry struct {
-	commands map[string]Command
+	commands              map[string]Command
+	unknownCommandHandler func(scanner *bufio.Scanner, command string)
 }
 
-func NewCommandRegistry() *CommandRegistry {
+func NewCommandRegistry(unknownCommandHandler func(scanner *bufio.Scanner, command string)) *CommandRegistry {
 	return &CommandRegistry{
-		commands: make(map[string]Command),
+		commands:              make(map[string]Command),
+		unknownCommandHandler: unknownCommandHandler,
 	}
 }
 
@@ -31,9 +33,7 @@ func (r *CommandRegistry) Execute(scanner *bufio.Scanner, name string, args []st
 			return true
 		}
 	} else {
-		fmt.Printf("Unknown command: '%s'\n", name)
-		fmt.Println("Available commands: list, get, status, upsert, delete, undo, quit")
-		fmt.Println("Type 'help' for more information")
+		r.unknownCommandHandler(scanner, name)
 	}
 	return false
 }
@@ -107,5 +107,6 @@ func (c *UndoCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 type QuitCommand struct{}
 
 func (c *QuitCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	fmt.Println("Goodbye!")
 	return true
 }

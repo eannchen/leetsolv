@@ -257,3 +257,9 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	}
 	h.IO.Printf("\n")
 }
+
+func (h *HandlerImpl) HandleUnknownCommand(scanner *bufio.Scanner, command string) {
+	h.IO.PrintfColored(ColorWarning, "Unknown command: '%s'\n", command)
+	h.IO.PrintfColored(ColorWarning, "Available commands: list, get, status, upsert, delete, undo, quit\n")
+	h.IO.PrintfColored(ColorWarning, "Type 'help' for more information\n")
+}

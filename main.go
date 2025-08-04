@@ -29,21 +29,24 @@ func main() {
 	ioHandler := handler.NewIOHandler()
 	h := handler.NewHandler(ioHandler, questionUseCase)
 
-	commandRegistry := command.NewCommandRegistry()
+	commandRegistry := command.NewCommandRegistry(h.HandleUnknownCommand)
 	commandRegistry.Register("list", &command.ListCommand{Handler: h})
 	commandRegistry.Register("get", &command.GetCommand{Handler: h})
 	commandRegistry.Register("status", &command.StatusCommand{Handler: h})
 	commandRegistry.Register("upsert", &command.UpsertCommand{Handler: h})
 	commandRegistry.Register("delete", &command.DeleteCommand{Handler: h})
 	commandRegistry.Register("undo", &command.UndoCommand{Handler: h})
-	commandRegistry.Register("quit", &command.QuitCommand{})
+	quitCommand := &command.QuitCommand{}
+	commandRegistry.Register("quit", quitCommand)
+	commandRegistry.Register("q", quitCommand)
+	commandRegistry.Register("exit", quitCommand)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	// --- CLI argument mode ---
 	if len(os.Args) > 1 {
 		// Handle "help" command
-		if os.Args[1] == "help" {
+		if os.Args[1] == "help" || os.Args[1] == "h" {
 			printHelp()
 			os.Exit(0)
 		}
@@ -71,7 +74,7 @@ func main() {
 	}()
 
 	printWelcome()
-	printInteractiveHelp()
+	printHelp()
 
 	for {
 		select {
@@ -95,15 +98,12 @@ func main() {
 			// Handle special commands
 			switch cmd {
 			case "help", "h":
-				printInteractiveHelp()
+				printHelp()
 				continue
-			case "quit", "q", "exit":
-				fmt.Println("Goodbye!")
-				return
 			case "clear", "cls":
 				fmt.Print("\033[H\033[2J") // Clear screen
 				printWelcome()
-				printInteractiveHelp()
+				printHelp()
 				continue
 			}
 
@@ -116,38 +116,28 @@ func main() {
 }
 
 func printWelcome() {
-	fmt.Println("╭────────────────────────────────────────╮")
-	fmt.Println("│                                        │")
-	fmt.Println("│    LeetSolv — CLI SRS for LeetCode     │")
-	fmt.Println("│                                        │")
-	fmt.Println("╰────────────────────────────────────────╯")
-}
-
-func printInteractiveHelp() {
-	fmt.Println("\n📚 Available Commands:")
-	fmt.Println("  status      - Show question status (due, upcoming, total)")
-	fmt.Println("  list        - List all questions with pagination")
-	fmt.Println("  get <id>    - Get details of a question by ID or URL")
-	fmt.Println("  upsert      - Add or update a question")
-	fmt.Println("  delete <id> - Delete a question by ID or URL")
-	fmt.Println("  undo        - Undo the last action")
-	fmt.Println("  help        - Show this help message")
-	fmt.Println("  quit        - Exit the application")
-	fmt.Println("  clear       - Clear the screen")
-	fmt.Println("\n💡 Tips:")
-	fmt.Println("  • Use 'h' for help, 'q' for quit")
-	fmt.Println("  • Commands are case-insensitive")
-	fmt.Println("  • Press Enter to continue pagination")
+	fmt.Println("╭───────────────────────────────────────────────────╮")
+	fmt.Println("│                                                   │")
+	fmt.Println("│                                                   │")
+	fmt.Println("│    ░▒▓   LeetSolv — CLI SRS for LeetCode   ▓▒░    │")
+	fmt.Println("│                                                   │")
+	fmt.Println("│                                                   │")
+	fmt.Println("╰───────────────────────────────────────────────────╯")
 }
 
 func printHelp() {
-	fmt.Println("Usage: leetsolv [command]")
-	fmt.Println("\nAvailable commands:")
-	fmt.Println("  list       - List all questions with pagination.")
-	fmt.Println("  get        - Get details of a question by ID or URL.")
-	fmt.Println("  status     - Show the status of questions (due, upcoming, total).")
-	fmt.Println("  upsert     - Add or update a question.")
-	fmt.Println("  delete     - Delete a question by ID or URL.")
-	fmt.Println("  undo       - Undo the last action.")
-	fmt.Println("  help       - Show this help message.")
+	fmt.Println("\nAvailable Commands:")
+	fmt.Println("  status          - Show question status (due, upcoming, total)")
+	fmt.Println("  list            - List all questions with pagination")
+	fmt.Println("  get [id|url]    - Get details of a question by ID or URL")
+	fmt.Println("  upsert          - Add or update a question")
+	fmt.Println("  delete [id|url] - Delete a question by ID or URL")
+	fmt.Println("  undo            - Undo the last action")
+	fmt.Println("  help            - Show this help message")
+	fmt.Println("  quit            - Exit the application")
+	fmt.Println("\nTips:")
+	fmt.Println("  • Use 'h' for help, 'q' for quit")
+	fmt.Println("  • Commands are case-insensitive")
+	fmt.Println("  • Press Enter to continue pagination")
+	fmt.Printf("\n")
 }
