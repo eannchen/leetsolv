@@ -329,13 +329,13 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	// Verify that success message was printed
 	found := false
 	for _, call := range mockIO.writeCalls {
-		if call == "PrintlnColored" {
+		if call == "PrintSuccess" {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Error("Expected PrintlnColored to be called for success message")
+		t.Error("Expected PrintSuccess to be called for success message")
 	}
 }
 
@@ -421,13 +421,13 @@ func TestHandler_HandleDelete_Cancelled(t *testing.T) {
 	// Verify that cancellation message was printed
 	found := false
 	for _, call := range mockIO.writeCalls {
-		if call == "Println" {
+		if call == "PrintCancel" {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Error("Expected Println to be called for cancellation message")
+		t.Error("Expected PrintCancel to be called for cancellation message")
 	}
 }
 
@@ -442,13 +442,13 @@ func TestHandler_HandleUndo_Success(t *testing.T) {
 	// Verify that success message was printed
 	found := false
 	for _, call := range mockIO.writeCalls {
-		if call == "Println" {
+		if call == "PrintSuccess" {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Error("Expected Println to be called for undo success message")
+		t.Error("Expected PrintSuccess to be called for undo success message")
 	}
 }
 
