@@ -29,7 +29,7 @@ func main() {
 	ioHandler := handler.NewIOHandler()
 	h := handler.NewHandler(ioHandler, questionUseCase)
 
-	commandRegistry := command.NewCommandRegistry(h.HandleUnknownCommand)
+	commandRegistry := command.NewCommandRegistry(h.HandleUnknown)
 
 	listCommand := &command.ListCommand{Handler: h}
 	commandRegistry.Register("list", listCommand)
@@ -55,7 +55,11 @@ func main() {
 	commandRegistry.Register("undo", undoCommand)
 	commandRegistry.Register("back", undoCommand)
 
-	quitCommand := &command.QuitCommand{}
+	helpCommand := &command.HelpCommand{Handler: h}
+	commandRegistry.Register("help", helpCommand)
+	commandRegistry.Register("h", helpCommand)
+
+	quitCommand := &command.QuitCommand{Handler: h}
 	commandRegistry.Register("quit", quitCommand)
 	commandRegistry.Register("q", quitCommand)
 	commandRegistry.Register("exit", quitCommand)
@@ -64,13 +68,6 @@ func main() {
 
 	// --- CLI argument mode ---
 	if len(os.Args) > 1 {
-		// Handle "help" command
-		if os.Args[1] == "help" || os.Args[1] == "h" {
-			printWelcome()
-			printHelp()
-			os.Exit(0)
-		}
-
 		// Combine all arguments into a single command string
 		commandRegistry.Execute(scanner, os.Args[1], os.Args[2:])
 		os.Exit(0)
@@ -93,8 +90,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	printWelcome()
-	printHelp()
+	h.HandleHelp()
 
 	for {
 		select {
@@ -104,8 +100,8 @@ func main() {
 		default:
 			fmt.Print("\n> ")
 			scanner.Scan()
-			input := strings.TrimSpace(scanner.Text())
 
+			input := strings.TrimSpace(scanner.Text())
 			if input == "" {
 				continue
 			}
@@ -117,13 +113,9 @@ func main() {
 
 			// Handle special commands
 			switch cmd {
-			case "help", "h":
-				printHelp()
-				continue
 			case "clear", "cls":
 				fmt.Print("\033[H\033[2J") // Clear screen
-				printWelcome()
-				printHelp()
+				h.HandleHelp()
 				continue
 			}
 
@@ -133,30 +125,4 @@ func main() {
 			}
 		}
 	}
-}
-
-func printWelcome() {
-	fmt.Println("╭───────────────────────────────────────────────────╮")
-	fmt.Println("│                                                   │")
-	fmt.Println("│                                                   │")
-	fmt.Println("│    ░▒▓   LeetSolv — CLI SRS for LeetCode   ▓▒░    │")
-	fmt.Println("│                                                   │")
-	fmt.Println("│                                                   │")
-	fmt.Println("╰───────────────────────────────────────────────────╯")
-}
-
-func printHelp() {
-	fmt.Println("\nAvailable Commands:")
-	fmt.Println("  status/stat         - Show question status (total, due, upcoming)")
-	fmt.Println("  list/ls             - List all questions with pagination")
-	fmt.Println("  detail/get [id|url] - Get details of a question by ID or URL")
-	fmt.Println("  upsert/add          - Add or update a question")
-	fmt.Println("  remove/rm [id|url]  - Delete a question by ID or URL")
-	fmt.Println("  undo/back           - Undo the last action")
-	fmt.Println("  help/h              - Show this help message")
-	fmt.Println("  quit/q/exit         - Exit the application")
-	fmt.Println("\nTips:")
-	fmt.Println("  • Commands are case-insensitive")
-	fmt.Println("  • Press Enter to continue pagination")
-	fmt.Printf("\n")
 }

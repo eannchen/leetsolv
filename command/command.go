@@ -2,7 +2,6 @@ package command
 
 import (
 	"bufio"
-	"fmt"
 	"strings"
 
 	"leetsolv/handler"
@@ -14,10 +13,10 @@ type Command interface {
 
 type CommandRegistry struct {
 	commands              map[string]Command
-	unknownCommandHandler func(scanner *bufio.Scanner, command string)
+	unknownCommandHandler func(command string)
 }
 
-func NewCommandRegistry(unknownCommandHandler func(scanner *bufio.Scanner, command string)) *CommandRegistry {
+func NewCommandRegistry(unknownCommandHandler func(command string)) *CommandRegistry {
 	return &CommandRegistry{
 		commands:              make(map[string]Command),
 		unknownCommandHandler: unknownCommandHandler,
@@ -37,7 +36,7 @@ func (r *CommandRegistry) Execute(scanner *bufio.Scanner, name string, args []st
 			return true
 		}
 	} else {
-		r.unknownCommandHandler(scanner, name)
+		r.unknownCommandHandler(name)
 	}
 	return false
 }
@@ -108,9 +107,20 @@ func (c *UndoCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	return false
 }
 
-type QuitCommand struct{}
+type HelpCommand struct {
+	Handler handler.Handler
+}
+
+func (c *HelpCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleHelp()
+	return false
+}
+
+type QuitCommand struct {
+	Handler handler.Handler
+}
 
 func (c *QuitCommand) Execute(scanner *bufio.Scanner, args []string) bool {
-	fmt.Println("Goodbye!")
+	c.Handler.HandleQuit()
 	return true
 }
