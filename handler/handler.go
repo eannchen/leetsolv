@@ -181,7 +181,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 	} else {
 		// Display the upserted question
 		h.IO.Printf("\n")
-		h.IO.PrintlnColored(ColorGreen, "[✔] Question upserted:")
+		h.IO.PrintlnColored(ColorGreen, "[✔] Question Upserted:")
 		h.IO.PrintQuestionDetail(upsertedQuestion)
 	}
 	h.IO.Printf("\n")
@@ -231,7 +231,7 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 	// Confirm before deleting
 	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to delete the question? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
-		h.IO.Println("Cancelled.")
+		h.IO.PrintlnColored(ColorYellow, "Cancelled.")
 		h.IO.Printf("\n")
 		return
 	}
@@ -239,10 +239,10 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 	deletedQuestion, err := h.QuestionUseCase.DeleteQuestion(target)
 	if err != nil {
 		h.IO.PrintError(err)
-		return
+	} else {
+		h.IO.PrintlnColored(ColorGreen, "[✔] Question Deleted:")
+		h.IO.PrintQuestionDetail(deletedQuestion)
 	}
-
-	h.IO.Printf("Question Deleted: [%d] %s\n", deletedQuestion.ID, deletedQuestion.URL)
 	h.IO.Printf("\n")
 }
 
@@ -250,7 +250,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	// Confirm before undo
 	confirm := strings.ToLower(h.IO.ReadLine(scanner, "Do you want to undo the previous action? [y/N]: "))
 	if confirm != "y" && confirm != "yes" {
-		h.IO.Println("Cancelled.")
+		h.IO.PrintlnColored(ColorYellow, "Cancelled.")
 		h.IO.Printf("\n")
 		return
 	}
@@ -259,6 +259,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
-		h.IO.Println("Undo successful.")
+		h.IO.PrintlnColored(ColorGreen, "[✔] Undo successful.")
 	}
+	h.IO.Printf("\n")
 }
