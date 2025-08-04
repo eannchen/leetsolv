@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"fmt"
+	"strings"
 
 	"leetsolv/handler"
 )
@@ -24,11 +25,14 @@ func NewCommandRegistry(unknownCommandHandler func(scanner *bufio.Scanner, comma
 }
 
 func (r *CommandRegistry) Register(name string, cmd Command) {
-	r.commands[name] = cmd
+	// Convert command name to lowercase for case-insensitive registration
+	r.commands[strings.ToLower(name)] = cmd
 }
 
 func (r *CommandRegistry) Execute(scanner *bufio.Scanner, name string, args []string) bool {
-	if cmd, exists := r.commands[name]; exists {
+	// Convert command name to lowercase for case-insensitive lookup
+	lowerName := strings.ToLower(name)
+	if cmd, exists := r.commands[lowerName]; exists {
 		if quit := cmd.Execute(scanner, args); quit {
 			return true
 		}
