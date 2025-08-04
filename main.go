@@ -30,12 +30,31 @@ func main() {
 	h := handler.NewHandler(ioHandler, questionUseCase)
 
 	commandRegistry := command.NewCommandRegistry(h.HandleUnknownCommand)
-	commandRegistry.Register("list", &command.ListCommand{Handler: h})
-	commandRegistry.Register("get", &command.GetCommand{Handler: h})
-	commandRegistry.Register("status", &command.StatusCommand{Handler: h})
-	commandRegistry.Register("upsert", &command.UpsertCommand{Handler: h})
-	commandRegistry.Register("delete", &command.DeleteCommand{Handler: h})
-	commandRegistry.Register("undo", &command.UndoCommand{Handler: h})
+
+	listCommand := &command.ListCommand{Handler: h}
+	commandRegistry.Register("list", listCommand)
+	commandRegistry.Register("ls", listCommand)
+
+	getCommand := &command.GetCommand{Handler: h}
+	commandRegistry.Register("detail", getCommand)
+	commandRegistry.Register("get", getCommand)
+
+	statusCommand := &command.StatusCommand{Handler: h}
+	commandRegistry.Register("status", statusCommand)
+	commandRegistry.Register("stat", statusCommand)
+
+	upsertCommand := &command.UpsertCommand{Handler: h}
+	commandRegistry.Register("upsert", upsertCommand)
+	commandRegistry.Register("add", upsertCommand)
+
+	deleteCommand := &command.DeleteCommand{Handler: h}
+	commandRegistry.Register("remove", deleteCommand)
+	commandRegistry.Register("rm", deleteCommand)
+
+	undoCommand := &command.UndoCommand{Handler: h}
+	commandRegistry.Register("undo", undoCommand)
+	commandRegistry.Register("back", undoCommand)
+
 	quitCommand := &command.QuitCommand{}
 	commandRegistry.Register("quit", quitCommand)
 	commandRegistry.Register("q", quitCommand)
@@ -47,6 +66,7 @@ func main() {
 	if len(os.Args) > 1 {
 		// Handle "help" command
 		if os.Args[1] == "help" || os.Args[1] == "h" {
+			printWelcome()
 			printHelp()
 			os.Exit(0)
 		}
@@ -127,16 +147,15 @@ func printWelcome() {
 
 func printHelp() {
 	fmt.Println("\nAvailable Commands:")
-	fmt.Println("  status          - Show question status (due, upcoming, total)")
-	fmt.Println("  list            - List all questions with pagination")
-	fmt.Println("  get [id|url]    - Get details of a question by ID or URL")
-	fmt.Println("  upsert          - Add or update a question")
-	fmt.Println("  delete [id|url] - Delete a question by ID or URL")
-	fmt.Println("  undo            - Undo the last action")
-	fmt.Println("  help            - Show this help message")
-	fmt.Println("  quit            - Exit the application")
+	fmt.Println("  status/stat         - Show question status (total, due, upcoming)")
+	fmt.Println("  list/ls             - List all questions with pagination")
+	fmt.Println("  detail/get [id|url] - Get details of a question by ID or URL")
+	fmt.Println("  upsert/add          - Add or update a question")
+	fmt.Println("  remove/rm [id|url]  - Delete a question by ID or URL")
+	fmt.Println("  undo/back           - Undo the last action")
+	fmt.Println("  help/h              - Show this help message")
+	fmt.Println("  quit/q/exit         - Exit the application")
 	fmt.Println("\nTips:")
-	fmt.Println("  • Use 'h' for help, 'q' for quit")
 	fmt.Println("  • Commands are case-insensitive")
 	fmt.Println("  • Press Enter to continue pagination")
 	fmt.Printf("\n")
