@@ -76,7 +76,8 @@ func main() {
 			fmt.Println("Shutting down gracefully...")
 			return
 		default:
-			fmt.Print("Enter command (status/list/get/upsert/delete/undo/quit): ")
+			printWelcome()
+			fmt.Print("> Command [status, list, upsert, get, delete, undo, quit, help]: ")
 			scanner.Scan()
 			cmd := strings.TrimSpace(scanner.Text())
 			if quit := commandRegistry.Execute(scanner, cmd, nil); quit {
@@ -84,6 +85,12 @@ func main() {
 			}
 		}
 	}
+}
+
+func printWelcome() {
+	fmt.Println("╭────────────────────────────────────────╮")
+	fmt.Println("│    LeetSolv — CLI SRS for LeetCode     │")
+	fmt.Println("╰────────────────────────────────────────╯")
 }
 
 func printHelp() {
