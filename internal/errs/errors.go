@@ -2,14 +2,14 @@ package errs
 
 import "errors"
 
-// Business logic errors (from usecase)
+// Business logic errors
 var (
 	ErrQuestionNotFound     = WrapBusinessError(errors.New("question not found"), "Question not found. Please check the ID or URL")
 	ErrNoQuestionsAvailable = WrapBusinessError(errors.New("no questions available"), "No questions available yet")
 	ErrNoActionsToUndo      = WrapBusinessError(errors.New("no actions to undo"), "No actions to undo")
 )
 
-// Validation errors (from handler)
+// Validation errors
 var (
 	ErrInvalidPageNumber        = WrapValidationError(errors.New("invalid page number"), "Invalid page number")
 	ErrInvalidURLFormat         = WrapValidationError(errors.New("invalid URL format"), "Please provide a valid URL")

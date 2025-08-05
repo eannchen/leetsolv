@@ -13,17 +13,16 @@ import (
 )
 
 const (
-	ColorSuccess     = ColorGreen
-	ColorCancel      = ColorGray
-	ColorWarning     = ColorYellow
-	ColorError       = ColorRed
-	ColorHeader      = ColorBlue
-	ColorQuestionURL = ColorBlue
+	ColorSuccess = ColorGreen
+	ColorCancel  = ColorGray
+	ColorWarning = ColorYellow
+	ColorError   = ColorRed
 
+	ColorHeader       = ColorBlue
+	ColorQuestionURL  = ColorBlue
 	ColorLogo         = ColorOrange
 	ColorStatTotal    = ColorBlue
-	ColorStatDue      = ColorYellow
-	ColorStatUpcoming = ColorBlue
+	ColorStatDueTotal = ColorYellow
 )
 
 const (
@@ -91,7 +90,7 @@ func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string
 }
 
 func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {
-	ioh.PrintfColored(ColorQuestionURL, "[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
+	ioh.PrintfColored(ColorQuestionURL, "[%d] %s (Due: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
 	if q.Note == "" {
 		ioh.Printf(" ↳ Note: (none)\n")
 	} else {

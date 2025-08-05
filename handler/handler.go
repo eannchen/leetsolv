@@ -46,7 +46,7 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 		return
 	}
 	if len(questions) == 0 {
-		h.IO.Println("No questions available.")
+		h.IO.PrintError(errs.ErrNoQuestionsAvailable)
 		return
 	}
 
@@ -122,24 +122,26 @@ func (h *HandlerImpl) HandleStatus() {
 	h.IO.PrintfColored(ColorStatTotal, "Total Questions: %d\n", summary.Total)
 	h.IO.Printf("\n")
 
-	if len(summary.TopDue) > 0 {
-		h.IO.PrintlnColored(ColorHeader, "-- Due Questions --")
-		if summary.TotalDue > len(summary.TopDue) {
-			h.IO.PrintfColored(ColorStatDue, "Total Due: %d (showing top %d)\n", summary.TotalDue, len(summary.TopDue))
-		} else {
-			h.IO.PrintfColored(ColorStatDue, "Total Due: %d\n", summary.TotalDue)
-		}
-		for _, q := range summary.TopDue {
-			h.IO.PrintQuestionBrief(&q)
-		}
+	h.IO.PrintlnColored(ColorHeader, "-- Due Questions --")
+	if summary.TotalDue == 0 {
+		h.IO.PrintfColored(ColorStatTotal, "Total Due: 0\n")
+	} else if summary.TotalDue > len(summary.TopDue) {
+		h.IO.PrintfColored(ColorStatDueTotal, "Total Due: %d  (showing top %d by priority)\n", summary.TotalDue, len(summary.TopDue))
+	} else {
+		h.IO.PrintfColored(ColorStatDueTotal, "Total Due: %d  (in priority order)\n", summary.TotalDue)
+	}
+	for _, q := range summary.TopDue {
+		h.IO.PrintQuestionBrief(&q)
 	}
 	h.IO.Printf("\n")
 
 	h.IO.PrintlnColored(ColorHeader, "-- Upcoming Questions --")
-	if summary.TotalUpcoming > len(summary.TopUpcoming) {
-		h.IO.PrintfColored(ColorStatUpcoming, "Total Upcoming: %d (showing top %d)\n", summary.TotalUpcoming, len(summary.TopUpcoming))
+	if summary.TotalUpcoming == 0 {
+		h.IO.PrintfColored(ColorStatTotal, "Total Upcoming: 0\n")
+	} else if summary.TotalUpcoming > len(summary.TopUpcoming) {
+		h.IO.PrintfColored(ColorStatTotal, "Total Upcoming: %d  (showing top %d by priority)\n", summary.TotalUpcoming, len(summary.TopUpcoming))
 	} else {
-		h.IO.PrintfColored(ColorStatUpcoming, "Total Upcoming: %d\n", summary.TotalUpcoming)
+		h.IO.PrintfColored(ColorStatTotal, "Total Upcoming: %d  (in priority order)\n", summary.TotalUpcoming)
 	}
 	for _, q := range summary.TopUpcoming {
 		h.IO.PrintQuestionBrief(&q)
