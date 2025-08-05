@@ -61,6 +61,10 @@ func main() {
 	commandRegistry.Register("help", helpCommand)
 	commandRegistry.Register("h", helpCommand)
 
+	clearCommand := &command.ClearCommand{Handler: h}
+	commandRegistry.Register("clear", clearCommand)
+	commandRegistry.Register("cls", clearCommand)
+
 	quitCommand := &command.QuitCommand{Handler: h}
 	commandRegistry.Register("quit", quitCommand)
 	commandRegistry.Register("q", quitCommand)
@@ -112,14 +116,6 @@ func main() {
 			parts := strings.Fields(input)
 			cmd := parts[0]
 			args := parts[1:]
-
-			// Handle special commands
-			switch cmd {
-			case "clear", "cls":
-				fmt.Print("\033[H\033[2J") // Clear screen
-				h.HandleHelp()
-				continue
-			}
 
 			// Execute command
 			if quit := commandRegistry.Execute(scanner, cmd, args); quit {

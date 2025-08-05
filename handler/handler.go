@@ -22,6 +22,7 @@ type Handler interface {
 	HandleUndo(scanner *bufio.Scanner)
 	HandleUnknown(command string)
 	HandleHelp()
+	HandleClear()
 	HandleQuit()
 }
 
@@ -289,7 +290,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 
 func (h *HandlerImpl) HandleUnknown(command string) {
 	h.IO.PrintfColored(ColorWarning, "Unknown command: '%s'\n", command)
-	h.IO.PrintfColored(ColorWarning, "Available commands: status, list, detail, upsert, remove, undo, help, quit\n")
+	h.IO.PrintfColored(ColorWarning, "Available commands: status, list, detail, upsert, remove, undo, help, clear, quit\n")
 	h.IO.PrintfColored(ColorWarning, "Type 'help' or 'h' for more information\n")
 }
 
@@ -309,11 +310,17 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.Println("  remove/rm/delete/del [id|url] - Delete a question by ID or URL")
 	h.IO.Println("  undo/back                     - Undo the last action")
 	h.IO.Println("  help/h                        - Show this help message")
+	h.IO.Println("  clear/cls                     - Clear the screen")
 	h.IO.Println("  quit/q/exit                   - Exit the application")
 	h.IO.PrintfColored(ColorHeader, "\nTips:\n")
 	h.IO.Println("  • Commands are case-insensitive")
 	h.IO.Println("  • Press Enter to continue pagination")
 	h.IO.Printf("\n")
+}
+
+func (h *HandlerImpl) HandleClear() {
+	h.IO.Println("\033[H\033[2J") // Clear screen
+	h.HandleHelp()
 }
 
 func (h *HandlerImpl) HandleQuit() {

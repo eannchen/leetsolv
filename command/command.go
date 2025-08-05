@@ -116,6 +116,15 @@ func (c *HelpCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	return false
 }
 
+type ClearCommand struct {
+	Handler handler.Handler
+}
+
+func (c *ClearCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleClear()
+	return false
+}
+
 type QuitCommand struct {
 	Handler handler.Handler
 }
