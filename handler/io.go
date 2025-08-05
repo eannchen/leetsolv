@@ -8,15 +8,17 @@ import (
 	"os"
 
 	"leetsolv/core"
+	"leetsolv/internal/clock"
 	"leetsolv/internal/errs"
 )
 
 const (
-	ColorSuccess = ColorGreen
-	ColorCancel  = ColorGray
-	ColorWarning = ColorYellow
-	ColorError   = ColorRed
-	ColorHeader  = ColorBlue
+	ColorSuccess     = ColorGreen
+	ColorCancel      = ColorGray
+	ColorWarning     = ColorYellow
+	ColorError       = ColorRed
+	ColorHeader      = ColorBlue
+	ColorQuestionURL = ColorBlue
 
 	ColorLogo         = ColorOrange
 	ColorStatTotal    = ColorBlue
@@ -51,12 +53,14 @@ type IOHandler interface {
 type IOHandlerImpl struct {
 	Reader io.Reader
 	Writer io.Writer
+	Clock  clock.Clock
 }
 
-func NewIOHandler() *IOHandlerImpl {
+func NewIOHandler(clock clock.Clock) *IOHandlerImpl {
 	return &IOHandlerImpl{
 		Reader: os.Stdin,
 		Writer: os.Stdout,
+		Clock:  clock,
 	}
 }
 
@@ -87,7 +91,7 @@ func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string
 }
 
 func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {
-	ioh.Printf("[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
+	ioh.PrintfColored(ColorQuestionURL, "[%d] %s (Next: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
 	if q.Note == "" {
 		ioh.Printf(" ↳ Note: (none)\n")
 	} else {
@@ -96,12 +100,16 @@ func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {
 }
 
 func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
-	ioh.Printf("[%d] %s\n", question.ID, question.URL)
-	ioh.Printf("   Note: %s\n", question.Note)
+	ioh.PrintfColored(ColorQuestionURL, "[%d] %s\n", question.ID, question.URL)
+	ioh.Printf(" ↳ Note: %s\n", question.Note)
 	ioh.Printf("   Familiarity: %d/%d\n", question.Familiarity+1, core.VeryEasy+1)
 	ioh.Printf("   Importance: %d/%d\n", question.Importance+1, core.CriticalImportance+1)
 	ioh.Printf("   Last Reviewed: %s\n", question.LastReviewed.Format("2006-01-02"))
-	ioh.Printf("   Next Review: %s\n", question.NextReview.Format("2006-01-02"))
+	if question.NextReview.Before(ioh.Clock.Now()) {
+		ioh.PrintfColored(ColorWarning, "   Next Review: %s (Due)\n", question.NextReview.Format("2006-01-02"))
+	} else {
+		ioh.Printf("   Next Review: %s\n", question.NextReview.Format("2006-01-02"))
+	}
 	ioh.Printf("   Review Count: %d\n", question.ReviewCount)
 	ioh.Printf("   Ease Factor: %.2f\n", question.EaseFactor)
 	ioh.Printf("   Created At: %s\n", question.CreatedAt.Format("2006-01-02"))

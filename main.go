@@ -26,7 +26,7 @@ func main() {
 	storage := storage.NewFileStorage(env.QuestionsFile, env.DeltasFile)
 	scheduler := core.NewSM2Scheduler(clock)
 	questionUseCase := usecase.NewQuestionUseCase(storage, scheduler, clock)
-	ioHandler := handler.NewIOHandler()
+	ioHandler := handler.NewIOHandler(clock)
 	h := handler.NewHandler(ioHandler, questionUseCase)
 
 	commandRegistry := command.NewCommandRegistry(h.HandleUnknown)
