@@ -100,7 +100,7 @@ func main() {
 			fmt.Println("Shutting down gracefully...")
 			return
 		default:
-			fmt.Print("\n> ")
+			fmt.Print(prompt())
 			scanner.Scan()
 
 			input := strings.TrimSpace(scanner.Text())
@@ -127,4 +127,8 @@ func main() {
 			}
 		}
 	}
+}
+
+func prompt() string {
+	return "\nleetsolv ❯ "
 }
