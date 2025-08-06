@@ -31,7 +31,14 @@ go.work.sum
 # .idea/
 # .vscode/
 
+# Production data files
 questions.json
 deltas.json
 info.log
 error.log
+
+# Test data files
+questions.test.json
+deltas.test.json
+info.test.log
+error.test.log
