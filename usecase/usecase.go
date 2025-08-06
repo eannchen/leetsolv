@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"errors"
+	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 
 	"leetsolv/config"
 	"leetsolv/core"
@@ -11,6 +14,7 @@ import (
 	"leetsolv/internal/errs"
 	"leetsolv/internal/logger"
 	"leetsolv/internal/rank"
+	"leetsolv/internal/tokenizer"
 	"leetsolv/storage"
 )
 
@@ -20,6 +24,7 @@ type QuestionUseCase interface {
 	ListQuestionsOrderByDesc() ([]core.Question, error)
 	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
+	SearchQuestions(query string) ([]core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
@@ -151,6 +156,32 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 	return u.findQuestionByIDOrURL(store, target)
 }
 
+func (u *QuestionUseCaseImpl) SearchQuestions(query string) ([]core.Question, error) {
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to load question store")
+	}
+
+	idSet1 := store.URLTrie.SearchPrefix(query)
+	idSet2 := store.NoteTrie.SearchPrefix(query)
+
+	// Merge the two sets
+	if len(idSet1) < len(idSet2) { // Determine the larger set
+		idSet1, idSet2 = idSet2, idSet1
+	}
+	for id := range idSet2 { // Add all IDs from the smaller set to the larger set
+		idSet1[id] = struct{}{}
+	}
+
+	questions := make([]core.Question, 0, len(idSet1))
+	for id := range idSet1 {
+		if question, ok := store.Questions[id]; ok {
+			questions = append(questions, *question)
+		}
+	}
+	return questions, nil
+}
+
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
 	logger.Logger().Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
@@ -201,6 +232,14 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			NewState:   newState,
 			CreatedAt:  u.Clock.Now(),
 		})
+
+		// Update the note indices for search
+		for _, word := range tokenizer.Tokenize(foundQuestion.Note) {
+			store.NoteTrie.Delete(word, foundQuestion.ID)
+		}
+		for _, word := range tokenizer.Tokenize(note) {
+			store.NoteTrie.Insert(word, newState.ID)
+		}
 	} else {
 		// Create a new question
 		store.MaxID++
@@ -216,6 +255,18 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			NewState:   newState,
 			CreatedAt:  u.Clock.Now(),
 		})
+
+		// Create the URL and note indices for search
+		questionName, err := u.extractLeetCodeQuestionName(url)
+		if err != nil {
+			return nil, err
+		}
+		for _, word := range tokenizer.Tokenize(questionName) {
+			store.URLTrie.Insert(word, newState.ID)
+		}
+		for _, word := range tokenizer.Tokenize(note) {
+			store.NoteTrie.Insert(word, newState.ID)
+		}
 	}
 
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
@@ -247,8 +298,17 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		return nil, errs.WrapInternalError(err, "Failed to load deltas")
 	}
 
+	// Delete the question from the store
 	delete(store.Questions, deletedQuestion.ID)
 	delete(store.URLIndex, deletedQuestion.URL)
+
+	// Delete the question from the URL and note indices
+	for _, word := range tokenizer.Tokenize(deletedQuestion.URL) {
+		store.URLTrie.Delete(word, deletedQuestion.ID)
+	}
+	for _, word := range tokenizer.Tokenize(deletedQuestion.Note) {
+		store.NoteTrie.Delete(word, deletedQuestion.ID)
+	}
 
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
 		return nil, errs.WrapInternalError(err, "Failed to save question store")
@@ -300,13 +360,46 @@ func (u *QuestionUseCaseImpl) Undo() error {
 		} else {
 			delete(store.Questions, lastDelta.NewState.ID)
 			delete(store.URLIndex, lastDelta.NewState.URL)
+			for _, word := range tokenizer.Tokenize(lastDelta.NewState.URL) {
+				store.URLTrie.Delete(word, lastDelta.NewState.ID)
+			}
+			for _, word := range tokenizer.Tokenize(lastDelta.NewState.Note) {
+				store.NoteTrie.Delete(word, lastDelta.NewState.ID)
+			}
 		}
-	case core.ActionUpdate, core.ActionDelete:
-		// Restore the previous state of the question
+	case core.ActionUpdate:
 		if lastDelta.OldState == nil {
-			deltaError = errors.New("cannot undo update/delete action with no old state")
+			deltaError = errors.New("cannot undo update action with no old state")
 		} else {
 			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
+			// Delete the current state from the trie
+			for _, word := range tokenizer.Tokenize(lastDelta.NewState.URL) {
+				store.URLTrie.Delete(word, lastDelta.NewState.ID)
+			}
+			for _, word := range tokenizer.Tokenize(lastDelta.NewState.Note) {
+				store.NoteTrie.Delete(word, lastDelta.NewState.ID)
+			}
+			// Insert the old state to the trie
+			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
+				store.URLTrie.Insert(word, lastDelta.OldState.ID)
+			}
+			for _, word := range tokenizer.Tokenize(lastDelta.OldState.Note) {
+				store.NoteTrie.Insert(word, lastDelta.OldState.ID)
+			}
+		}
+	case core.ActionDelete:
+		// Restore the previous state of the question
+		if lastDelta.OldState == nil {
+			deltaError = errors.New("cannot undo delete action with no old state")
+		} else {
+			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
+			// Insert the old state to the trie
+			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
+				store.URLTrie.Insert(word, lastDelta.OldState.ID)
+			}
+			for _, word := range tokenizer.Tokenize(lastDelta.OldState.Note) {
+				store.NoteTrie.Insert(word, lastDelta.OldState.ID)
+			}
 		}
 	}
 
@@ -366,4 +459,23 @@ func (u *QuestionUseCaseImpl) findQuestionByIDOrURL(store *storage.QuestionStore
 		return nil, errs.ErrQuestionNotFound
 	}
 	return foundQuestion, nil
+}
+
+func (u *QuestionUseCaseImpl) extractLeetCodeQuestionName(inputURL string) (string, error) {
+	parsedURL, err := url.Parse(inputURL)
+	if err != nil {
+		return "", errs.ErrInvalidURLFormat
+	}
+
+	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
+		return "", errs.ErrInvalidLeetCodeURL
+	}
+
+	re := regexp.MustCompile(`^/problems/([^/]+)`)
+	matches := re.FindStringSubmatch(parsedURL.Path)
+	if len(matches) != 2 {
+		return "", errs.ErrInvalidLeetCodeURLFormat
+	}
+	questionName := strings.TrimSpace(matches[1])
+	return questionName, nil
 }

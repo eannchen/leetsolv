@@ -54,6 +54,19 @@ func (c *ListCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	return false
 }
 
+type SearchCommand struct {
+	Handler handler.Handler
+}
+
+func (c *SearchCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	var target string
+	if len(args) > 0 {
+		target = args[0]
+	}
+	c.Handler.HandleSearch(scanner, target)
+	return false
+}
+
 type GetCommand struct {
 	Handler handler.Handler
 }

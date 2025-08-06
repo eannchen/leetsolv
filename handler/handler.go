@@ -15,6 +15,7 @@ import (
 
 type Handler interface {
 	HandleList(scanner *bufio.Scanner)
+	HandleSearch(scanner *bufio.Scanner, target string)
 	HandleGet(scanner *bufio.Scanner, target string)
 	HandleStatus()
 	HandleUpsert(scanner *bufio.Scanner)
@@ -50,6 +51,32 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 		return
 	}
 
+	h.paginateQuestions(scanner, questions)
+}
+
+func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, target string) {
+	if target == "" {
+		target = h.IO.ReadLine(scanner, "Enter search query: ")
+		if target == "" {
+			h.IO.PrintError(errs.ErrInvalidEmptyInput)
+			return
+		}
+	}
+
+	questions, err := h.QuestionUseCase.SearchQuestions(target)
+	if err != nil {
+		h.IO.PrintError(err)
+		return
+	}
+	if len(questions) == 0 {
+		h.IO.PrintError(errs.ErrNoQuestionsAvailable)
+		return
+	}
+
+	h.paginateQuestions(scanner, questions)
+}
+
+func (h *HandlerImpl) paginateQuestions(scanner *bufio.Scanner, questions []core.Question) {
 	pageSize := config.Env().PageSize
 	page := 0
 
@@ -232,8 +259,9 @@ func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
 	if len(matches) != 2 {
 		return "", errs.ErrInvalidLeetCodeURLFormat
 	}
+	questionName := strings.TrimSpace(matches[1])
 
-	normalizedURL := "https://leetcode.com/problems/" + matches[1] + "/"
+	normalizedURL := "https://leetcode.com/problems/" + questionName + "/"
 	return normalizedURL, nil
 }
 
@@ -292,7 +320,7 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 
 func (h *HandlerImpl) HandleUnknown(command string) {
 	h.IO.PrintfColored(ColorWarning, "Unknown command: '%s'\n", command)
-	h.IO.PrintfColored(ColorWarning, "Available commands: status, list, detail, upsert, remove, undo, help, clear, quit\n")
+	h.IO.PrintfColored(ColorWarning, "Available commands: status, list, search, detail, upsert, remove, undo, help, clear, quit\n")
 	h.IO.PrintfColored(ColorWarning, "Type 'help' or 'h' for more information\n")
 }
 
@@ -307,6 +335,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.PrintfColored(ColorHeader, "\nAvailable Commands:\n")
 	h.IO.Println("  status/stat                   - Show question status (total, due, upcoming)")
 	h.IO.Println("  list/ls                       - List all questions with pagination")
+	h.IO.Println("  search/s [query]              - Search questions on URL or note")
 	h.IO.Println("  detail/get [id|url]           - Get details of a question by ID or URL")
 	h.IO.Println("  upsert/add                    - Add or update a question")
 	h.IO.Println("  remove/rm/delete/del [id|url] - Delete a question by ID or URL")

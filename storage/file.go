@@ -7,6 +7,7 @@ import (
 
 	"leetsolv/core"
 	"leetsolv/internal/logger"
+	"leetsolv/internal/search"
 )
 
 type Storage interface {
@@ -29,6 +30,8 @@ type QuestionStore struct {
 	MaxID     int                    `json:"max_id"`
 	Questions map[int]*core.Question `json:"questions"`
 	URLIndex  map[string]int         `json:"url_index"`
+	URLTrie   *search.Trie           `json:"url_trie"`
+	NoteTrie  *search.Trie           `json:"note_trie"`
 }
 
 type FileStorage struct {
@@ -56,6 +59,12 @@ func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 	}
 	if store.URLIndex == nil {
 		store.URLIndex = make(map[string]int)
+	}
+	if store.URLTrie == nil {
+		store.URLTrie = search.NewTrie(3)
+	}
+	if store.NoteTrie == nil {
+		store.NoteTrie = search.NewTrie(3)
 	}
 	return &store, nil
 }

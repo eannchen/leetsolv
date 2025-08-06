@@ -35,6 +35,10 @@ func main() {
 	commandRegistry.Register("list", listCommand)
 	commandRegistry.Register("ls", listCommand)
 
+	searchCommand := &command.SearchCommand{Handler: h}
+	commandRegistry.Register("search", searchCommand)
+	commandRegistry.Register("s", searchCommand)
+
 	getCommand := &command.GetCommand{Handler: h}
 	commandRegistry.Register("detail", getCommand)
 	commandRegistry.Register("get", getCommand)
