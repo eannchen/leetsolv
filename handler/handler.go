@@ -16,6 +16,7 @@ import (
 type Handler interface {
 	HandleList(scanner *bufio.Scanner)
 	HandleSearch(scanner *bufio.Scanner, target string)
+	HandleSearchWithFilter(scanner *bufio.Scanner, target string, args []string)
 	HandleGet(scanner *bufio.Scanner, target string)
 	HandleStatus()
 	HandleUpsert(scanner *bufio.Scanner)
@@ -74,6 +75,74 @@ func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, target string) {
 	}
 
 	h.paginateQuestions(scanner, questions)
+}
+
+func (h *HandlerImpl) HandleSearchWithFilter(scanner *bufio.Scanner, target string, args []string) {
+	// Parse filter arguments
+	filter, err := h.parseFilterArgs(args)
+	if err != nil {
+		h.IO.PrintError(err)
+		return
+	}
+
+	// If no target provided, prompt for search query
+	if target == "" {
+		target = h.IO.ReadLine(scanner, "Enter search query (or press Enter to search all): ")
+	}
+
+	questions, err := h.QuestionUseCase.SearchQuestionsWithFilter(target, filter)
+	if err != nil {
+		h.IO.PrintError(err)
+		return
+	}
+	if len(questions) == 0 {
+		h.IO.PrintError(errs.ErrNoQuestionsAvailable)
+		return
+	}
+
+	h.paginateQuestions(scanner, questions)
+}
+
+// parseFilterArgs parses command line arguments for filter criteria
+func (h *HandlerImpl) parseFilterArgs(args []string) (*core.SearchFilter, error) {
+	filter := &core.SearchFilter{}
+
+	for _, arg := range args {
+		switch {
+		case strings.HasPrefix(arg, "--familiarity="):
+			val := strings.TrimPrefix(arg, "--familiarity=")
+			familiarity, err := h.validateFamiliarity(val)
+			if err != nil {
+				return nil, err
+			}
+			filter.Familiarity = &familiarity
+
+		case strings.HasPrefix(arg, "--importance="):
+			val := strings.TrimPrefix(arg, "--importance=")
+			importance, err := h.validateImportance(val)
+			if err != nil {
+				return nil, err
+			}
+			filter.Importance = &importance
+
+		case strings.HasPrefix(arg, "--review-count="):
+			val := strings.TrimPrefix(arg, "--review-count=")
+			reviewCount, err := strconv.Atoi(val)
+			if err != nil {
+				return nil, errs.ErrInvalidReviewCount
+			}
+			filter.ReviewCount = &reviewCount
+
+		case arg == "--due-only":
+			filter.DueOnly = true
+
+		default:
+			// Skip unknown arguments
+			continue
+		}
+	}
+
+	return filter, nil
 }
 
 func (h *HandlerImpl) paginateQuestions(scanner *bufio.Scanner, questions []core.Question) {
@@ -335,7 +404,9 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.PrintfColored(ColorHeader, "\nAvailable Commands:\n")
 	h.IO.Println("  status/stat                   - Show question status (total, due, upcoming)")
 	h.IO.Println("  list/ls                       - List all questions with pagination")
-	h.IO.Println("  search/s [query]              - Search questions on URL or note")
+	h.IO.Println("  search/s [query] [filters]    - Search questions on URL or note with optional filters")
+	h.IO.Println("                                   Filters: --familiarity=1-5, --importance=1-4,")
+	h.IO.Println("                                   --review-count=N, --due-only")
 	h.IO.Println("  detail/get [id|url]           - Get details of a question by ID or URL")
 	h.IO.Println("  upsert/add                    - Add or update a question")
 	h.IO.Println("  remove/rm/delete/del [id|url] - Delete a question by ID or URL")

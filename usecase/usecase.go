@@ -25,6 +25,7 @@ type QuestionUseCase interface {
 	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
 	SearchQuestions(query string) ([]core.Question, error)
+	SearchQuestionsWithFilter(query string, filter *core.SearchFilter) ([]core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
@@ -180,6 +181,76 @@ func (u *QuestionUseCaseImpl) SearchQuestions(query string) ([]core.Question, er
 		}
 	}
 	return questions, nil
+}
+
+// SearchQuestionsWithFilter searches questions with optional text query and filters
+func (u *QuestionUseCaseImpl) SearchQuestionsWithFilter(query string, filter *core.SearchFilter) ([]core.Question, error) {
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return nil, errs.WrapInternalError(err, "Failed to load question store")
+	}
+
+	var questions []core.Question
+
+	// If query is provided, search in trie
+	if query != "" {
+		idSet1 := store.URLTrie.SearchPrefix(query)
+		idSet2 := store.NoteTrie.SearchPrefix(query)
+
+		// Merge the two sets
+		if len(idSet1) < len(idSet2) { // Determine the larger set
+			idSet1, idSet2 = idSet2, idSet1
+		}
+		for id := range idSet2 { // Add all IDs from the smaller set to the larger set
+			idSet1[id] = struct{}{}
+		}
+
+		for id := range idSet1 {
+			question, ok := store.Questions[id]
+			if !ok {
+				continue
+			}
+			// Apply filters
+			if filter != nil && !u.matchesFilter(*question, *filter) {
+				continue
+			}
+			questions = append(questions, *question)
+		}
+	} else {
+		for _, question := range store.Questions {
+			if filter != nil && !u.matchesFilter(*question, *filter) {
+				continue
+			}
+			questions = append(questions, *question)
+		}
+	}
+
+	return questions, nil
+}
+
+// matchesFilter checks if a question matches the given filter criteria
+func (u *QuestionUseCaseImpl) matchesFilter(question core.Question, filter core.SearchFilter) bool {
+	// Filter by Familiarity
+	if filter.Familiarity != nil && question.Familiarity != *filter.Familiarity {
+		return false
+	}
+
+	// Filter by Importance
+	if filter.Importance != nil && question.Importance != *filter.Importance {
+		return false
+	}
+
+	// Filter by ReviewCount
+	if filter.ReviewCount != nil && question.ReviewCount != *filter.ReviewCount {
+		return false
+	}
+
+	// Filter by due date
+	if filter.DueOnly && question.NextReview.After(u.Clock.Now()) {
+		return false
+	}
+
+	return true
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {

@@ -52,3 +52,11 @@ type Delta struct {
 	NewState   *Question  `json:"new_state"`
 	CreatedAt  time.Time  `json:"created_at"`
 }
+
+// SearchFilter defines filtering criteria for question search
+type SearchFilter struct {
+	Familiarity *Familiarity `json:"familiarity,omitempty"`
+	Importance  *Importance  `json:"importance,omitempty"`
+	ReviewCount *int         `json:"review_count,omitempty"`
+	DueOnly     bool         `json:"due_only,omitempty"`
+}

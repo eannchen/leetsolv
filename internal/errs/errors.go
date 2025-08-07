@@ -18,4 +18,5 @@ var (
 	ErrInvalidLeetCodeURLFormat = WrapValidationError(errors.New("invalid LeetCode problem URL format"), "Please provide a valid LeetCode problem URL format")
 	ErrInvalidFamiliarityLevel  = WrapValidationError(errors.New("invalid familiarity level"), "Please enter a familiarity level between 1 and 5")
 	ErrInvalidImportanceLevel   = WrapValidationError(errors.New("invalid importance level"), "Please enter an importance level between 1 and 4")
+	ErrInvalidReviewCount       = WrapValidationError(errors.New("invalid review count"), "Please enter a valid review count")
 )
