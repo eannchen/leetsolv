@@ -132,7 +132,10 @@ func (m *MockQuestionUseCase) GetQuestion(target string) (*core.Question, error)
 	return nil, errs.ErrQuestionNotFound
 }
 
-func (m *MockQuestionUseCase) SearchQuestions(query string, filter *core.SearchFilter) ([]core.Question, error) {
+func (m *MockQuestionUseCase) SearchQuestions(queries []string, filter *core.SearchFilter) ([]core.Question, error) {
+	if m.shouldError {
+		return nil, m.errorToReturn
+	}
 	return m.questions, nil
 }
 
@@ -606,6 +609,101 @@ func TestHandler_NormalizeLeetCodeURL(t *testing.T) {
 		}
 		if !tc.hasError && result != tc.expected {
 			t.Errorf("Expected %s for input %s, got %s", tc.expected, tc.input, result)
+		}
+	}
+}
+
+func TestHandler_HandleSearch_WithMultipleQueriesAndFilters(t *testing.T) {
+	handler, mockIO, mockUseCase := setupTestHandler(t)
+
+	// Set up test questions
+	mockUseCase.questions = []core.Question{
+		{
+			ID:          1,
+			URL:         "https://leetcode.com/problems/two-sum",
+			Note:        "Array problem with hash map",
+			Familiarity: core.Medium,
+			Importance:  core.HighImportance,
+		},
+		{
+			ID:          2,
+			URL:         "https://leetcode.com/problems/binary-tree-inorder-traversal",
+			Note:        "Tree traversal problem",
+			Familiarity: core.Easy,
+			Importance:  core.MediumImportance,
+		},
+		{
+			ID:          3,
+			URL:         "https://leetcode.com/problems/valid-parentheses",
+			Note:        "Stack problem with parentheses",
+			Familiarity: core.Hard,
+			Importance:  core.CriticalImportance,
+		},
+	}
+
+	// Test search with multiple queries and filters
+	scanner := bufio.NewScanner(strings.NewReader("q\n"))
+	handler.HandleSearch(scanner, []string{"array", "tree", "--familiarity=3"})
+
+	// Verify that search was called
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintfColored" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintfColored to be called for displaying search results")
+	}
+}
+
+func TestHandler_HandleSearch_WithInvalidFilter(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	// Test search with invalid familiarity level
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleSearch(scanner, []string{"--familiarity=10"})
+
+	// Verify that error was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintError" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintError to be called for invalid filter")
+	}
+}
+
+func TestHandler_ParseSearchQueries(t *testing.T) {
+	handler, _, _ := setupTestHandler(t)
+
+	// Test parsing search queries and filters
+	args := []string{"array", "tree", "--familiarity=3", "--importance=4"}
+	targets, filterArgs := handler.parseSearchQueries(args)
+
+	// Verify targets
+	expectedTargets := []string{"array", "tree"}
+	if len(targets) != len(expectedTargets) {
+		t.Errorf("Expected %d targets, got %d", len(expectedTargets), len(targets))
+	}
+	for i, target := range expectedTargets {
+		if targets[i] != target {
+			t.Errorf("Expected target %s, got %s", target, targets[i])
+		}
+	}
+
+	// Verify filter args
+	expectedFilterArgs := []string{"--familiarity=3", "--importance=4"}
+	if len(filterArgs) != len(expectedFilterArgs) {
+		t.Errorf("Expected %d filter args, got %d", len(expectedFilterArgs), len(filterArgs))
+	}
+	for i, filterArg := range expectedFilterArgs {
+		if filterArgs[i] != filterArg {
+			t.Errorf("Expected filter arg %s, got %s", filterArg, filterArgs[i])
 		}
 	}
 }

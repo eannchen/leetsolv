@@ -257,3 +257,95 @@ func TestQuestionUseCase_ListQuestionsSummary(t *testing.T) {
 		t.Errorf("Expected 1 total upcoming question, got %d", summary.TotalUpcoming)
 	}
 }
+
+func TestQuestionUseCase_SearchQuestions_WithMultipleQueriesAndFilters(t *testing.T) {
+	// Setup test environment with temporary files
+	_, useCase := setupTestEnvironment(t)
+
+	// Add test questions with different properties
+	questions := []struct {
+		url         string
+		note        string
+		familiarity core.Familiarity
+		importance  core.Importance
+	}{
+		{
+			url:         "https://leetcode.com/problems/two-sum",
+			note:        "Array problem with hash map",
+			familiarity: core.Medium,
+			importance:  core.HighImportance,
+		},
+		{
+			url:         "https://leetcode.com/problems/binary-tree-inorder-traversal",
+			note:        "Tree traversal problem",
+			familiarity: core.Easy,
+			importance:  core.MediumImportance,
+		},
+		{
+			url:         "https://leetcode.com/problems/valid-parentheses",
+			note:        "Stack problem with parentheses",
+			familiarity: core.Hard,
+			importance:  core.CriticalImportance,
+		},
+	}
+
+	// Add all test questions
+	for _, q := range questions {
+		_, err := useCase.UpsertQuestion(q.url, q.note, q.familiarity, q.importance)
+		if err != nil {
+			t.Fatalf("Failed to add test question: %v", err)
+		}
+	}
+
+	// Test 1: Search with single query
+	queries := []string{"array"}
+	filter := &core.SearchFilter{}
+	results, err := useCase.SearchQuestions(queries, filter)
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result for 'array' query, got %d", len(results))
+	}
+
+	// Test 2: Search with multiple queries
+	queries = []string{"tree", "stack"}
+	results, err = useCase.SearchQuestions(queries, filter)
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
+	if len(results) != 2 {
+		t.Errorf("Expected 2 results for 'tree' and 'stack' queries, got %d", len(results))
+	}
+
+	// Test 3: Search with familiarity filter
+	filter = &core.SearchFilter{Familiarity: &[]core.Familiarity{core.Medium}[0]}
+	results, err = useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result for familiarity=Medium, got %d", len(results))
+	}
+
+	// Test 4: Search with importance filter
+	filter = &core.SearchFilter{Importance: &[]core.Importance{core.CriticalImportance}[0]}
+	results, err = useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result for importance=Critical, got %d", len(results))
+	}
+
+	// Test 5: Search with combined query and filter
+	queries = []string{"problem"}
+	filter = &core.SearchFilter{Familiarity: &[]core.Familiarity{core.Easy}[0]}
+	results, err = useCase.SearchQuestions(queries, filter)
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result for 'problem' query with familiarity=Easy, got %d", len(results))
+	}
+}
