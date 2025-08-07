@@ -249,6 +249,8 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 
 	note := h.IO.ReadLine(scanner, "Note: ")
 
+	h.IO.Printf("\n")
+
 	h.IO.Println("Familiarity:")
 	h.IO.Println("1. Struggled - Solved, but barely. Needed heavy effort or help.")
 	h.IO.Println("2. Clumsy    - Solved with partial understanding, some errors.")

@@ -42,3 +42,6 @@ questions.test.json
 deltas.test.json
 info.test.log
 error.test.log
+
+# Build binary
+leetsolv
