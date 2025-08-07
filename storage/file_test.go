@@ -3,11 +3,13 @@ package storage
 import (
 	"encoding/json"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
 	"leetsolv/config"
 	"leetsolv/core"
+	"leetsolv/internal/search"
 )
 
 // setupTestStorage creates a test storage with temporary files
@@ -53,6 +55,14 @@ func TestFileStorage_LoadQuestionStore_EmptyFile(t *testing.T) {
 	if len(store.URLIndex) != 0 {
 		t.Errorf("Expected empty URL index, got %d entries", len(store.URLIndex))
 	}
+
+	// Verify trie initialization
+	if store.URLTrie == nil {
+		t.Error("Expected URLTrie to be initialized")
+	}
+	if store.NoteTrie == nil {
+		t.Error("Expected NoteTrie to be initialized")
+	}
 }
 
 func TestFileStorage_SaveAndLoadQuestionStore(t *testing.T) {
@@ -72,6 +82,8 @@ func TestFileStorage_SaveAndLoadQuestionStore(t *testing.T) {
 			"https://leetcode.com/problems/test1": 1,
 			"https://leetcode.com/problems/test2": 2,
 		},
+		URLTrie:  search.NewTrie(3),
+		NoteTrie: search.NewTrie(3),
 	}
 
 	// Save the store
@@ -305,5 +317,237 @@ func TestFileStorage_LoadDeltas_NonExistentFile(t *testing.T) {
 	// Should return empty slice
 	if len(deltas) != 0 {
 		t.Errorf("Expected empty deltas slice for non-existent file, got %d deltas", len(deltas))
+	}
+}
+
+// NEW TESTS FOR BETTER BUG DETECTION
+
+func TestFileStorage_CorruptedJSONFile(t *testing.T) {
+	storage, testConfig := setupTestStorage(t)
+
+	// Write corrupted JSON to file
+	corruptedJSON := `{"max_id": 1, "questions": {"1": {"id": 1, "url": "test"}}` // Missing closing brace
+	err := os.WriteFile(testConfig.QuestionsFile, []byte(corruptedJSON), 0644)
+	if err != nil {
+		t.Fatalf("Failed to write corrupted JSON: %v", err)
+	}
+
+	// Should handle corrupted JSON gracefully
+	_, err = storage.LoadQuestionStore()
+	if err == nil {
+		t.Error("Expected error when loading corrupted JSON")
+	}
+}
+
+func TestFileStorage_EmptyJSONFile(t *testing.T) {
+	storage, testConfig := setupTestStorage(t)
+
+	// Write empty file
+	err := os.WriteFile(testConfig.QuestionsFile, []byte(""), 0644)
+	if err != nil {
+		t.Fatalf("Failed to write empty file: %v", err)
+	}
+
+	// Should handle empty file gracefully
+	store, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Expected no error for empty file, got %v", err)
+	}
+
+	if store.MaxID != 0 {
+		t.Errorf("Expected MaxID 0 for empty file, got %d", store.MaxID)
+	}
+}
+
+func TestFileStorage_FilePermissionIssues(t *testing.T) {
+	_, testConfig := setupTestStorage(t)
+
+	// Test with a directory that doesn't exist (more reliable than read-only permissions)
+	nonExistentDir := "/non/existent/directory"
+	storageWithBadPath := NewFileStorage(nonExistentDir+"/questions.json", testConfig.DeltasFile)
+
+	store := &QuestionStore{MaxID: 2}
+	err := storageWithBadPath.SaveQuestionStore(store)
+	if err == nil {
+		t.Error("Expected error when saving to non-existent directory")
+	}
+}
+
+func TestFileStorage_ConcurrentFileAccess(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Test concurrent file access with actual file operations
+	var wg sync.WaitGroup
+	errors := make(chan error, 10)
+
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+
+			store := &QuestionStore{
+				MaxID: id,
+				Questions: map[int]*core.Question{
+					id: createTestQuestion(id, "https://leetcode.com/problems/test"),
+				},
+			}
+
+			if err := storage.SaveQuestionStore(store); err != nil {
+				errors <- err
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	close(errors)
+
+	// Check for any errors
+	for err := range errors {
+		t.Errorf("Concurrent access error: %v", err)
+	}
+}
+
+func TestFileStorage_LargeDataSet(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Create a large dataset
+	store := &QuestionStore{
+		MaxID:     1000,
+		Questions: make(map[int]*core.Question),
+		URLIndex:  make(map[string]int),
+		URLTrie:   search.NewTrie(3),
+		NoteTrie:  search.NewTrie(3),
+	}
+
+	// Add 1000 questions
+	for i := 1; i <= 1000; i++ {
+		question := createTestQuestion(i, "https://leetcode.com/problems/test")
+		store.Questions[i] = question
+		store.URLIndex[question.URL] = i
+	}
+
+	// Save large dataset
+	err := storage.SaveQuestionStore(store)
+	if err != nil {
+		t.Fatalf("Failed to save large dataset: %v", err)
+	}
+
+	// Load large dataset
+	loadedStore, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load large dataset: %v", err)
+	}
+
+	if len(loadedStore.Questions) != 1000 {
+		t.Errorf("Expected 1000 questions, got %d", len(loadedStore.Questions))
+	}
+}
+
+func TestFileStorage_TrieInitialization(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Test loading with nil tries
+	store := &QuestionStore{
+		MaxID:     1,
+		Questions: map[int]*core.Question{1: createTestQuestion(1, "test")},
+		URLIndex:  map[string]int{"test": 1},
+		// URLTrie and NoteTrie are nil
+	}
+
+	err := storage.SaveQuestionStore(store)
+	if err != nil {
+		t.Fatalf("Failed to save store with nil tries: %v", err)
+	}
+
+	// Load should initialize nil tries
+	loadedStore, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store: %v", err)
+	}
+
+	if loadedStore.URLTrie == nil {
+		t.Error("Expected URLTrie to be initialized")
+	}
+	if loadedStore.NoteTrie == nil {
+		t.Error("Expected NoteTrie to be initialized")
+	}
+}
+
+func TestFileStorage_DeltaLimitHandling(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Create more deltas than the limit
+	deltas := make([]core.Delta, 1000)
+	for i := 0; i < 1000; i++ {
+		deltas[i] = core.Delta{
+			Action:     core.ActionAdd,
+			QuestionID: i,
+			CreatedAt:  time.Now(),
+		}
+	}
+
+	err := storage.SaveDeltas(deltas)
+	if err != nil {
+		t.Fatalf("Failed to save many deltas: %v", err)
+	}
+
+	loadedDeltas, err := storage.LoadDeltas()
+	if err != nil {
+		t.Fatalf("Failed to load deltas: %v", err)
+	}
+
+	// Should handle large number of deltas
+	if len(loadedDeltas) != 1000 {
+		t.Errorf("Expected 1000 deltas, got %d", len(loadedDeltas))
+	}
+}
+
+func TestFileStorage_InvalidJSONStructure(t *testing.T) {
+	storage, testConfig := setupTestStorage(t)
+
+	// Write JSON with wrong structure
+	invalidJSON := `{"invalid_field": "value"}`
+	err := os.WriteFile(testConfig.QuestionsFile, []byte(invalidJSON), 0644)
+	if err != nil {
+		t.Fatalf("Failed to write invalid JSON: %v", err)
+	}
+
+	// Should handle invalid structure gracefully
+	store, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Expected no error for invalid structure, got %v", err)
+	}
+
+	// Should return empty store
+	if store.MaxID != 0 {
+		t.Errorf("Expected MaxID 0 for invalid structure, got %d", store.MaxID)
+	}
+}
+
+func TestFileStorage_TempFileCleanup(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Create a store
+	store := &QuestionStore{
+		MaxID:     1,
+		Questions: map[int]*core.Question{1: createTestQuestion(1, "test")},
+	}
+
+	// Save multiple times to test temp file cleanup
+	for i := 0; i < 10; i++ {
+		err := storage.SaveQuestionStore(store)
+		if err != nil {
+			t.Fatalf("Failed to save store iteration %d: %v", i, err)
+		}
+	}
+
+	// Verify the final file is correct
+	loadedStore, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store: %v", err)
+	}
+
+	if loadedStore.MaxID != 1 {
+		t.Errorf("Expected MaxID 1, got %d", loadedStore.MaxID)
 	}
 }

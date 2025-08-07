@@ -1,12 +1,14 @@
 package usecase
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/clock"
+	"leetsolv/internal/errs"
 	"leetsolv/storage"
 )
 
@@ -255,5 +257,424 @@ func TestQuestionUseCase_ListQuestionsSummary(t *testing.T) {
 
 	if summary.TotalUpcoming != 1 {
 		t.Errorf("Expected 1 total upcoming question, got %d", summary.TotalUpcoming)
+	}
+}
+
+// NEW TESTS FOR BETTER BUG DETECTION
+
+func TestQuestionUseCase_SearchQuestions_WithQueries(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions using the proper method to populate tries
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/two-sum", "Find two numbers that add up to target", core.Medium, core.MediumImportance)
+	if err != nil {
+		t.Fatalf("Failed to add first question: %v", err)
+	}
+
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/add-two-numbers", "Add two linked lists representing numbers", core.Medium, core.MediumImportance)
+	if err != nil {
+		t.Fatalf("Failed to add second question: %v", err)
+	}
+
+	// Test search with query
+	results, err := useCase.SearchQuestions([]string{"two"}, nil)
+	if err != nil {
+		t.Fatalf("Failed to search questions: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Errorf("Expected 2 search results, got %d", len(results))
+	}
+
+	// Verify both questions are found (both contain "two")
+	foundTwoSum := false
+	foundAddTwo := false
+	for _, result := range results {
+		if result.URL == "https://leetcode.com/problems/two-sum" {
+			foundTwoSum = true
+		}
+		if result.URL == "https://leetcode.com/problems/add-two-numbers" {
+			foundAddTwo = true
+		}
+	}
+
+	if !foundTwoSum {
+		t.Error("Expected to find two-sum question")
+	}
+	if !foundAddTwo {
+		t.Error("Expected to find add-two-numbers question")
+	}
+}
+
+func TestQuestionUseCase_SearchQuestions_WithFilters(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions using the proper method to populate tries
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "Test question 1", core.Easy, core.HighImportance)
+	if err != nil {
+		t.Fatalf("Failed to add first question: %v", err)
+	}
+
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test2", "Test question 2", core.Hard, core.LowImportance)
+	if err != nil {
+		t.Fatalf("Failed to add second question: %v", err)
+	}
+
+	// Test search with familiarity filter
+	familiarity := core.Easy
+	filter := &core.SearchFilter{Familiarity: &familiarity}
+	results, err := useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Failed to search questions with filter: %v", err)
+	}
+
+	if len(results) != 1 {
+		t.Errorf("Expected 1 search result with familiarity filter, got %d", len(results))
+	}
+
+	if results[0].Familiarity != core.Easy {
+		t.Errorf("Expected familiarity Easy, got %d", results[0].Familiarity)
+	}
+}
+
+func TestQuestionUseCase_SearchQuestions_EmptyQuery(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions using the proper method
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "Test question 1", core.Medium, core.MediumImportance)
+	if err != nil {
+		t.Fatalf("Failed to add first question: %v", err)
+	}
+
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test2", "Test question 2", core.Medium, core.MediumImportance)
+	if err != nil {
+		t.Fatalf("Failed to add second question: %v", err)
+	}
+
+	// Test search with empty query (should return all questions)
+	results, err := useCase.SearchQuestions([]string{}, nil)
+	if err != nil {
+		t.Fatalf("Failed to search questions: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Errorf("Expected 2 search results for empty query, got %d", len(results))
+	}
+}
+
+func TestQuestionUseCase_PaginateQuestions_EdgeCases(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Test pagination with empty questions
+	questions := []core.Question{}
+	results, totalPages, err := useCase.PaginateQuestions(questions, 5, 0)
+	if err != nil {
+		t.Fatalf("Failed to paginate empty questions: %v", err)
+	}
+
+	if len(results) != 0 {
+		t.Errorf("Expected 0 results for empty questions, got %d", len(results))
+	}
+
+	if totalPages != 0 {
+		t.Errorf("Expected 0 total pages for empty questions, got %d", totalPages)
+	}
+
+	// Test pagination with invalid page number
+	questions = []core.Question{{ID: 1, URL: "test"}}
+	_, _, err = useCase.PaginateQuestions(questions, 5, -1)
+	if err == nil {
+		t.Error("Expected error for invalid page number")
+	}
+
+	// Test pagination with page number too high
+	_, _, err = useCase.PaginateQuestions(questions, 5, 1)
+	if err == nil {
+		t.Error("Expected error for page number too high")
+	}
+}
+
+func TestQuestionUseCase_Undo_AddAction(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add a question
+	url := "https://leetcode.com/problems/test"
+	note := "Test question for undo"
+	familiarity := core.Medium
+	importance := core.MediumImportance
+
+	_, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Verify question exists
+	_, err = useCase.GetQuestion("1")
+	if err != nil {
+		t.Fatalf("Failed to get question after add: %v", err)
+	}
+
+	// Undo the add action
+	err = useCase.Undo()
+	if err != nil {
+		t.Fatalf("Failed to undo add action: %v", err)
+	}
+
+	// Verify question no longer exists
+	_, err = useCase.GetQuestion("1")
+	if err == nil {
+		t.Error("Expected error when getting question after undo")
+	}
+}
+
+func TestQuestionUseCase_Undo_UpdateAction(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add a question
+	url := "https://leetcode.com/problems/test"
+	note := "Original note"
+	familiarity := core.Medium
+	importance := core.MediumImportance
+
+	_, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Update the question
+	updatedNote := "Updated note"
+	updatedFamiliarity := core.Easy
+	updatedImportance := core.HighImportance
+
+	_, err = useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
+	if err != nil {
+		t.Fatalf("Failed to update question: %v", err)
+	}
+
+	// Verify the update
+	retrievedQuestion, err := useCase.GetQuestion("1")
+	if err != nil {
+		t.Fatalf("Failed to get updated question: %v", err)
+	}
+
+	if retrievedQuestion.Note != updatedNote {
+		t.Errorf("Expected updated note %s, got %s", updatedNote, retrievedQuestion.Note)
+	}
+
+	// Undo the update action
+	err = useCase.Undo()
+	if err != nil {
+		t.Fatalf("Failed to undo update action: %v", err)
+	}
+
+	// Verify the original state is restored
+	retrievedQuestion, err = useCase.GetQuestion("1")
+	if err != nil {
+		t.Fatalf("Failed to get question after undo: %v", err)
+	}
+
+	if retrievedQuestion.Note != note {
+		t.Errorf("Expected original note %s, got %s", note, retrievedQuestion.Note)
+	}
+}
+
+func TestQuestionUseCase_Undo_DeleteAction(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add a question
+	url := "https://leetcode.com/problems/test"
+	note := "Test question for delete undo"
+	familiarity := core.Medium
+	importance := core.MediumImportance
+
+	question, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Delete the question
+	deletedQuestion, err := useCase.DeleteQuestion("1")
+	if err != nil {
+		t.Fatalf("Failed to delete question: %v", err)
+	}
+
+	if deletedQuestion.ID != question.ID {
+		t.Errorf("Expected deleted question ID %d, got %d", question.ID, deletedQuestion.ID)
+	}
+
+	// Verify question no longer exists
+	_, err = useCase.GetQuestion("1")
+	if err == nil {
+		t.Error("Expected error when getting deleted question")
+	}
+
+	// Undo the delete action
+	err = useCase.Undo()
+	if err != nil {
+		t.Fatalf("Failed to undo delete action: %v", err)
+	}
+
+	// Verify question exists again
+	retrievedQuestion, err := useCase.GetQuestion("1")
+	if err != nil {
+		t.Fatalf("Failed to get question after undo: %v", err)
+	}
+
+	if retrievedQuestion.ID != question.ID {
+		t.Errorf("Expected restored question ID %d, got %d", question.ID, retrievedQuestion.ID)
+	}
+}
+
+func TestQuestionUseCase_Undo_NoActions(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Try to undo when no actions are available
+	err := useCase.Undo()
+	if err == nil {
+		t.Error("Expected error when undoing with no actions")
+	}
+}
+
+func TestQuestionUseCase_GetQuestion_NotFound(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Try to get non-existent question
+	_, err := useCase.GetQuestion("999")
+	if err == nil {
+		t.Error("Expected error when getting non-existent question")
+	}
+}
+
+func TestQuestionUseCase_DeleteQuestion_NotFound(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Try to delete non-existent question
+	_, err := useCase.DeleteQuestion("999")
+	if err == nil {
+		t.Error("Expected error when deleting non-existent question")
+	}
+}
+
+func TestQuestionUseCase_InvalidURL(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Try to upsert with invalid URL
+	_, err := useCase.UpsertQuestion("invalid-url", "test", core.Medium, core.MediumImportance)
+	if err == nil {
+		t.Error("Expected error when upserting with invalid URL")
+	}
+}
+
+func TestQuestionUseCase_ConcurrentAccess(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Test concurrent access to use case
+	done := make(chan bool, 3)
+
+	// Goroutine 1: Add questions
+	go func() {
+		defer func() { done <- true }()
+		for i := 0; i < 5; i++ {
+			url := "https://leetcode.com/problems/test"
+			_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance)
+			if err != nil {
+				t.Errorf("Failed to add question in goroutine 1: %v", err)
+			}
+		}
+	}()
+
+	// Goroutine 2: Get questions (with proper error handling)
+	go func() {
+		defer func() { done <- true }()
+		for i := 0; i < 5; i++ {
+			_, err := useCase.GetQuestion("1")
+			if err != nil && err != errs.ErrQuestionNotFound && err != errs.ErrNoQuestionsAvailable {
+				t.Errorf("Failed to get question in goroutine 2: %v", err)
+			}
+		}
+	}()
+
+	// Goroutine 3: List summary
+	go func() {
+		defer func() { done <- true }()
+		for i := 0; i < 5; i++ {
+			_, err := useCase.ListQuestionsSummary()
+			if err != nil {
+				t.Errorf("Failed to list summary in goroutine 3: %v", err)
+			}
+		}
+	}()
+
+	// Wait for all goroutines to complete
+	<-done
+	<-done
+	<-done
+}
+
+func TestQuestionUseCase_LargeDataSet(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add many questions with unique URLs
+	for i := 0; i < 10; i++ {
+		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
+		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance)
+		if err != nil {
+			t.Fatalf("Failed to add question %d: %v", i, err)
+		}
+	}
+
+	// Test listing all questions
+	questions, err := useCase.ListQuestionsOrderByDesc()
+	if err != nil {
+		t.Fatalf("Failed to list questions: %v", err)
+	}
+
+	if len(questions) != 10 {
+		t.Errorf("Expected 10 questions, got %d", len(questions))
+	}
+
+	// Test search with large dataset
+	results, err := useCase.SearchQuestions([]string{"test"}, nil)
+	if err != nil {
+		t.Fatalf("Failed to search large dataset: %v", err)
+	}
+
+	if len(results) != 10 {
+		t.Errorf("Expected 10 search results, got %d", len(results))
+	}
+}
+
+func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add a question with different familiarity levels
+	testCases := []struct {
+		familiarity core.Familiarity
+		expected    string
+	}{
+		{core.VeryHard, "Expected very hard question to be scheduled"},
+		{core.Hard, "Expected hard question to be scheduled"},
+		{core.Medium, "Expected medium question to be scheduled"},
+		{core.Easy, "Expected easy question to be scheduled"},
+		{core.VeryEasy, "Expected very easy question to be scheduled"},
+	}
+
+	for i, tc := range testCases {
+		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
+		question, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance)
+		if err != nil {
+			t.Fatalf("Failed to add question with familiarity %d: %v", tc.familiarity, err)
+		}
+
+		// Verify the question was scheduled
+		if question.NextReview.Before(time.Now()) {
+			t.Errorf("Expected question to be scheduled in the future, got %v", question.NextReview)
+		}
+
+		// Clean up for next test
+		_, err = useCase.DeleteQuestion(fmt.Sprintf("%d", question.ID))
+		if err != nil {
+			t.Fatalf("Failed to delete question: %v", err)
+		}
 	}
 }
