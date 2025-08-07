@@ -50,22 +50,33 @@ func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
 }
 
 func (t *Trie) Delete(word string, id int) {
+
+	// i: next index to check
+	// node: current node
+	// return true if the node is a leaf node
 	var dfs func(node *TrieNode, i int) bool
 	dfs = func(node *TrieNode, i int) bool {
 		if i == len(word) {
 			delete(node.IDs, id)
+			// If node is a leaf node, delete it
 			return len(node.Children) == 0 && !node.IsWord
 		}
+
 		ch := rune(word[i])
 		child, ok := node.Children[ch]
 		if !ok {
+			// If the word is not in the trie, do nothing
 			return false
 		}
-		shouldDelete := dfs(child, i+1)
 		delete(child.IDs, id)
+
+		// If child is a leaf node, delete it
+		shouldDelete := dfs(child, i+1)
 		if shouldDelete {
 			delete(node.Children, ch)
 		}
+
+		// After deleting child, if the node is a leaf node, delete it
 		return len(child.Children) == 0 && !child.IsWord
 	}
 	dfs(t.Root, 0)

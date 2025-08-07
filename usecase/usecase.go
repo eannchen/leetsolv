@@ -224,6 +224,14 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		u.Scheduler.Schedule(newState, familiarity)
 		store.Questions[foundQuestion.ID] = newState
 
+		// Update the note indices for search
+		for _, word := range tokenizer.Tokenize(foundQuestion.Note) {
+			store.NoteTrie.Delete(word, foundQuestion.ID)
+		}
+		for _, word := range tokenizer.Tokenize(newState.Note) {
+			store.NoteTrie.Insert(word, newState.ID)
+		}
+
 		// Create a delta for the update
 		deltas = u.appendDelta(deltas, core.Delta{
 			Action:     core.ActionUpdate,
@@ -232,20 +240,24 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			NewState:   newState,
 			CreatedAt:  u.Clock.Now(),
 		})
-
-		// Update the note indices for search
-		for _, word := range tokenizer.Tokenize(foundQuestion.Note) {
-			store.NoteTrie.Delete(word, foundQuestion.ID)
-		}
-		for _, word := range tokenizer.Tokenize(note) {
-			store.NoteTrie.Insert(word, newState.ID)
-		}
 	} else {
 		// Create a new question
 		store.MaxID++
 		newState = u.Scheduler.ScheduleNewQuestion(store.MaxID, url, note, familiarity, importance)
 		store.Questions[store.MaxID] = newState
 		store.URLIndex[url] = store.MaxID
+
+		// Create the URL and note indices for search
+		questionName, err := u.extractLeetCodeQuestionName(newState.URL)
+		if err != nil {
+			return nil, err
+		}
+		for _, word := range tokenizer.Tokenize(questionName) {
+			store.URLTrie.Insert(word, newState.ID)
+		}
+		for _, word := range tokenizer.Tokenize(newState.Note) {
+			store.NoteTrie.Insert(word, newState.ID)
+		}
 
 		// Create a delta for the new question
 		deltas = u.appendDelta(deltas, core.Delta{
@@ -255,18 +267,6 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			NewState:   newState,
 			CreatedAt:  u.Clock.Now(),
 		})
-
-		// Create the URL and note indices for search
-		questionName, err := u.extractLeetCodeQuestionName(url)
-		if err != nil {
-			return nil, err
-		}
-		for _, word := range tokenizer.Tokenize(questionName) {
-			store.URLTrie.Insert(word, newState.ID)
-		}
-		for _, word := range tokenizer.Tokenize(note) {
-			store.NoteTrie.Insert(word, newState.ID)
-		}
 	}
 
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
@@ -371,15 +371,17 @@ func (u *QuestionUseCaseImpl) Undo() error {
 		if lastDelta.OldState == nil {
 			deltaError = errors.New("cannot undo update action with no old state")
 		} else {
+			// Restore the previous state of the question
 			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
-			// Delete the current state from the trie
+
+			// Delete the current state of the question from the trie
 			for _, word := range tokenizer.Tokenize(lastDelta.NewState.URL) {
 				store.URLTrie.Delete(word, lastDelta.NewState.ID)
 			}
 			for _, word := range tokenizer.Tokenize(lastDelta.NewState.Note) {
 				store.NoteTrie.Delete(word, lastDelta.NewState.ID)
 			}
-			// Insert the old state to the trie
+			// Restore the previous state of the question to the trie
 			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
 				store.URLTrie.Insert(word, lastDelta.OldState.ID)
 			}
@@ -392,8 +394,10 @@ func (u *QuestionUseCaseImpl) Undo() error {
 		if lastDelta.OldState == nil {
 			deltaError = errors.New("cannot undo delete action with no old state")
 		} else {
+			// Restore the previous state of the question
 			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
-			// Insert the old state to the trie
+
+			// Restore the previous state of the question to the trie
 			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
 				store.URLTrie.Insert(word, lastDelta.OldState.ID)
 			}
