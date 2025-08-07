@@ -24,10 +24,10 @@ var (
 func Env() *env {
 	once.Do(func() {
 		// Get file paths from environment variables, with fallbacks to defaults
-		questionsFile := getEnvOrDefault("LEETSOLV_QUESTIONS_FILE", "questions.json")
-		deltasFile := getEnvOrDefault("LEETSOLV_DELTAS_FILE", "deltas.json")
-		infoLogFile := getEnvOrDefault("LEETSOLV_INFO_LOG_FILE", "info.log")
-		errorLogFile := getEnvOrDefault("LEETSOLV_ERROR_LOG_FILE", "error.log")
+		questionsFile := getEnvOrDefault("LEETSOLV_QUESTIONS_FILE", "questions.test.json")
+		deltasFile := getEnvOrDefault("LEETSOLV_DELTAS_FILE", "deltas.test.json")
+		infoLogFile := getEnvOrDefault("LEETSOLV_INFO_LOG_FILE", "info.test.log")
+		errorLogFile := getEnvOrDefault("LEETSOLV_ERROR_LOG_FILE", "error.test.log")
 
 		envInstance = &env{
 			QuestionsFile: questionsFile,
