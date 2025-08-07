@@ -398,7 +398,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.PrintfColored(ColorHeader, "\nAvailable Commands:\n")
 	h.IO.Println("  status/stat                   - Show question status (total, due, upcoming)")
 	h.IO.Println("  list/ls                       - List all questions with pagination")
-	h.IO.Println("  search/s [query] [filters]    - Search questions on URL or note with optional filters")
+	h.IO.Println("  search/s [queries] [filters]  - Search questions on URL or note with optional filters")
 	h.IO.Println("                                   Filters: --familiarity=1-5, --importance=1-4, --review-count=N, --due-only")
 	h.IO.Println("  detail/get [id|url]           - Get details of a question by ID or URL")
 	h.IO.Println("  upsert/add                    - Add or update a question")
