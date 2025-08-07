@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"leetsolv/core"
 	"leetsolv/internal/clock"
@@ -86,7 +87,7 @@ func (ioh *IOHandlerImpl) PrintfColored(color string, format string, a ...interf
 func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string {
 	ioh.Printf("%s", prompt)
 	scanner.Scan()
-	return scanner.Text()
+	return strings.TrimSpace(scanner.Text())
 }
 
 func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {

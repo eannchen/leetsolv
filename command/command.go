@@ -59,19 +59,7 @@ type SearchCommand struct {
 }
 
 func (c *SearchCommand) Execute(scanner *bufio.Scanner, args []string) bool {
-	var target string
-	var filterArgs []string
-
-	// Parse arguments: first non-flag argument is the search target
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "--") {
-			filterArgs = append(filterArgs, arg)
-		} else {
-			target = arg
-		}
-	}
-
-	c.Handler.HandleSearch(scanner, target, filterArgs)
+	c.Handler.HandleSearch(scanner, args)
 	return false
 }
 

@@ -24,7 +24,7 @@ type QuestionUseCase interface {
 	ListQuestionsOrderByDesc() ([]core.Question, error)
 	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
-	SearchQuestions(query string, filter *core.SearchFilter) ([]core.Question, error)
+	SearchQuestions(queries []string, filter *core.SearchFilter) ([]core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
@@ -156,7 +156,7 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 	return u.findQuestionByIDOrURL(store, target)
 }
 
-func (u *QuestionUseCaseImpl) SearchQuestions(query string, filter *core.SearchFilter) ([]core.Question, error) {
+func (u *QuestionUseCaseImpl) SearchQuestions(queries []string, filter *core.SearchFilter) ([]core.Question, error) {
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
 		return nil, errs.WrapInternalError(err, "Failed to load question store")
@@ -165,19 +165,15 @@ func (u *QuestionUseCaseImpl) SearchQuestions(query string, filter *core.SearchF
 	var questions []core.Question
 
 	// If query is provided, search in trie
-	if query != "" {
-		idSet1 := store.URLTrie.SearchPrefix(query)
-		idSet2 := store.NoteTrie.SearchPrefix(query)
-
-		// Merge the two sets
-		if len(idSet1) < len(idSet2) { // Determine the larger set
-			idSet1, idSet2 = idSet2, idSet1
-		}
-		for id := range idSet2 { // Add all IDs from the smaller set to the larger set
-			idSet1[id] = struct{}{}
+	if len(queries) > 0 {
+		var idSets []map[int]struct{}
+		for _, query := range queries {
+			idSets = append(idSets, store.URLTrie.SearchPrefix(query), store.NoteTrie.SearchPrefix(query))
 		}
 
-		for id := range idSet1 {
+		mergedSet := u.mergeIdSets(idSets)
+
+		for id := range mergedSet {
 			question, ok := store.Questions[id]
 			if !ok {
 				continue
@@ -197,6 +193,20 @@ func (u *QuestionUseCaseImpl) SearchQuestions(query string, filter *core.SearchF
 	}
 
 	return questions, nil
+}
+
+func (u *QuestionUseCaseImpl) mergeIdSets(idSets []map[int]struct{}) map[int]struct{} {
+	if len(idSets) == 0 {
+		return nil
+	}
+
+	mergedSet := make(map[int]struct{})
+	for _, set := range idSets {
+		for element := range set {
+			mergedSet[element] = struct{}{}
+		}
+	}
+	return mergedSet
 }
 
 // matchesFilter checks if a question matches the given filter criteria

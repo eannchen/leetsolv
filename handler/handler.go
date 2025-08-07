@@ -15,7 +15,7 @@ import (
 
 type Handler interface {
 	HandleList(scanner *bufio.Scanner)
-	HandleSearch(scanner *bufio.Scanner, target string, args []string)
+	HandleSearch(scanner *bufio.Scanner, args []string)
 	HandleGet(scanner *bufio.Scanner, target string)
 	HandleStatus()
 	HandleUpsert(scanner *bufio.Scanner)
@@ -54,20 +54,20 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 	h.paginateQuestions(scanner, questions)
 }
 
-func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, target string, args []string) {
-	// Parse filter arguments
-	filter, err := h.parseFilterArgs(args)
+func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, args []string) {
+	if len(args) == 0 {
+		args = strings.Fields(h.IO.ReadLine(scanner, "Enter search query (or press Enter to search all): "))
+	}
+
+	targets, filterArgs := h.parseSearchQueries(args)
+
+	filter, err := h.parseFilterArgs(filterArgs)
 	if err != nil {
 		h.IO.PrintError(err)
 		return
 	}
 
-	// If no target provided, prompt for search query
-	if target == "" {
-		target = h.IO.ReadLine(scanner, "Enter search query (or press Enter to search all): ")
-	}
-
-	questions, err := h.QuestionUseCase.SearchQuestions(target, filter)
+	questions, err := h.QuestionUseCase.SearchQuestions(targets, filter)
 	if err != nil {
 		h.IO.PrintError(err)
 		return
@@ -78,6 +78,21 @@ func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, target string, args [
 	}
 
 	h.paginateQuestions(scanner, questions)
+}
+
+func (h *HandlerImpl) parseSearchQueries(args []string) ([]string, []string) {
+	var targets []string
+	var filterArgs []string
+
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "--") {
+			filterArgs = append(filterArgs, arg)
+		} else {
+			targets = append(targets, arg)
+		}
+	}
+
+	return targets, filterArgs
 }
 
 // parseFilterArgs parses command line arguments for filter criteria
@@ -382,8 +397,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.Println("  status/stat                   - Show question status (total, due, upcoming)")
 	h.IO.Println("  list/ls                       - List all questions with pagination")
 	h.IO.Println("  search/s [query] [filters]    - Search questions on URL or note with optional filters")
-	h.IO.Println("                                   Filters: --familiarity=1-5, --importance=1-4,")
-	h.IO.Println("                                   --review-count=N, --due-only")
+	h.IO.Println("                                   Filters: --familiarity=1-5, --importance=1-4, --review-count=N, --due-only")
 	h.IO.Println("  detail/get [id|url]           - Get details of a question by ID or URL")
 	h.IO.Println("  upsert/add                    - Add or update a question")
 	h.IO.Println("  remove/rm/delete/del [id|url] - Delete a question by ID or URL")
