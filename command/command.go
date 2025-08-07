@@ -71,7 +71,7 @@ func (c *SearchCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 		}
 	}
 
-	c.Handler.HandleSearchWithFilter(scanner, target, filterArgs)
+	c.Handler.HandleSearch(scanner, target, filterArgs)
 	return false
 }
 

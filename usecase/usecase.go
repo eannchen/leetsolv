@@ -24,8 +24,7 @@ type QuestionUseCase interface {
 	ListQuestionsOrderByDesc() ([]core.Question, error)
 	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
-	SearchQuestions(query string) ([]core.Question, error)
-	SearchQuestionsWithFilter(query string, filter *core.SearchFilter) ([]core.Question, error)
+	SearchQuestions(query string, filter *core.SearchFilter) ([]core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
@@ -157,34 +156,7 @@ func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error)
 	return u.findQuestionByIDOrURL(store, target)
 }
 
-func (u *QuestionUseCaseImpl) SearchQuestions(query string) ([]core.Question, error) {
-	store, err := u.Storage.LoadQuestionStore()
-	if err != nil {
-		return nil, errs.WrapInternalError(err, "Failed to load question store")
-	}
-
-	idSet1 := store.URLTrie.SearchPrefix(query)
-	idSet2 := store.NoteTrie.SearchPrefix(query)
-
-	// Merge the two sets
-	if len(idSet1) < len(idSet2) { // Determine the larger set
-		idSet1, idSet2 = idSet2, idSet1
-	}
-	for id := range idSet2 { // Add all IDs from the smaller set to the larger set
-		idSet1[id] = struct{}{}
-	}
-
-	questions := make([]core.Question, 0, len(idSet1))
-	for id := range idSet1 {
-		if question, ok := store.Questions[id]; ok {
-			questions = append(questions, *question)
-		}
-	}
-	return questions, nil
-}
-
-// SearchQuestionsWithFilter searches questions with optional text query and filters
-func (u *QuestionUseCaseImpl) SearchQuestionsWithFilter(query string, filter *core.SearchFilter) ([]core.Question, error) {
+func (u *QuestionUseCaseImpl) SearchQuestions(query string, filter *core.SearchFilter) ([]core.Question, error) {
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
 		return nil, errs.WrapInternalError(err, "Failed to load question store")
@@ -210,7 +182,6 @@ func (u *QuestionUseCaseImpl) SearchQuestionsWithFilter(query string, filter *co
 			if !ok {
 				continue
 			}
-			// Apply filters
 			if filter != nil && !u.matchesFilter(*question, *filter) {
 				continue
 			}

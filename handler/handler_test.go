@@ -132,17 +132,7 @@ func (m *MockQuestionUseCase) GetQuestion(target string) (*core.Question, error)
 	return nil, errs.ErrQuestionNotFound
 }
 
-func (m *MockQuestionUseCase) SearchQuestions(query string) ([]core.Question, error) {
-	if m.shouldError {
-		return nil, m.errorToReturn
-	}
-	return m.questions, nil
-}
-
-func (m *MockQuestionUseCase) SearchQuestionsWithFilter(query string, filter *core.SearchFilter) ([]core.Question, error) {
-	if m.shouldError {
-		return nil, m.errorToReturn
-	}
+func (m *MockQuestionUseCase) SearchQuestions(query string, filter *core.SearchFilter) ([]core.Question, error) {
 	return m.questions, nil
 }
 

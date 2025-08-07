@@ -15,8 +15,7 @@ import (
 
 type Handler interface {
 	HandleList(scanner *bufio.Scanner)
-	HandleSearch(scanner *bufio.Scanner, target string)
-	HandleSearchWithFilter(scanner *bufio.Scanner, target string, args []string)
+	HandleSearch(scanner *bufio.Scanner, target string, args []string)
 	HandleGet(scanner *bufio.Scanner, target string)
 	HandleStatus()
 	HandleUpsert(scanner *bufio.Scanner)
@@ -55,29 +54,7 @@ func (h *HandlerImpl) HandleList(scanner *bufio.Scanner) {
 	h.paginateQuestions(scanner, questions)
 }
 
-func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, target string) {
-	if target == "" {
-		target = h.IO.ReadLine(scanner, "Enter search query: ")
-		if target == "" {
-			h.IO.PrintError(errs.ErrInvalidEmptyInput)
-			return
-		}
-	}
-
-	questions, err := h.QuestionUseCase.SearchQuestions(target)
-	if err != nil {
-		h.IO.PrintError(err)
-		return
-	}
-	if len(questions) == 0 {
-		h.IO.PrintError(errs.ErrNoQuestionsAvailable)
-		return
-	}
-
-	h.paginateQuestions(scanner, questions)
-}
-
-func (h *HandlerImpl) HandleSearchWithFilter(scanner *bufio.Scanner, target string, args []string) {
+func (h *HandlerImpl) HandleSearch(scanner *bufio.Scanner, target string, args []string) {
 	// Parse filter arguments
 	filter, err := h.parseFilterArgs(args)
 	if err != nil {
@@ -90,7 +67,7 @@ func (h *HandlerImpl) HandleSearchWithFilter(scanner *bufio.Scanner, target stri
 		target = h.IO.ReadLine(scanner, "Enter search query (or press Enter to search all): ")
 	}
 
-	questions, err := h.QuestionUseCase.SearchQuestionsWithFilter(target, filter)
+	questions, err := h.QuestionUseCase.SearchQuestions(target, filter)
 	if err != nil {
 		h.IO.PrintError(err)
 		return
