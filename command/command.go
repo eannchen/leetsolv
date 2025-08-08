@@ -142,3 +142,12 @@ func (c *QuitCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	c.Handler.HandleQuit()
 	return true
 }
+
+type HistoryCommand struct {
+	Handler handler.Handler
+}
+
+func (c *HistoryCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleHistory()
+	return false
+}

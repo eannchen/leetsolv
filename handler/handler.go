@@ -21,6 +21,7 @@ type Handler interface {
 	HandleUpsert(scanner *bufio.Scanner)
 	HandleDelete(scanner *bufio.Scanner, target string)
 	HandleUndo(scanner *bufio.Scanner)
+	HandleHistory()
 	HandleUnknown(command string)
 	HandleHelp()
 	HandleClear()
@@ -381,9 +382,28 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 	h.IO.Printf("\n")
 }
 
+func (h *HandlerImpl) HandleHistory() {
+	history, err := h.QuestionUseCase.GetHistory()
+	if err != nil {
+		h.IO.PrintError(err)
+		return
+	}
+
+	if len(history) == 0 {
+		h.IO.Println("No history available.")
+		return
+	}
+
+	h.IO.PrintlnColored(ColorHeader, "──────────────────────────────────── Action History ────────────────────────────────────")
+	h.IO.PrintfColored(ColorHeader, "%-6s %-9s %-35s %-22s %s\n", "# ID", "Action", "Question", "Change", "When")
+	for _, entry := range history {
+		h.IO.Println(entry)
+	}
+	h.IO.Printf("\n")
+}
+
 func (h *HandlerImpl) HandleUnknown(command string) {
 	h.IO.PrintfColored(ColorWarning, "Unknown command: '%s'\n", command)
-	h.IO.PrintfColored(ColorWarning, "Available commands: status, list, search, detail, upsert, remove, undo, help, clear, quit\n")
 	h.IO.PrintfColored(ColorWarning, "Type 'help' or 'h' for more information\n")
 }
 
@@ -404,6 +424,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.Println("  upsert/add                    - Add or update a question")
 	h.IO.Println("  remove/rm/delete/del [id|url] - Delete a question by ID or URL")
 	h.IO.Println("  undo/back                     - Undo the last action")
+	h.IO.Println("  history/hist/log              - Show action history")
 	h.IO.Println("  help/h                        - Show this help message")
 	h.IO.Println("  clear/cls                     - Clear the screen")
 	h.IO.Println("  quit/q/exit                   - Exit the application")

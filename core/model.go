@@ -33,6 +33,7 @@ type Question struct {
 	NextReview   time.Time   `json:"next_review"`
 	ReviewCount  int         `json:"review_count"`
 	EaseFactor   float64     `json:"ease_factor"`
+	UpdatedAt    time.Time   `json:"updated_at"`
 	CreatedAt    time.Time   `json:"created_at"`
 }
 

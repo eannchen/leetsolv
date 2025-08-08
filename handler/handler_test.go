@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -191,6 +192,13 @@ func (m *MockQuestionUseCase) Undo() error {
 		return m.errorToReturn
 	}
 	return nil
+}
+
+func (m *MockQuestionUseCase) GetHistory() ([]string, error) {
+	if m.shouldError {
+		return nil, m.errorToReturn
+	}
+	return []string{"1    Add      test-question                           just now"}, nil
 }
 
 // setupTestHandler creates a test handler with mocked dependencies
@@ -1073,15 +1081,49 @@ func TestHandler_HandleQuit(t *testing.T) {
 
 	handler.HandleQuit()
 
-	// Verify that goodbye was printed
+	// Verify that quit message was printed
+	output := mockIO.output.String()
+	if !strings.Contains(output, "Goodbye!") {
+		t.Error("Expected 'Goodbye!' message to be printed")
+	}
+}
+
+func TestHandler_HandleHistory_Success(t *testing.T) {
+	handler, mockIO, mockUseCase := setupTestHandler(t)
+
+	// Set up history data
+	mockUseCase.shouldError = false
+
+	handler.HandleHistory()
+
+	// Verify that history was displayed
+	output := mockIO.output.String()
+	if !strings.Contains(output, "Question History") {
+		t.Error("Expected history header to be displayed")
+	}
+	if !strings.Contains(output, "test-question") {
+		t.Error("Expected history entry to be displayed")
+	}
+}
+
+func TestHandler_HandleHistory_Error(t *testing.T) {
+	handler, mockIO, mockUseCase := setupTestHandler(t)
+
+	// Set up error
+	mockUseCase.shouldError = true
+	mockUseCase.errorToReturn = errors.New("test error")
+
+	handler.HandleHistory()
+
+	// Verify that error was printed
 	found := false
 	for _, call := range mockIO.writeCalls {
-		if call == "Println" {
+		if call == "PrintError" {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Error("Expected Println to be called for quit")
+		t.Error("Expected PrintError to be called for history error")
 	}
 }

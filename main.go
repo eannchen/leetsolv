@@ -61,6 +61,11 @@ func main() {
 	commandRegistry.Register("undo", undoCommand)
 	commandRegistry.Register("back", undoCommand)
 
+	historyCommand := &command.HistoryCommand{Handler: h}
+	commandRegistry.Register("history", historyCommand)
+	commandRegistry.Register("hist", historyCommand)
+	commandRegistry.Register("log", historyCommand)
+
 	helpCommand := &command.HelpCommand{Handler: h}
 	commandRegistry.Register("help", helpCommand)
 	commandRegistry.Register("h", helpCommand)
