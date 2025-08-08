@@ -464,12 +464,14 @@ func (u *QuestionUseCaseImpl) GetHistory() ([]core.Delta, error) {
 	}
 
 	// Reverse the order to show most recent first
-	reversedDeltas := make([]core.Delta, len(deltas))
-	for i, delta := range deltas {
-		reversedDeltas[len(deltas)-1-i] = delta
+	L, R := 0, len(deltas)-1
+	for L < R {
+		deltas[L], deltas[R] = deltas[R], deltas[L]
+		L++
+		R--
 	}
 
-	return reversedDeltas, nil
+	return deltas, nil
 }
 
 func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta) []core.Delta {
