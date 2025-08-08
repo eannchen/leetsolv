@@ -194,11 +194,22 @@ func (m *MockQuestionUseCase) Undo() error {
 	return nil
 }
 
-func (m *MockQuestionUseCase) GetHistory() ([]string, error) {
+func (m *MockQuestionUseCase) GetHistory() ([]core.Delta, error) {
 	if m.shouldError {
 		return nil, m.errorToReturn
 	}
-	return []string{"1    Add      test-question                           just now"}, nil
+	// Return a sample delta for testing
+	return []core.Delta{
+		{
+			Action:     core.ActionAdd,
+			QuestionID: 1,
+			NewState: &core.Question{
+				ID:  1,
+				URL: "https://leetcode.com/problems/test-question/",
+			},
+			CreatedAt: time.Now(),
+		},
+	}, nil
 }
 
 // setupTestHandler creates a test handler with mocked dependencies
@@ -1098,7 +1109,7 @@ func TestHandler_HandleHistory_Success(t *testing.T) {
 
 	// Verify that history was displayed
 	output := mockIO.output.String()
-	if !strings.Contains(output, "Question History") {
+	if !strings.Contains(output, "Action History") {
 		t.Error("Expected history header to be displayed")
 	}
 	if !strings.Contains(output, "test-question") {

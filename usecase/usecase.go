@@ -2,13 +2,11 @@ package usecase
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"leetsolv/config"
 	"leetsolv/core"
@@ -30,7 +28,7 @@ type QuestionUseCase interface {
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
-	GetHistory() ([]string, error)
+	GetHistory() ([]core.Delta, error)
 }
 
 // QuestionUseCaseImpl struct encapsulates dependencies for use cases
@@ -482,113 +480,19 @@ func (u *QuestionUseCaseImpl) Undo() error {
 	return nil
 }
 
-func (u *QuestionUseCaseImpl) GetHistory() ([]string, error) {
+func (u *QuestionUseCaseImpl) GetHistory() ([]core.Delta, error) {
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
 		return nil, errs.WrapInternalError(err, "Failed to load deltas")
 	}
 
-	var history []string
+	// Reverse the order to show most recent first
+	reversedDeltas := make([]core.Delta, len(deltas))
 	for i, delta := range deltas {
-		// Reverse the order to show most recent first
-		idx := len(deltas) - 1 - i
-		delta = deltas[idx]
-
-		// Extract question name from URL
-		var questionName string
-		if delta.NewState != nil {
-			questionName = u.extractQuestionNameFromURL(delta.NewState.URL)
-		} else if delta.OldState != nil {
-			questionName = u.extractQuestionNameFromURL(delta.OldState.URL)
-		} else {
-			questionName = "unknown"
-		}
-
-		// Format the action description
-		var actionDesc string
-		switch delta.Action {
-		case core.ActionAdd:
-			actionDesc = "Add"
-		case core.ActionUpdate:
-			actionDesc = "Update"
-		case core.ActionDelete:
-			actionDesc = "Delete"
-		}
-
-		// Get changes for update actions
-		var changeDesc string
-		if delta.Action == core.ActionUpdate && delta.OldState != nil && delta.NewState != nil {
-			changes := u.getChanges(delta.OldState, delta.NewState)
-			if changes != "" {
-				changeDesc = changes
-			}
-		}
-
-		// Format the time
-		timeDesc := u.formatTimeAgo(delta.CreatedAt)
-
-		// Create the history entry with ID
-		entry := fmt.Sprintf("%-6d %-9s %-35s %-22s %s", idx+1, actionDesc, questionName, changeDesc, timeDesc)
-		history = append(history, entry)
+		reversedDeltas[len(deltas)-1-i] = delta
 	}
 
-	return history, nil
-}
-
-func (u *QuestionUseCaseImpl) extractQuestionNameFromURL(url string) string {
-	// Extract the question name from LeetCode URL
-	// e.g., "https://leetcode.com/problems/two-sum/" -> "two-sum"
-	if strings.Contains(url, "/problems/") {
-		parts := strings.Split(url, "/problems/")
-		if len(parts) > 1 {
-			questionPart := parts[1]
-			// Remove trailing slash if present
-			questionPart = strings.TrimSuffix(questionPart, "/")
-			return questionPart
-		}
-	}
-	return "unknown"
-}
-
-func (u *QuestionUseCaseImpl) getChanges(oldState, newState *core.Question) string {
-	var changes []string
-
-	if oldState.Familiarity != newState.Familiarity {
-		changes = append(changes, fmt.Sprintf("Familiarity: %d → %d", oldState.Familiarity+1, newState.Familiarity+1))
-	}
-
-	if oldState.Importance != newState.Importance {
-		changes = append(changes, fmt.Sprintf("Importance: %d → %d", oldState.Importance+1, newState.Importance+1))
-	}
-
-	return strings.Join(changes, ", ")
-}
-
-func (u *QuestionUseCaseImpl) formatTimeAgo(t time.Time) string {
-	now := u.Clock.Now()
-	diff := now.Sub(t)
-
-	if diff < time.Minute {
-		return "just now"
-	} else if diff < time.Hour {
-		minutes := int(diff.Minutes())
-		if minutes == 1 {
-			return "1 minute ago"
-		}
-		return fmt.Sprintf("%d minutes ago", minutes)
-	} else if diff < 24*time.Hour {
-		hours := int(diff.Hours())
-		if hours == 1 {
-			return "1 hour ago"
-		}
-		return fmt.Sprintf("%d hours ago", hours)
-	} else {
-		days := int(diff.Hours() / 24)
-		if days == 1 {
-			return "1 day ago"
-		}
-		return fmt.Sprintf("%d days ago", days)
-	}
+	return reversedDeltas, nil
 }
 
 func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta) []core.Delta {

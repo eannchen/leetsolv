@@ -2,10 +2,12 @@ package handler
 
 import (
 	"bufio"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"leetsolv/config"
 	"leetsolv/core"
@@ -383,20 +385,55 @@ func (h *HandlerImpl) HandleUndo(scanner *bufio.Scanner) {
 }
 
 func (h *HandlerImpl) HandleHistory() {
-	history, err := h.QuestionUseCase.GetHistory()
+	deltas, err := h.QuestionUseCase.GetHistory()
 	if err != nil {
 		h.IO.PrintError(err)
 		return
 	}
 
-	if len(history) == 0 {
+	if len(deltas) == 0 {
 		h.IO.Println("No history available.")
 		return
 	}
 
 	h.IO.PrintlnColored(ColorHeader, "──────────────────────────────────── Action History ────────────────────────────────────")
 	h.IO.PrintfColored(ColorHeader, "%-6s %-9s %-35s %-22s %s\n", "# ID", "Action", "Question", "Change", "When")
-	for _, entry := range history {
+	for i, delta := range deltas {
+		// Extract question name from URL
+		var questionName string
+		if delta.NewState != nil {
+			questionName = h.extractQuestionNameFromURL(delta.NewState.URL)
+		} else if delta.OldState != nil {
+			questionName = h.extractQuestionNameFromURL(delta.OldState.URL)
+		} else {
+			questionName = "unknown"
+		}
+
+		// Format the action description
+		var actionDesc string
+		switch delta.Action {
+		case core.ActionAdd:
+			actionDesc = "Add"
+		case core.ActionUpdate:
+			actionDesc = "Update"
+		case core.ActionDelete:
+			actionDesc = "Delete"
+		}
+
+		// Get changes for update actions
+		var changeDesc string
+		if delta.Action == core.ActionUpdate && delta.OldState != nil && delta.NewState != nil {
+			changes := h.getChanges(delta.OldState, delta.NewState)
+			if changes != "" {
+				changeDesc = changes
+			}
+		}
+
+		// Format the time
+		timeDesc := h.formatTimeAgo(delta.CreatedAt)
+
+		// Create the history entry with ID
+		entry := fmt.Sprintf("%-6d %-9s %-35s %-22s %s", i+1, actionDesc, questionName, changeDesc, timeDesc)
 		h.IO.Println(entry)
 	}
 	h.IO.Printf("\n")
@@ -441,4 +478,61 @@ func (h *HandlerImpl) HandleClear() {
 
 func (h *HandlerImpl) HandleQuit() {
 	h.IO.Println("Goodbye!")
+}
+
+// Helper methods for history formatting
+func (h *HandlerImpl) extractQuestionNameFromURL(url string) string {
+	// Extract the question name from LeetCode URL
+	// e.g., "https://leetcode.com/problems/two-sum/" -> "two-sum"
+	if strings.Contains(url, "/problems/") {
+		parts := strings.Split(url, "/problems/")
+		if len(parts) > 1 {
+			questionPart := parts[1]
+			// Remove trailing slash if present
+			questionPart = strings.TrimSuffix(questionPart, "/")
+			return questionPart
+		}
+	}
+	return "unknown"
+}
+
+func (h *HandlerImpl) getChanges(oldState, newState *core.Question) string {
+	var changes []string
+
+	if oldState.Familiarity != newState.Familiarity {
+		changes = append(changes, fmt.Sprintf("Familiarity: %d → %d", oldState.Familiarity+1, newState.Familiarity+1))
+	}
+
+	if oldState.Importance != newState.Importance {
+		changes = append(changes, fmt.Sprintf("Importance: %d → %d", oldState.Importance+1, newState.Importance+1))
+	}
+
+	return strings.Join(changes, ", ")
+}
+
+func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
+	now := time.Now()
+	diff := now.Sub(t)
+
+	if diff < time.Minute {
+		return "just now"
+	} else if diff < time.Hour {
+		minutes := int(diff.Minutes())
+		if minutes == 1 {
+			return "1 minute ago"
+		}
+		return fmt.Sprintf("%d minutes ago", minutes)
+	} else if diff < 24*time.Hour {
+		hours := int(diff.Hours())
+		if hours == 1 {
+			return "1 hour ago"
+		}
+		return fmt.Sprintf("%d hours ago", hours)
+	} else {
+		days := int(diff.Hours() / 24)
+		if days == 1 {
+			return "1 day ago"
+		}
+		return fmt.Sprintf("%d days ago", days)
+	}
 }
