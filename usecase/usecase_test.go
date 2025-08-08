@@ -362,38 +362,6 @@ func TestQuestionUseCase_SearchQuestions_EmptyQuery(t *testing.T) {
 	}
 }
 
-func TestQuestionUseCase_PaginateQuestions_EdgeCases(t *testing.T) {
-	_, useCase := setupTestEnvironment(t)
-
-	// Test pagination with empty questions
-	questions := []core.Question{}
-	results, totalPages, err := useCase.PaginateQuestions(questions, 5, 0)
-	if err != nil {
-		t.Fatalf("Failed to paginate empty questions: %v", err)
-	}
-
-	if len(results) != 0 {
-		t.Errorf("Expected 0 results for empty questions, got %d", len(results))
-	}
-
-	if totalPages != 0 {
-		t.Errorf("Expected 0 total pages for empty questions, got %d", totalPages)
-	}
-
-	// Test pagination with invalid page number
-	questions = []core.Question{{ID: 1, URL: "test"}}
-	_, _, err = useCase.PaginateQuestions(questions, 5, -1)
-	if err == nil {
-		t.Error("Expected error for invalid page number")
-	}
-
-	// Test pagination with page number too high
-	_, _, err = useCase.PaginateQuestions(questions, 5, 1)
-	if err == nil {
-		t.Error("Expected error for page number too high")
-	}
-}
-
 func TestQuestionUseCase_Undo_AddAction(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 

@@ -141,11 +141,10 @@ func (h *HandlerImpl) parseFilterArgs(args []string) (*core.SearchFilter, error)
 }
 
 func (h *HandlerImpl) paginateQuestions(scanner *bufio.Scanner, questions []core.Question) {
-	pageSize := config.Env().PageSize
 	page := 0
 
 	for {
-		paginatedQuestions, totalPages, err := h.QuestionUseCase.PaginateQuestions(questions, pageSize, page)
+		paginatedQuestions, totalPages, err := h.getQuestionsPage(questions, page)
 		if err != nil {
 			h.IO.PrintError(err)
 			return
@@ -173,6 +172,30 @@ func (h *HandlerImpl) paginateQuestions(scanner *bufio.Scanner, questions []core
 
 		page++
 	}
+}
+
+func (h *HandlerImpl) getQuestionsPage(questions []core.Question, page int) ([]core.Question, int, error) {
+	totalQuestions := len(questions)
+	if totalQuestions == 0 {
+		return nil, 0, nil
+	}
+
+	pageSize := config.Env().PageSize
+
+	// Round up to get total pages needed; ensures partial last page is counted
+	totalPages := (totalQuestions + pageSize - 1) / pageSize
+
+	if page < 0 || page >= totalPages {
+		return nil, totalPages, errs.ErrInvalidPageNumber
+	}
+
+	// 0-index-based page
+	start := page * pageSize
+	end := start + pageSize
+	if end > totalQuestions {
+		end = totalQuestions
+	}
+	return questions[start:end], totalPages, nil
 }
 
 func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {

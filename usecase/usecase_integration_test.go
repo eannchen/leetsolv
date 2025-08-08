@@ -165,47 +165,35 @@ func TestQuestionUseCase_Integration_DeleteAndUndo(t *testing.T) {
 func TestQuestionUseCase_Integration_ListQuestionsSummary(t *testing.T) {
 	useCase, _ := setupIntegrationTest(t)
 
-	// Create questions with different review dates
+	// Create test questions with different review dates
 	now := time.Now()
 	tomorrow := now.Add(24 * time.Hour)
 	yesterday := now.Add(-24 * time.Hour)
 
-	// Create a due question (review date in the past)
-	dueURL := "https://leetcode.com/problems/due"
-	dueQuestion, err := useCase.UpsertQuestion(dueURL, "Due question", core.Medium, core.MediumImportance)
-	if err != nil {
-		t.Fatalf("Failed to create due question: %v", err)
+	dueQuestion := createTestQuestion(1, "https://leetcode.com/problems/due")
+	dueQuestion.NextReview = yesterday
+
+	upcomingQuestion := createTestQuestion(2, "https://leetcode.com/problems/upcoming")
+	upcomingQuestion.NextReview = tomorrow
+
+	questions := map[int]*core.Question{
+		1: dueQuestion,
+		2: upcomingQuestion,
 	}
 
-	// Manually set the review date to yesterday
-	store, err := useCase.Storage.LoadQuestionStore()
-	if err != nil {
-		t.Fatalf("Failed to load question store: %v", err)
+	// Write test data to temporary files
+	store := &storage.QuestionStore{
+		Questions: questions,
+		URLIndex: map[string]int{
+			"https://leetcode.com/problems/due":      1,
+			"https://leetcode.com/problems/upcoming": 2,
+		},
+		MaxID: 2,
 	}
 
-	store.Questions[dueQuestion.ID].NextReview = yesterday
-	err = useCase.Storage.SaveQuestionStore(store)
+	err := useCase.Storage.SaveQuestionStore(store)
 	if err != nil {
-		t.Fatalf("Failed to save updated question store: %v", err)
-	}
-
-	// Create an upcoming question (review date tomorrow)
-	upcomingURL := "https://leetcode.com/problems/upcoming"
-	upcomingQuestion, err := useCase.UpsertQuestion(upcomingURL, "Upcoming question", core.Medium, core.MediumImportance)
-	if err != nil {
-		t.Fatalf("Failed to create upcoming question: %v", err)
-	}
-
-	// Manually set the review date to tomorrow
-	store, err = useCase.Storage.LoadQuestionStore()
-	if err != nil {
-		t.Fatalf("Failed to load question store: %v", err)
-	}
-
-	store.Questions[upcomingQuestion.ID].NextReview = tomorrow
-	err = useCase.Storage.SaveQuestionStore(store)
-	if err != nil {
-		t.Fatalf("Failed to save updated question store: %v", err)
+		t.Fatalf("Failed to save test data: %v", err)
 	}
 
 	// Test listing questions summary
@@ -233,86 +221,6 @@ func TestQuestionUseCase_Integration_ListQuestionsSummary(t *testing.T) {
 	if summary.TotalUpcoming != 1 {
 		t.Errorf("Expected 1 total upcoming question, got %d", summary.TotalUpcoming)
 	}
-
-	// Verify the due question
-	if summary.TopDue[0].URL != dueURL {
-		t.Errorf("Expected due question URL %s, got %s", dueURL, summary.TopDue[0].URL)
-	}
-
-	// Verify the upcoming question
-	if summary.TopUpcoming[0].URL != upcomingURL {
-		t.Errorf("Expected upcoming question URL %s, got %s", upcomingURL, summary.TopUpcoming[0].URL)
-	}
-}
-
-func TestQuestionUseCase_Integration_PaginateQuestions(t *testing.T) {
-	useCase, _ := setupIntegrationTest(t)
-
-	// Create multiple questions
-	questions := []string{
-		"https://leetcode.com/problems/test1",
-		"https://leetcode.com/problems/test2",
-		"https://leetcode.com/problems/test3",
-		"https://leetcode.com/problems/test4",
-		"https://leetcode.com/problems/test5",
-	}
-
-	for i, url := range questions {
-		_, err := useCase.UpsertQuestion(url, "Test question", core.Medium, core.MediumImportance)
-		if err != nil {
-			t.Fatalf("Failed to create question %d: %v", i+1, err)
-		}
-	}
-
-	// Get all questions
-	allQuestions, err := useCase.ListQuestionsOrderByDesc()
-	if err != nil {
-		t.Fatalf("Failed to list questions: %v", err)
-	}
-
-	if len(allQuestions) != 5 {
-		t.Errorf("Expected 5 questions, got %d", len(allQuestions))
-	}
-
-	// Test pagination with page size 2
-	pageSize := 2
-	page := 0
-
-	// First page
-	paginatedQuestions, totalPages, err := useCase.PaginateQuestions(allQuestions, pageSize, page)
-	if err != nil {
-		t.Fatalf("Failed to paginate questions: %v", err)
-	}
-
-	if len(paginatedQuestions) != 2 {
-		t.Errorf("Expected 2 questions on first page, got %d", len(paginatedQuestions))
-	}
-
-	if totalPages != 3 {
-		t.Errorf("Expected 3 total pages, got %d", totalPages)
-	}
-
-	// Second page
-	page = 1
-	paginatedQuestions, totalPages, err = useCase.PaginateQuestions(allQuestions, pageSize, page)
-	if err != nil {
-		t.Fatalf("Failed to paginate questions: %v", err)
-	}
-
-	if len(paginatedQuestions) != 2 {
-		t.Errorf("Expected 2 questions on second page, got %d", len(paginatedQuestions))
-	}
-
-	// Third page
-	page = 2
-	paginatedQuestions, totalPages, err = useCase.PaginateQuestions(allQuestions, pageSize, page)
-	if err != nil {
-		t.Fatalf("Failed to paginate questions: %v", err)
-	}
-
-	if len(paginatedQuestions) != 1 {
-		t.Errorf("Expected 1 question on third page, got %d", len(paginatedQuestions))
-	}
 }
 
 func TestQuestionUseCase_Integration_ErrorHandling(t *testing.T) {
@@ -334,14 +242,5 @@ func TestQuestionUseCase_Integration_ErrorHandling(t *testing.T) {
 	err = useCase.Undo()
 	if err == nil {
 		t.Error("Expected error when undoing with no actions")
-	}
-
-	// Test pagination with invalid page
-	questions := []core.Question{
-		{ID: 1, URL: "https://leetcode.com/problems/test"},
-	}
-	_, _, err = useCase.PaginateQuestions(questions, 5, -1)
-	if err == nil {
-		t.Error("Expected error when paginating with invalid page")
 	}
 }

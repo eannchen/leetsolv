@@ -1138,3 +1138,92 @@ func TestHandler_HandleHistory_Error(t *testing.T) {
 		t.Error("Expected PrintError to be called for history error")
 	}
 }
+
+func TestHandler_GetQuestionsPage(t *testing.T) {
+	handler, _, _ := setupTestHandler(t)
+
+	// Create test questions
+	questions := []core.Question{
+		{ID: 1, URL: "https://leetcode.com/problems/test1"},
+		{ID: 2, URL: "https://leetcode.com/problems/test2"},
+		{ID: 3, URL: "https://leetcode.com/problems/test3"},
+		{ID: 4, URL: "https://leetcode.com/problems/test4"},
+		{ID: 5, URL: "https://leetcode.com/problems/test5"},
+	}
+
+	// Test first page
+	results, totalPages, err := handler.getQuestionsPage(questions, 0)
+	if err != nil {
+		t.Fatalf("Failed to get first page: %v", err)
+	}
+
+	if len(results) != 5 { // Page size is 5 from config
+		t.Errorf("Expected 5 questions on first page, got %d", len(results))
+	}
+
+	if totalPages != 1 {
+		t.Errorf("Expected 1 total pages, got %d", totalPages)
+	}
+
+	// Test with more questions to test pagination
+	moreQuestions := []core.Question{
+		{ID: 1, URL: "https://leetcode.com/problems/test1"},
+		{ID: 2, URL: "https://leetcode.com/problems/test2"},
+		{ID: 3, URL: "https://leetcode.com/problems/test3"},
+		{ID: 4, URL: "https://leetcode.com/problems/test4"},
+		{ID: 5, URL: "https://leetcode.com/problems/test5"},
+		{ID: 6, URL: "https://leetcode.com/problems/test6"},
+		{ID: 7, URL: "https://leetcode.com/problems/test7"},
+	}
+
+	// Test first page with more questions
+	results, totalPages, err = handler.getQuestionsPage(moreQuestions, 0)
+	if err != nil {
+		t.Fatalf("Failed to get first page with more questions: %v", err)
+	}
+
+	if len(results) != 5 {
+		t.Errorf("Expected 5 questions on first page, got %d", len(results))
+	}
+
+	if totalPages != 2 {
+		t.Errorf("Expected 2 total pages, got %d", totalPages)
+	}
+
+	// Test second page
+	results, totalPages, err = handler.getQuestionsPage(moreQuestions, 1)
+	if err != nil {
+		t.Fatalf("Failed to get second page: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Errorf("Expected 2 questions on second page, got %d", len(results))
+	}
+
+	// Test invalid page number
+	_, _, err = handler.getQuestionsPage(questions, -1)
+	if err == nil {
+		t.Error("Expected error for invalid page number")
+	}
+
+	// Test page number too high
+	_, _, err = handler.getQuestionsPage(questions, 1)
+	if err == nil {
+		t.Error("Expected error for page number too high")
+	}
+
+	// Test empty questions
+	emptyQuestions := []core.Question{}
+	results, totalPages, err = handler.getQuestionsPage(emptyQuestions, 0)
+	if err != nil {
+		t.Fatalf("Failed to get page for empty questions: %v", err)
+	}
+
+	if len(results) != 0 {
+		t.Errorf("Expected 0 results for empty questions, got %d", len(results))
+	}
+
+	if totalPages != 0 {
+		t.Errorf("Expected 0 total pages for empty questions, got %d", totalPages)
+	}
+}

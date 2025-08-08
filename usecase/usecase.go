@@ -22,7 +22,6 @@ import (
 type QuestionUseCase interface {
 	ListQuestionsSummary() (QuestionsSummary, error)
 	ListQuestionsOrderByDesc() ([]core.Question, error)
-	PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error)
 	GetQuestion(target string) (*core.Question, error)
 	SearchQuestions(queries []string, filter *core.SearchFilter) ([]core.Question, error)
 	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
@@ -125,28 +124,6 @@ func (u *QuestionUseCaseImpl) ListQuestionsOrderByDesc() ([]core.Question, error
 		return questions[i].ID > questions[j].ID
 	})
 	return questions, nil
-}
-
-func (u *QuestionUseCaseImpl) PaginateQuestions(questions []core.Question, pageSize, page int) ([]core.Question, int, error) {
-	totalQuestions := len(questions)
-	if totalQuestions == 0 {
-		return nil, 0, nil
-	}
-
-	// Round up to get total pages needed; ensures partial last page is counted
-	totalPages := (totalQuestions + pageSize - 1) / pageSize
-
-	if page < 0 || page >= totalPages {
-		return nil, totalPages, errs.ErrInvalidPageNumber
-	}
-
-	// 0-index-based page
-	start := page * pageSize
-	end := start + pageSize
-	if end > totalQuestions {
-		end = totalQuestions
-	}
-	return questions[start:end], totalPages, nil
 }
 
 func (u *QuestionUseCaseImpl) GetQuestion(target string) (*core.Question, error) {
