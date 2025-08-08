@@ -6,14 +6,16 @@ import (
 )
 
 type env struct {
-	QuestionsFile string
-	DeltasFile    string
-	InfoLogFile   string
-	ErrorLogFile  string
-	PageSize      int
-	MaxDelta      int
-	TopKDue       int
-	TopKUpcoming  int
+	QuestionsFile  string
+	DeltasFile     string
+	InfoLogFile    string
+	ErrorLogFile   string
+	PageSize       int
+	MaxDelta       int
+	TopKDue        int
+	TopKUpcoming   int
+	OverduePenalty bool
+	OverdueLimit   int
 }
 
 var (
@@ -30,14 +32,16 @@ func Env() *env {
 		errorLogFile := getEnvOrDefault("LEETSOLV_ERROR_LOG_FILE", "error.test.log")
 
 		envInstance = &env{
-			QuestionsFile: questionsFile,
-			DeltasFile:    deltasFile,
-			InfoLogFile:   infoLogFile,
-			ErrorLogFile:  errorLogFile,
-			PageSize:      5,  // Default page size for pagination
-			MaxDelta:      50, // Maximum number of deltas to keep
-			TopKDue:       10, // Top-K due questions to show in summary
-			TopKUpcoming:  10, // Top-K upcoming questions to show in summary
+			QuestionsFile:  questionsFile,
+			DeltasFile:     deltasFile,
+			InfoLogFile:    infoLogFile,
+			ErrorLogFile:   errorLogFile,
+			PageSize:       5,     // Default page size for pagination
+			MaxDelta:       50,    // Maximum number of deltas to keep
+			TopKDue:        10,    // Top-K due questions to show in summary
+			TopKUpcoming:   10,    // Top-K upcoming questions to show in summary
+			OverduePenalty: false, // Enable/disable overdue penalty
+			OverdueLimit:   7,     // Days after which overdue questions are at risk of penalty
 		}
 	})
 	return envInstance

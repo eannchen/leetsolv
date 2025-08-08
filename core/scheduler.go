@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"leetsolv/config"
 	"leetsolv/internal/clock"
 )
 
@@ -99,10 +100,13 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	}
 
 	// Penalty for being overdue
-	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
-	if overdueDays > 5 && q.Importance > LowImportance && grade < VeryEasy {
-		penaltyFactor := math.Min(float64(overdueDays-5)*0.01, 0.1)
-		q.EaseFactor -= penaltyFactor
+	if config.Env().OverduePenalty {
+		overdueLimit := config.Env().OverdueLimit
+		overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
+		if overdueDays > overdueLimit && q.Importance > LowImportance && grade < VeryEasy {
+			penaltyFactor := math.Min(float64(overdueDays-overdueLimit)*0.01, 0.1)
+			q.EaseFactor -= penaltyFactor
+		}
 	}
 
 	// Growth based on last interval × EaseFactor
