@@ -90,7 +90,11 @@ type UpsertCommand struct {
 }
 
 func (c *UpsertCommand) Execute(scanner *bufio.Scanner, args []string) bool {
-	c.Handler.HandleUpsert(scanner)
+	var rawURL string
+	if len(args) > 0 {
+		rawURL = args[0]
+	}
+	c.Handler.HandleUpsert(scanner, rawURL)
 	return false
 }
 

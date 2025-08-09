@@ -508,7 +508,7 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 
 	// Simulate user input: URL, note, familiarity (3), importance (2)
 	scanner := bufio.NewScanner(strings.NewReader(""))
-	handler.HandleUpsert(scanner)
+	handler.HandleUpsert(scanner, "")
 
 	// Verify that success message was printed
 	found := false
@@ -533,6 +533,15 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	if !found {
 		t.Error("Expected PrintQuestionDetail to be called")
 	}
+
+	// Verify reassurance and normalized URL outputs
+	output := mockIO.output.String()
+	if !strings.Contains(output, "Provided URL will be normalized to a canonical form to match existing data.") {
+		t.Error("Expected reassurance line about URL normalization to be printed")
+	}
+	if !strings.Contains(output, "Using normalized URL: https://leetcode.com/problems/two-sum/") {
+		t.Error("Expected normalized URL to be printed")
+	}
 }
 
 func TestHandler_HandleUpsert_InvalidURL(t *testing.T) {
@@ -541,7 +550,7 @@ func TestHandler_HandleUpsert_InvalidURL(t *testing.T) {
 	// Simulate invalid URL input
 	input := "invalid-url\n"
 	scanner := bufio.NewScanner(strings.NewReader(input))
-	handler.HandleUpsert(scanner)
+	handler.HandleUpsert(scanner, "")
 
 	// Verify that error was printed
 	found := false
@@ -562,7 +571,7 @@ func TestHandler_HandleUpsert_InvalidFamiliarity(t *testing.T) {
 	// Simulate valid URL but invalid familiarity
 	input := "https://leetcode.com/problems/test\nTest question\n6\n"
 	scanner := bufio.NewScanner(strings.NewReader(input))
-	handler.HandleUpsert(scanner)
+	handler.HandleUpsert(scanner, "")
 
 	// Verify that error was printed
 	found := false
@@ -583,7 +592,7 @@ func TestHandler_HandleUpsert_InvalidImportance(t *testing.T) {
 	// Simulate valid URL and familiarity but invalid importance
 	input := "https://leetcode.com/problems/test\nTest question\n3\n5\n"
 	scanner := bufio.NewScanner(strings.NewReader(input))
-	handler.HandleUpsert(scanner)
+	handler.HandleUpsert(scanner, "")
 
 	// Verify that error was printed
 	found := false
@@ -608,7 +617,7 @@ func TestHandler_HandleUpsert_UseCaseError(t *testing.T) {
 	// Simulate valid input
 	input := "https://leetcode.com/problems/test\nTest question\n3\n2\n"
 	scanner := bufio.NewScanner(strings.NewReader(input))
-	handler.HandleUpsert(scanner)
+	handler.HandleUpsert(scanner, "")
 
 	// Verify that error was printed
 	found := false

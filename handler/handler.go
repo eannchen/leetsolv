@@ -21,7 +21,7 @@ type Handler interface {
 	HandleSearch(scanner *bufio.Scanner, args []string)
 	HandleGet(scanner *bufio.Scanner, target string)
 	HandleStatus()
-	HandleUpsert(scanner *bufio.Scanner)
+	HandleUpsert(scanner *bufio.Scanner, rawURL string)
 	HandleDelete(scanner *bufio.Scanner, target string)
 	HandleUndo(scanner *bufio.Scanner)
 	HandleHistory()
@@ -264,8 +264,11 @@ func (h *HandlerImpl) HandleStatus() {
 	h.IO.Printf("\n")
 }
 
-func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
-	rawURL := h.IO.ReadLine(scanner, "URL: ")
+func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
+	if rawURL == "" {
+		h.IO.Println("Provided URL will be normalized to a canonical form to match existing data.")
+		rawURL = h.IO.ReadLine(scanner, "URL: ")
+	}
 
 	// Normalize and validate the URL
 	url, err := h.normalizeLeetCodeURL(rawURL)
@@ -273,6 +276,9 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner) {
 		h.IO.PrintError(err)
 		return
 	}
+	h.IO.PrintfColored(ColorGreen, "Using normalized URL: %s\n", url)
+
+	h.IO.Printf("\n")
 
 	note := h.IO.ReadLine(scanner, "Note: ")
 
@@ -335,7 +341,7 @@ func (h *HandlerImpl) validateImportance(input string) (core.Importance, error) 
 }
 
 func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
-	parsedURL, err := url.Parse(inputURL)
+	parsedURL, err := url.Parse(strings.TrimSpace(inputURL))
 	if err != nil {
 		return "", errs.ErrInvalidURLFormat
 	}
