@@ -12,6 +12,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/errs"
+	"leetsolv/internal/tokenizer"
 	"leetsolv/usecase"
 )
 
@@ -91,7 +92,7 @@ func (h *HandlerImpl) parseSearchQueries(args []string) ([]string, []string) {
 		if strings.HasPrefix(arg, "--") {
 			filterArgs = append(filterArgs, arg)
 		} else {
-			targets = append(targets, arg)
+			targets = append(targets, tokenizer.Tokenize(arg)...)
 		}
 	}
 
