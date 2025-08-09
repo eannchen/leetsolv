@@ -426,9 +426,13 @@ func (h *HandlerImpl) HandleHistory() {
 		return
 	}
 
+	formatWithStrId := "%-6s %-9s %-35s %-22s %s"
+	formatWithIntId := "%-6d %-9s %-35s %-22s %s"
+
 	h.IO.PrintlnColored(ColorHeader, "──────────────────────────────────── Action History ────────────────────────────────────")
-	h.IO.PrintfColored(ColorHeader, "%-6s %-9s %-35s %-22s %s\n", "# ID", "Action", "Question", "Change", "When")
-	for i, delta := range deltas {
+	h.IO.PrintfColored(ColorHeader, formatWithStrId, "# ID", "Action", "Question", "Changes", "When")
+	h.IO.Printf("\n")
+	for _, delta := range deltas {
 		// Extract question name from URL
 		var questionName string
 		if delta.NewState != nil {
@@ -450,21 +454,29 @@ func (h *HandlerImpl) HandleHistory() {
 			actionDesc = "Delete"
 		}
 
-		// Get changes for update actions
-		var changeDesc string
+		// Prepare changes for update actions
+		var changeList []string
 		if delta.Action == core.ActionUpdate && delta.OldState != nil && delta.NewState != nil {
-			changes := h.getChanges(delta.OldState, delta.NewState)
-			if changes != "" {
-				changeDesc = changes
-			}
+			changeList = h.getChanges(delta.OldState, delta.NewState)
 		}
 
 		// Format the time
 		timeDesc := h.formatTimeAgo(delta.CreatedAt)
 
-		// Create the history entry with ID
-		entry := fmt.Sprintf("%-6d %-9s %-35s %-22s %s", i+1, actionDesc, questionName, changeDesc, timeDesc)
-		h.IO.Println(entry)
+		// Print entry. If multiple changes, print them on separate aligned lines.
+		if len(changeList) == 0 {
+			entry := fmt.Sprintf(formatWithIntId, delta.QuestionID, actionDesc, questionName, "", timeDesc)
+			h.IO.Println(entry)
+		} else {
+			// First line with the first change and time
+			first := fmt.Sprintf(formatWithIntId, delta.QuestionID, actionDesc, questionName, changeList[0], timeDesc)
+			h.IO.Println(first)
+			// Continuation lines: only the Change column filled
+			for i := 1; i < len(changeList); i++ {
+				cont := fmt.Sprintf(formatWithStrId, "", "", "", changeList[i], "")
+				h.IO.Println(cont)
+			}
+		}
 	}
 	h.IO.Printf("\n")
 }
@@ -526,18 +538,18 @@ func (h *HandlerImpl) extractQuestionNameFromURL(url string) string {
 	return "unknown"
 }
 
-func (h *HandlerImpl) getChanges(oldState, newState *core.Question) string {
+func (h *HandlerImpl) getChanges(oldState, newState *core.Question) []string {
 	var changes []string
-
-	if oldState.Familiarity != newState.Familiarity {
-		changes = append(changes, fmt.Sprintf("Familiarity: %d → %d", oldState.Familiarity+1, newState.Familiarity+1))
-	}
 
 	if oldState.Importance != newState.Importance {
 		changes = append(changes, fmt.Sprintf("Importance: %d → %d", oldState.Importance+1, newState.Importance+1))
 	}
 
-	return strings.Join(changes, ", ")
+	if oldState.Familiarity != newState.Familiarity {
+		changes = append(changes, fmt.Sprintf("Familiarity: %d → %d", oldState.Familiarity+1, newState.Familiarity+1))
+	}
+
+	return changes
 }
 
 func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
