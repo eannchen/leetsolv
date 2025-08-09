@@ -2,6 +2,7 @@ package core
 
 import (
 	"math"
+	"math/rand/v2"
 	"time"
 
 	"leetsolv/config"
@@ -19,6 +20,8 @@ type SM2Scheduler struct {
 	Clock clock.Clock
 	// Base intervals for each importance level (in days)
 	baseIntervals map[Importance]int
+	// Starting ease factors for each importance level
+	startEaseFactors map[Importance]float64
 	// Maximum interval to prevent overly long gaps (in days)
 	maxInterval int
 	// Minimum and maximum ease factors
@@ -38,28 +41,29 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 			HighImportance:     5, // Slightly tighter
 			CriticalImportance: 4, // Tightest
 		},
+		startEaseFactors: map[Importance]float64{
+			LowImportance:      2.0,
+			MediumImportance:   1.9,
+			HighImportance:     1.8,
+			CriticalImportance: 1.7,
+		},
 		maxInterval:   90,  // 90 days is the maximum interval
 		minEaseFactor: 1.3, // Lower bound for ease factor
 		maxEaseFactor: 2.6, // Upper bound to prevent overly long intervals
 	}
 }
 
-func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Familiarity, importance Importance) *Question {
+func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, familiarity Familiarity, importance Importance) *Question {
 	today := s.Clock.Today()
 
 	// Dynamic default EaseFactor based on importance
-	startingEase := map[Importance]float64{
-		LowImportance:      2.0,
-		MediumImportance:   1.9,
-		HighImportance:     1.8,
-		CriticalImportance: 1.7,
-	}[importance]
+	startingEase := s.startEaseFactors[importance]
 
 	q := &Question{
 		ID:           id,
 		URL:          url,
 		Note:         note,
-		Familiarity:  grade,
+		Familiarity:  familiarity,
 		Importance:   importance,
 		EaseFactor:   startingEase,
 		ReviewCount:  1,
@@ -70,13 +74,13 @@ func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Famili
 	intervalDays := s.baseIntervals[importance]
 
 	// Small tweaks to interval for early grading signal
-	switch grade {
-	case Easy:
-		intervalDays += 2
+	switch familiarity {
 	case VeryEasy:
+		intervalDays += 7
+	case Easy:
 		intervalDays += 5
-	case VeryHard:
-		intervalDays -= 1
+	case Medium:
+		intervalDays += 2
 	}
 
 	s.setNextReview(q, today, intervalDays)
@@ -84,18 +88,18 @@ func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, grade Famili
 }
 
 // Schedule updates the question's review schedule based on familiarity and importance
-func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
+func (s SM2Scheduler) Schedule(q *Question, familiarity Familiarity) {
 	q.ReviewCount++
 	today := s.Clock.Today()
 
 	baseInterval := s.baseIntervals[q.Importance]
 
 	// Reset if still struggling
-	if grade < Hard {
+	if familiarity == VeryHard {
 		s.setNextReview(q, today, baseInterval)
-		s.setEaseFactorWithPenalty(q, grade)
+		s.setEaseFactorWithPenalty(q, familiarity)
 		q.LastReviewed = today
-		q.Familiarity = grade
+		q.Familiarity = familiarity
 		return
 	}
 
@@ -103,7 +107,7 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	if config.Env().OverduePenalty {
 		overdueLimit := config.Env().OverdueLimit
 		overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
-		if overdueDays > overdueLimit && q.Importance > LowImportance && grade < VeryEasy {
+		if overdueDays > overdueLimit && q.Importance > LowImportance && familiarity < VeryEasy {
 			penaltyFactor := math.Min(float64(overdueDays-overdueLimit)*0.01, 0.1)
 			q.EaseFactor -= penaltyFactor
 		}
@@ -118,12 +122,19 @@ func (s SM2Scheduler) Schedule(q *Question, grade Familiarity) {
 	intervalDays := int(math.Round(float64(prevInterval) * q.EaseFactor))
 
 	s.setNextReview(q, today, intervalDays)
-	s.setEaseFactorWithPenalty(q, grade)
+	s.setEaseFactorWithPenalty(q, familiarity)
 	q.LastReviewed = today
-	q.Familiarity = grade
+	q.Familiarity = familiarity
 }
 
 func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays int) {
+
+	// Randomize interval to avoid overfitting to the same interval
+	if config.Env().RandomizeInterval {
+		// Randomize between -1 and 2 days
+		intervalDays += rand.IntN(4) - 1
+	}
+
 	if intervalDays < 1 {
 		intervalDays = 1
 	} else if intervalDays > s.maxInterval {
@@ -133,7 +144,7 @@ func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays in
 }
 
 // Update ease factor based on familiarity and importance
-func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
+func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, familiarity Familiarity) {
 	// How forgiving each importance level is
 	importanceEaseBonus := map[Importance]float64{
 		LowImportance:      0.15, // More aggressive boost
@@ -147,18 +158,18 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, grade Familiarity) {
 		VeryHard: 0.40,
 		Hard:     0.25,
 		Medium:   0.10,
-		Easy:     0.00,
-		VeryEasy: -0.10, // Negative penalty = small bonus
+		Easy:     -0.05,
+		VeryEasy: -0.15, // Negative penalty = small bonus
 	}
 
 	bonus := importanceEaseBonus[q.Importance]
-	penalty := familiarityPenalty[grade]
+	penalty := familiarityPenalty[familiarity]
 
 	// Apply core adjustment
 	q.EaseFactor += bonus - penalty
 
 	// Encourage stability if consistently good
-	if q.ReviewCount >= 3 && grade >= Medium {
+	if q.ReviewCount >= 3 && familiarity >= Medium {
 		q.EaseFactor += bonus * 0.5 // Smaller additive bonus
 	}
 
