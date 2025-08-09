@@ -2,6 +2,9 @@ package core
 
 import "time"
 
+const MaxImportance = int(CriticalImportance) + 1
+const MaxFamiliarity = int(VeryEasy) + 1
+
 type Importance int
 
 const (
@@ -45,6 +48,30 @@ const (
 	ActionUpdate ActionType = "update"
 	ActionDelete ActionType = "delete"
 )
+
+func (a ActionType) String() string {
+	switch a {
+	case ActionAdd:
+		return "Add"
+	case ActionUpdate:
+		return "Update"
+	case ActionDelete:
+		return "Delete"
+	}
+	return ""
+}
+
+func (a ActionType) PastTenseString() string {
+	switch a {
+	case ActionAdd:
+		return "Added"
+	case ActionUpdate:
+		return "Updated"
+	case ActionDelete:
+		return "Deleted"
+	}
+	return ""
+}
 
 type Delta struct {
 	Action     ActionType `json:"action"`

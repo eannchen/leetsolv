@@ -59,26 +59,26 @@ func TestQuestionUseCase_UpsertQuestion(t *testing.T) {
 	importance := core.MediumImportance
 
 	// Test upserting a new question
-	question, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		t.Fatalf("Failed to upsert question: %v", err)
 	}
 
 	// Verify the question was created correctly
-	if question.URL != url {
-		t.Errorf("Expected URL %s, got %s", url, question.URL)
+	if delta.NewState.URL != url {
+		t.Errorf("Expected URL %s, got %s", url, delta.NewState.URL)
 	}
 
-	if question.Note != note {
-		t.Errorf("Expected note %s, got %s", note, question.Note)
+	if delta.NewState.Note != note {
+		t.Errorf("Expected note %s, got %s", note, delta.NewState.Note)
 	}
 
-	if question.Familiarity != familiarity {
-		t.Errorf("Expected familiarity %d, got %d", familiarity, question.Familiarity)
+	if delta.NewState.Familiarity != familiarity {
+		t.Errorf("Expected familiarity %d, got %d", familiarity, delta.NewState.Familiarity)
 	}
 
-	if question.Importance != importance {
-		t.Errorf("Expected importance %d, got %d", importance, question.Importance)
+	if delta.NewState.Importance != importance {
+		t.Errorf("Expected importance %d, got %d", importance, delta.NewState.Importance)
 	}
 
 	// Verify the question was saved to the test file
@@ -96,22 +96,22 @@ func TestQuestionUseCase_UpsertQuestion(t *testing.T) {
 	updatedFamiliarity := core.Easy
 	updatedImportance := core.HighImportance
 
-	updatedQuestion, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
+	updatedDelta, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
 	if err != nil {
 		t.Fatalf("Failed to update question: %v", err)
 	}
 
 	// Verify the question was updated correctly
-	if updatedQuestion.Note != updatedNote {
-		t.Errorf("Expected updated note %s, got %s", updatedNote, updatedQuestion.Note)
+	if updatedDelta.NewState.Note != updatedNote {
+		t.Errorf("Expected updated note %s, got %s", updatedNote, updatedDelta.NewState.Note)
 	}
 
-	if updatedQuestion.Familiarity != updatedFamiliarity {
-		t.Errorf("Expected updated familiarity %d, got %d", updatedFamiliarity, updatedQuestion.Familiarity)
+	if updatedDelta.NewState.Familiarity != updatedFamiliarity {
+		t.Errorf("Expected updated familiarity %d, got %d", updatedFamiliarity, updatedDelta.NewState.Familiarity)
 	}
 
-	if updatedQuestion.Importance != updatedImportance {
-		t.Errorf("Expected updated importance %d, got %d", updatedImportance, updatedQuestion.Importance)
+	if updatedDelta.NewState.Importance != updatedImportance {
+		t.Errorf("Expected updated importance %d, got %d", updatedImportance, updatedDelta.NewState.Importance)
 	}
 }
 
@@ -455,7 +455,7 @@ func TestQuestionUseCase_Undo_DeleteAction(t *testing.T) {
 	familiarity := core.Medium
 	importance := core.MediumImportance
 
-	question, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		t.Fatalf("Failed to add question: %v", err)
 	}
@@ -466,8 +466,8 @@ func TestQuestionUseCase_Undo_DeleteAction(t *testing.T) {
 		t.Fatalf("Failed to delete question: %v", err)
 	}
 
-	if deletedQuestion.ID != question.ID {
-		t.Errorf("Expected deleted question ID %d, got %d", question.ID, deletedQuestion.ID)
+	if deletedQuestion.ID != delta.NewState.ID {
+		t.Errorf("Expected deleted question ID %d, got %d", delta.NewState.ID, deletedQuestion.ID)
 	}
 
 	// Verify question no longer exists
@@ -488,8 +488,8 @@ func TestQuestionUseCase_Undo_DeleteAction(t *testing.T) {
 		t.Fatalf("Failed to get question after undo: %v", err)
 	}
 
-	if retrievedQuestion.ID != question.ID {
-		t.Errorf("Expected restored question ID %d, got %d", question.ID, retrievedQuestion.ID)
+	if retrievedQuestion.ID != delta.NewState.ID {
+		t.Errorf("Expected restored question ID %d, got %d", delta.NewState.ID, retrievedQuestion.ID)
 	}
 }
 
@@ -629,18 +629,18 @@ func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
 
 	for i, tc := range testCases {
 		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
-		question, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance)
+		delta, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance)
 		if err != nil {
 			t.Fatalf("Failed to add question with familiarity %d: %v", tc.familiarity, err)
 		}
 
 		// Verify the question was scheduled
-		if question.NextReview.Before(time.Now()) {
-			t.Errorf("Expected question to be scheduled in the future, got %v", question.NextReview)
+		if delta.NewState.NextReview.Before(time.Now()) {
+			t.Errorf("Expected question to be scheduled in the future, got %v", delta.NewState.NextReview)
 		}
 
 		// Clean up for next test
-		_, err = useCase.DeleteQuestion(fmt.Sprintf("%d", question.ID))
+		_, err = useCase.DeleteQuestion(fmt.Sprintf("%d", delta.NewState.ID))
 		if err != nil {
 			t.Fatalf("Failed to delete question: %v", err)
 		}

@@ -45,6 +45,7 @@ type IOHandler interface {
 	ReadLine(scanner *bufio.Scanner, prompt string) string
 	PrintQuestionBrief(q *core.Question)
 	PrintQuestionDetail(question *core.Question)
+	PrintQuestionUpsertDetail(delta *core.Delta)
 	PrintSuccess(message string)
 	PrintError(err error)
 	PrintCancel(message string)
@@ -101,9 +102,13 @@ func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {
 
 func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 	ioh.PrintfColored(ColorQuestionURL, "[%d] %s\n", question.ID, question.URL)
-	ioh.Printf(" ↳ Note: %s\n", question.Note)
-	ioh.Printf("   Familiarity: %d/%d\n", question.Familiarity+1, core.VeryEasy+1)
-	ioh.Printf("   Importance: %d/%d\n", question.Importance+1, core.CriticalImportance+1)
+	if question.Note == "" {
+		ioh.Printf(" ↳ Note: (none)\n")
+	} else {
+		ioh.Printf(" ↳ Note: %s\n", question.Note)
+	}
+	ioh.Printf("   Familiarity: %d/%d\n", question.Familiarity+1, core.MaxFamiliarity)
+	ioh.Printf("   Importance: %d/%d\n", question.Importance+1, core.MaxImportance)
 	ioh.Printf("   Last Reviewed: %s\n", question.LastReviewed.Format("2006-01-02"))
 	if question.NextReview.Before(ioh.Clock.Now()) {
 		ioh.PrintfColored(ColorWarning, "   Next Review: %s (Due)\n", question.NextReview.Format("2006-01-02"))
@@ -114,6 +119,64 @@ func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 	ioh.Printf("   Ease Factor: %.2f\n", question.EaseFactor)
 	ioh.Printf("   Created At: %s\n", question.CreatedAt.Format("2006-01-02"))
 	ioh.Printf("\n")
+}
+
+func (ioh *IOHandlerImpl) PrintQuestionUpsertDetail(delta *core.Delta) {
+
+	newState := delta.NewState
+	oldState := delta.OldState
+
+	ioh.PrintfColored(ColorQuestionURL, "[%d] %s\n", newState.ID, newState.URL)
+	if newState.Note == "" {
+		ioh.Printf(" ↳ Note: (none)\n")
+	} else {
+		ioh.Printf(" ↳ Note: %s\n", newState.Note)
+	}
+
+	if oldState == nil {
+		ioh.Printf("   Familiarity: %d/%d\n", newState.Familiarity+1, core.MaxFamiliarity)
+		ioh.Printf("   Importance: %d/%d\n", newState.Importance+1, core.MaxImportance)
+		ioh.Printf("   Last Reviewed: %s\n", newState.LastReviewed.Format("2006-01-02"))
+		ioh.Printf("   Next Review: %s\n", newState.NextReview.Format("2006-01-02"))
+		ioh.Printf("   Review Count: %d\n", newState.ReviewCount)
+		ioh.Printf("   Ease Factor: %.2f\n", newState.EaseFactor)
+		ioh.Printf("   Created At: %s\n", newState.CreatedAt.Format("2006-01-02"))
+		ioh.Printf("\n")
+	} else {
+		if oldState.Familiarity != newState.Familiarity {
+			ioh.Printf("   Familiarity: %d → %d (Max: %d)\n", oldState.Familiarity+1, newState.Familiarity+1, core.MaxFamiliarity)
+		} else {
+			ioh.Printf("   Familiarity: %d/%d\n", newState.Familiarity+1, core.MaxFamiliarity)
+		}
+		if oldState.Importance != newState.Importance {
+			ioh.Printf("   Importance: %d → %d (Max: %d)\n", oldState.Importance+1, newState.Importance+1, core.MaxImportance)
+		} else {
+			ioh.Printf("   Importance: %d/%d\n", newState.Importance+1, core.MaxImportance)
+		}
+		if oldState.LastReviewed != newState.LastReviewed {
+			ioh.Printf("   Last Reviewed: %s → %s\n", oldState.LastReviewed.Format("2006-01-02"), newState.LastReviewed.Format("2006-01-02"))
+		} else {
+			ioh.Printf("   Last Reviewed: %s\n", newState.LastReviewed.Format("2006-01-02"))
+		}
+		if oldState.NextReview != newState.NextReview {
+			ioh.Printf("   Next Review: %s → %s\n", oldState.NextReview.Format("2006-01-02"), newState.NextReview.Format("2006-01-02"))
+		} else {
+			ioh.Printf("   Next Review: %s\n", newState.NextReview.Format("2006-01-02"))
+		}
+		if oldState.ReviewCount != newState.ReviewCount {
+			ioh.Printf("   Review Count: %d → %d\n", oldState.ReviewCount, newState.ReviewCount)
+		} else {
+			ioh.Printf("   Review Count: %d\n", newState.ReviewCount)
+		}
+		if oldState.EaseFactor != newState.EaseFactor {
+			ioh.Printf("   Ease Factor: %.2f → %.2f\n", oldState.EaseFactor, newState.EaseFactor)
+		} else {
+			ioh.Printf("   Ease Factor: %.2f\n", newState.EaseFactor)
+		}
+		ioh.Printf("   Created At: %s\n", newState.CreatedAt.Format("2006-01-02"))
+		ioh.Printf("\n")
+	}
+
 }
 
 func (ioh *IOHandlerImpl) PrintCancel(message string) {

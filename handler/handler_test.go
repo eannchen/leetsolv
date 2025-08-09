@@ -73,6 +73,15 @@ func (m *MockIOHandler) PrintQuestionDetail(question *core.Question) {
 	m.output.WriteString(fmt.Sprintf("Question Detail - ID: %d, URL: %s\n", question.ID, question.URL))
 }
 
+func (m *MockIOHandler) PrintQuestionUpsertDetail(delta *core.Delta) {
+	m.writeCalls = append(m.writeCalls, "PrintQuestionUpsertDetail")
+	if delta != nil && delta.NewState != nil {
+		m.output.WriteString(fmt.Sprintf("Upserted - ID: %d, URL: %s\n", delta.NewState.ID, delta.NewState.URL))
+	} else {
+		m.output.WriteString("Upserted - <nil>\n")
+	}
+}
+
 func (m *MockIOHandler) PrintSuccess(message string) {
 	m.writeCalls = append(m.writeCalls, "PrintSuccess")
 	m.output.WriteString(fmt.Sprintf("SUCCESS: %s\n", message))
@@ -93,7 +102,7 @@ type MockQuestionUseCase struct {
 	questions     []core.Question
 	shouldError   bool
 	errorToReturn error
-	upserted      *core.Question
+	upserted      *core.Delta
 	deleted       *core.Question
 	summary       usecase.QuestionsSummary
 	searchResults []core.Question
@@ -173,7 +182,7 @@ func (m *MockQuestionUseCase) SearchQuestions(queries []string, filter *core.Sea
 	return m.searchResults, nil
 }
 
-func (m *MockQuestionUseCase) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
+func (m *MockQuestionUseCase) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Delta, error) {
 	if m.shouldError {
 		return nil, m.errorToReturn
 	}
@@ -497,7 +506,13 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 		Familiarity: core.Medium,
 		Importance:  core.MediumImportance,
 	}
-	mockUseCase.upserted = upsertedQuestion
+	mockUseCase.upserted = &core.Delta{
+		Action:     core.ActionAdd,
+		QuestionID: upsertedQuestion.ID,
+		OldState:   nil,
+		NewState:   upsertedQuestion,
+		CreatedAt:  time.Now(),
+	}
 
 	// Test the URL normalization directly first
 	normalizedURL, err := handler.normalizeLeetCodeURL("https://leetcode.com/problems/two-sum")
@@ -522,16 +537,16 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 		t.Error("Expected PrintSuccess to be called for success message")
 	}
 
-	// Also verify that PrintQuestionDetail was called
+	// Also verify that PrintQuestionUpsertDetail was called
 	found = false
 	for _, call := range mockIO.writeCalls {
-		if call == "PrintQuestionDetail" {
+		if call == "PrintQuestionUpsertDetail" {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Error("Expected PrintQuestionDetail to be called")
+		t.Error("Expected PrintQuestionUpsertDetail to be called")
 	}
 
 	// Verify reassurance and normalized URL outputs

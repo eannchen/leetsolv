@@ -24,7 +24,7 @@ type QuestionUseCase interface {
 	ListQuestionsOrderByDesc() ([]core.Question, error)
 	GetQuestion(target string) (*core.Question, error)
 	SearchQuestions(queries []string, filter *core.SearchFilter) ([]core.Question, error)
-	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error)
+	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Delta, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
 	GetHistory() ([]core.Delta, error)
@@ -212,7 +212,7 @@ func (u *QuestionUseCaseImpl) matchesFilter(question core.Question, filter core.
 	return true
 }
 
-func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Question, error) {
+func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Delta, error) {
 	logger.Logger().Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
 	u.Storage.Lock()
@@ -235,6 +235,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		return nil, errs.WrapInternalError(err, "Failed to load deltas")
 	}
 
+	var delta *core.Delta
 	var newState *core.Question
 
 	if foundQuestion != nil {
@@ -264,13 +265,14 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		}
 
 		// Create a delta for the update
-		deltas = u.appendDelta(deltas, core.Delta{
+		delta = &core.Delta{
 			Action:     core.ActionUpdate,
 			QuestionID: foundQuestion.ID,
 			OldState:   foundQuestion,
 			NewState:   newState,
 			CreatedAt:  u.Clock.Now(),
-		})
+		}
+		deltas = u.appendDelta(deltas, *delta)
 	} else {
 		// Create a new question
 		store.MaxID++
@@ -292,13 +294,14 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		}
 
 		// Create a delta for the new question
-		deltas = u.appendDelta(deltas, core.Delta{
+		delta = &core.Delta{
 			Action:     core.ActionAdd,
 			QuestionID: newState.ID,
 			OldState:   nil,
 			NewState:   newState,
 			CreatedAt:  u.Clock.Now(),
-		})
+		}
+		deltas = u.appendDelta(deltas, *delta)
 	}
 
 	if err := u.Storage.SaveQuestionStore(store); err != nil {
@@ -307,7 +310,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
 		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
 	}
-	return newState, nil
+	return delta, nil
 }
 
 func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {

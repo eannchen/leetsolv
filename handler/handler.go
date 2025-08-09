@@ -312,14 +312,14 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 	}
 
 	// Call the updated UpsertQuestion function
-	upsertedQuestion, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
 		// Display the upserted question
 		h.IO.Printf("\n")
-		h.IO.PrintSuccess("Question Upserted")
-		h.IO.PrintQuestionDetail(upsertedQuestion)
+		h.IO.PrintSuccess(fmt.Sprintf("Question %s", delta.Action.PastTenseString()))
+		h.IO.PrintQuestionUpsertDetail(delta)
 	}
 	h.IO.Printf("\n")
 }
@@ -443,17 +443,6 @@ func (h *HandlerImpl) HandleHistory() {
 			questionName = "unknown"
 		}
 
-		// Format the action description
-		var actionDesc string
-		switch delta.Action {
-		case core.ActionAdd:
-			actionDesc = "Add"
-		case core.ActionUpdate:
-			actionDesc = "Update"
-		case core.ActionDelete:
-			actionDesc = "Delete"
-		}
-
 		// Prepare changes for update actions
 		var changeList []string
 		if delta.Action == core.ActionUpdate && delta.OldState != nil && delta.NewState != nil {
@@ -465,11 +454,11 @@ func (h *HandlerImpl) HandleHistory() {
 
 		// Print entry. If multiple changes, print them on separate aligned lines.
 		if len(changeList) == 0 {
-			entry := fmt.Sprintf(formatWithIntId, delta.QuestionID, actionDesc, questionName, "", timeDesc)
+			entry := fmt.Sprintf(formatWithIntId, delta.QuestionID, delta.Action.String(), questionName, "", timeDesc)
 			h.IO.Println(entry)
 		} else {
 			// First line with the first change and time
-			first := fmt.Sprintf(formatWithIntId, delta.QuestionID, actionDesc, questionName, changeList[0], timeDesc)
+			first := fmt.Sprintf(formatWithIntId, delta.QuestionID, delta.Action.String(), questionName, changeList[0], timeDesc)
 			h.IO.Println(first)
 			// Continuation lines: only the Change column filled
 			for i := 1; i < len(changeList); i++ {

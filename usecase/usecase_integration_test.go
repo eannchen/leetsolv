@@ -29,26 +29,26 @@ func TestQuestionUseCase_Integration_UpsertAndGet(t *testing.T) {
 	familiarity := core.Medium
 	importance := core.MediumImportance
 
-	question, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		t.Fatalf("Failed to upsert question: %v", err)
 	}
 
 	// Verify the question was created correctly
-	if question.URL != url {
-		t.Errorf("Expected URL %s, got %s", url, question.URL)
+	if delta.NewState.URL != url {
+		t.Errorf("Expected URL %s, got %s", url, delta.NewState.URL)
 	}
 
-	if question.Note != note {
-		t.Errorf("Expected note %s, got %s", note, question.Note)
+	if delta.NewState.Note != note {
+		t.Errorf("Expected note %s, got %s", note, delta.NewState.Note)
 	}
 
-	if question.Familiarity != familiarity {
-		t.Errorf("Expected familiarity %d, got %d", familiarity, question.Familiarity)
+	if delta.NewState.Familiarity != familiarity {
+		t.Errorf("Expected familiarity %d, got %d", familiarity, delta.NewState.Familiarity)
 	}
 
-	if question.Importance != importance {
-		t.Errorf("Expected importance %d, got %d", importance, question.Importance)
+	if delta.NewState.Importance != importance {
+		t.Errorf("Expected importance %d, got %d", importance, delta.NewState.Importance)
 	}
 
 	// Test getting the question by ID
@@ -57,8 +57,8 @@ func TestQuestionUseCase_Integration_UpsertAndGet(t *testing.T) {
 		t.Fatalf("Failed to get question by ID: %v", err)
 	}
 
-	if retrievedQuestion.ID != question.ID {
-		t.Errorf("Expected question ID %d, got %d", question.ID, retrievedQuestion.ID)
+	if retrievedQuestion.ID != delta.NewState.ID {
+		t.Errorf("Expected question ID %d, got %d", delta.NewState.ID, retrievedQuestion.ID)
 	}
 
 	// Test getting the question by URL
@@ -81,7 +81,7 @@ func TestQuestionUseCase_Integration_UpdateQuestion(t *testing.T) {
 	familiarity := core.Medium
 	importance := core.MediumImportance
 
-	question, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	_, err := useCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		t.Fatalf("Failed to create initial question: %v", err)
 	}
@@ -91,27 +91,28 @@ func TestQuestionUseCase_Integration_UpdateQuestion(t *testing.T) {
 	updatedFamiliarity := core.Easy
 	updatedImportance := core.HighImportance
 
-	updatedQuestion, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
+	updatedDelta, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
 	if err != nil {
 		t.Fatalf("Failed to update question: %v", err)
 	}
 
 	// Verify the question was updated correctly
-	if updatedQuestion.Note != updatedNote {
-		t.Errorf("Expected updated note %s, got %s", updatedNote, updatedQuestion.Note)
+	if updatedDelta.NewState.Note != updatedNote {
+		t.Errorf("Expected updated note %s, got %s", updatedNote, updatedDelta.NewState.Note)
 	}
 
-	if updatedQuestion.Familiarity != updatedFamiliarity {
-		t.Errorf("Expected updated familiarity %d, got %d", updatedFamiliarity, updatedQuestion.Familiarity)
+	if updatedDelta.NewState.Familiarity != updatedFamiliarity {
+		t.Errorf("Expected updated familiarity %d, got %d", updatedFamiliarity, updatedDelta.NewState.Familiarity)
 	}
 
-	if updatedQuestion.Importance != updatedImportance {
-		t.Errorf("Expected updated importance %d, got %d", updatedImportance, updatedQuestion.Importance)
+	if updatedDelta.NewState.Importance != updatedImportance {
+		t.Errorf("Expected updated importance %d, got %d", updatedImportance, updatedDelta.NewState.Importance)
 	}
 
 	// Verify the ID remains the same
-	if updatedQuestion.ID != question.ID {
-		t.Errorf("Expected same ID %d, got %d", question.ID, updatedQuestion.ID)
+	// Verify ID remains the same as the original (1)
+	if updatedDelta.NewState.ID != 1 {
+		t.Errorf("Expected same ID %d, got %d", 1, updatedDelta.NewState.ID)
 	}
 }
 
@@ -124,7 +125,7 @@ func TestQuestionUseCase_Integration_DeleteAndUndo(t *testing.T) {
 	familiarity := core.Medium
 	importance := core.MediumImportance
 
-	question, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
 	if err != nil {
 		t.Fatalf("Failed to create question: %v", err)
 	}
@@ -135,8 +136,8 @@ func TestQuestionUseCase_Integration_DeleteAndUndo(t *testing.T) {
 		t.Fatalf("Failed to delete question: %v", err)
 	}
 
-	if deletedQuestion.ID != question.ID {
-		t.Errorf("Expected deleted question ID %d, got %d", question.ID, deletedQuestion.ID)
+	if deletedQuestion.ID != delta.NewState.ID {
+		t.Errorf("Expected deleted question ID %d, got %d", delta.NewState.ID, deletedQuestion.ID)
 	}
 
 	// Verify the question is no longer retrievable
@@ -157,8 +158,8 @@ func TestQuestionUseCase_Integration_DeleteAndUndo(t *testing.T) {
 		t.Fatalf("Failed to get question after undo: %v", err)
 	}
 
-	if retrievedQuestion.ID != question.ID {
-		t.Errorf("Expected retrieved question ID %d, got %d", question.ID, retrievedQuestion.ID)
+	if retrievedQuestion.ID != delta.NewState.ID {
+		t.Errorf("Expected retrieved question ID %d, got %d", delta.NewState.ID, retrievedQuestion.ID)
 	}
 }
 
