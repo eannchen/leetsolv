@@ -38,7 +38,7 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 			HighImportance:     5, // Slightly tighter
 			CriticalImportance: 4, // Tightest
 		},
-		maxInterval:   45,  // Ensure at least 2-3 reviews within 90 days
+		maxInterval:   90,  // 90 days is the maximum interval
 		minEaseFactor: 1.3, // Lower bound for ease factor
 		maxEaseFactor: 2.6, // Upper bound to prevent overly long intervals
 	}
@@ -180,9 +180,9 @@ func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 	// Constants: Tuned for prioritizing the most critical items.
 	const (
 		importanceWeight    = 2.0  // Prioritizes designated importance
-		overdueWeight       = 1.0  // Prioritizes items past their due date
-		familiarityWeight   = 2.5  // Prioritizes historically difficult items
-		reviewPenaltyWeight = -0.5 // De-prioritizes questions seen many times (prevents leeching)
+		overdueWeight       = 0.5  // Prioritizes items past their due date
+		familiarityWeight   = 3.0  // Prioritizes historically difficult items
+		reviewPenaltyWeight = -1.0 // De-prioritizes questions seen many times (prevents leeching)
 		easePenaltyWeight   = -1.0 // De-prioritizes "easier" questions to focus on struggles
 	)
 
