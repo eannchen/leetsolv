@@ -9,6 +9,7 @@ import (
 	"leetsolv/core"
 	"leetsolv/internal/clock"
 	"leetsolv/internal/errs"
+	"leetsolv/internal/search"
 	"leetsolv/storage"
 )
 
@@ -129,6 +130,8 @@ func TestQuestionUseCase_GetQuestion(t *testing.T) {
 		Questions: questions,
 		URLIndex:  map[string]int{"https://leetcode.com/problems/test": 1},
 		MaxID:     1,
+		URLTrie:   search.NewTrie(3),
+		NoteTrie:  search.NewTrie(3),
 	}
 
 	err := useCase.Storage.SaveQuestionStore(store)
@@ -171,6 +174,8 @@ func TestQuestionUseCase_DeleteQuestion(t *testing.T) {
 		Questions: questions,
 		URLIndex:  map[string]int{"https://leetcode.com/problems/test": 1},
 		MaxID:     1,
+		URLTrie:   search.NewTrie(3),
+		NoteTrie:  search.NewTrie(3),
 	}
 
 	err := useCase.Storage.SaveQuestionStore(store)
@@ -225,7 +230,9 @@ func TestQuestionUseCase_ListQuestionsSummary(t *testing.T) {
 			"https://leetcode.com/problems/due":      1,
 			"https://leetcode.com/problems/upcoming": 2,
 		},
-		MaxID: 2,
+		MaxID:    2,
+		URLTrie:  search.NewTrie(3),
+		NoteTrie: search.NewTrie(3),
 	}
 
 	err := useCase.Storage.SaveQuestionStore(store)
