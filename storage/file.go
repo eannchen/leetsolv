@@ -38,6 +38,10 @@ type FileStorage struct {
 	QuestionsFile string
 	DeltasFile    string
 	mu            sync.Mutex
+
+	// Cache fields with proper encapsulation
+	questionStoreCache *QuestionStore
+	deltasCache        []core.Delta
 }
 
 func (fs *FileStorage) Lock() {
@@ -49,11 +53,19 @@ func (fs *FileStorage) Unlock() {
 }
 
 func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
+	// Try to load from cache first
+	if fs.questionStoreCache != nil {
+		return fs.questionStoreCache, nil
+	}
+
+	// Load question store from file
 	var store QuestionStore
 	err := fs.loadJSONFromFile(&store, fs.QuestionsFile)
 	if err != nil {
 		return nil, err
 	}
+
+	// Initialize empty fields
 	if store.Questions == nil {
 		store.Questions = make(map[int]*core.Question)
 	}
@@ -66,21 +78,60 @@ func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 	if store.NoteTrie == nil {
 		store.NoteTrie = search.NewTrie(3)
 	}
+
+	// Update cache
+	fs.questionStoreCache = &store
+
 	return &store, nil
 }
 
 func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
-	return fs.saveJSONToFile(store, fs.QuestionsFile)
+	err := fs.saveJSONToFile(store, fs.QuestionsFile)
+	if err != nil {
+		return err
+	}
+
+	// Update cache after successful save
+	fs.questionStoreCache = store
+
+	return nil
 }
 
 func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
+	// Try to load from cache first
+	if fs.deltasCache != nil {
+		return fs.deltasCache, nil
+	}
+
+	// Load deltas from file
 	var deltas []core.Delta
 	err := fs.loadJSONFromFile(&deltas, fs.DeltasFile)
-	return deltas, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Update cache
+	fs.deltasCache = deltas
+
+	return deltas, nil
 }
 
 func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
-	return fs.saveJSONToFile(deltas, fs.DeltasFile)
+	err := fs.saveJSONToFile(deltas, fs.DeltasFile)
+	if err != nil {
+		return err
+	}
+
+	// Update cache after successful save
+	fs.deltasCache = deltas
+
+	return nil
+}
+
+// InvalidateCache clears the cache, forcing next load to read from file
+func (fs *FileStorage) InvalidateCache() {
+	fs.questionStoreCache = nil
+	fs.deltasCache = nil
 }
 
 // Private helper methods
