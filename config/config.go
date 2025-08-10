@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"sync"
 )
 
@@ -17,6 +18,12 @@ type env struct {
 	OverduePenalty    bool
 	OverdueLimit      int
 	RandomizeInterval bool
+	// Scoring formula weights
+	ImportanceWeight    float64
+	OverdueWeight       float64
+	FamiliarityWeight   float64
+	ReviewPenaltyWeight float64
+	EasePenaltyWeight   float64
 }
 
 var (
@@ -44,6 +51,12 @@ func Env() *env {
 			OverduePenalty:    false, // Enable/disable overdue penalty
 			OverdueLimit:      7,     // Days after which overdue questions are at risk of penalty
 			RandomizeInterval: true,  // Enable/disable randomized interval
+			// Scoring formula weights
+			ImportanceWeight:    getEnvFloatOrDefault("LEETSOLV_IMPORTANCE_WEIGHT", 1.5),      // Prioritizes designated importance
+			OverdueWeight:       getEnvFloatOrDefault("LEETSOLV_OVERDUE_WEIGHT", 0.5),         // Prioritizes items past their due date
+			FamiliarityWeight:   getEnvFloatOrDefault("LEETSOLV_FAMILIARITY_WEIGHT", 3.0),     // Prioritizes historically difficult items
+			ReviewPenaltyWeight: getEnvFloatOrDefault("LEETSOLV_REVIEW_PENALTY_WEIGHT", -1.5), // De-prioritizes questions seen many times (prevents leeching)
+			EasePenaltyWeight:   getEnvFloatOrDefault("LEETSOLV_EASE_PENALTY_WEIGHT", -1.0),   // De-prioritizes "easier" questions to focus on struggles
 		}
 	})
 	return envInstance
@@ -53,6 +66,16 @@ func Env() *env {
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+// getEnvFloatOrDefault returns the environment variable value as float64 if set, otherwise returns the default value
+func getEnvFloatOrDefault(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if f, err := strconv.ParseFloat(value, 64); err == nil {
+			return f
+		}
 	}
 	return defaultValue
 }

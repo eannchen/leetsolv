@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	ColorSuccess = ColorGreen
-	ColorCancel  = ColorGray
-	ColorWarning = ColorYellow
-	ColorError   = ColorRed
+	ColorSuccess    = ColorGreen
+	ColorCancel     = ColorGray
+	ColorWarning    = ColorYellow
+	ColorError      = ColorRed
+	ColorAnnotation = ColorLightGray + Italic
 
 	ColorHeader       = ColorBlue
 	ColorQuestionURL  = ColorBlue
@@ -27,14 +28,16 @@ const (
 )
 
 const (
-	ColorReset  = "\033[0m"
-	ColorRed    = "\033[31m"
-	ColorGreen  = "\033[32m"
-	ColorYellow = "\033[33m"
-	ColorOrange = "\033[38;5;208m"
-	ColorGray   = "\033[38;5;245m"
-	ColorBlue   = "\033[34m"
-	Bold        = "\033[1m"
+	ColorReset     = "\033[0m"
+	ColorRed       = "\033[31m"
+	ColorGreen     = "\033[32m"
+	ColorYellow    = "\033[33m"
+	ColorOrange    = "\033[38;5;208m"
+	ColorGray      = "\033[38;5;245m"
+	ColorLightGray = "\033[38;5;245m"
+	ColorBlue      = "\033[34m"
+	Bold           = "\033[1m"
+	Italic         = "\033[3m"
 )
 
 type IOHandler interface {

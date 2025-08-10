@@ -261,6 +261,15 @@ func (h *HandlerImpl) HandleStatus() {
 	for _, q := range summary.TopUpcoming {
 		h.IO.PrintQuestionBrief(&q)
 	}
+
+	if summary.TotalDue != 0 || summary.TotalUpcoming != 0 {
+		h.IO.Printf("\n")
+		h.IO.Printf("\n")
+		cfg := config.Env()
+		h.IO.PrintfColored(ColorAnnotation, "* Priority Scoring Formula = (%.1f×Importance)+(%.1f×Overdue Days)+(%.1f×Difficulty)+(%.1f×Review Count)+(%.1f×Ease Factor)\n  Please adjust the weights in the config file to prioritize what you want.\n",
+			cfg.ImportanceWeight, cfg.OverdueWeight, cfg.FamiliarityWeight, cfg.ReviewPenaltyWeight, cfg.EasePenaltyWeight)
+	}
+
 	h.IO.Printf("\n")
 }
 

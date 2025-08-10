@@ -188,14 +188,13 @@ func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
 func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 	today := s.Clock.Today()
 
-	// Constants: Tuned for prioritizing the most critical items.
-	const (
-		importanceWeight    = 1.5  // Prioritizes designated importance
-		overdueWeight       = 0.5  // Prioritizes items past their due date
-		familiarityWeight   = 3.0  // Prioritizes historically difficult items
-		reviewPenaltyWeight = -1.0 // De-prioritizes questions seen many times (prevents leeching)
-		easePenaltyWeight   = -1.0 // De-prioritizes "easier" questions to focus on struggles
-	)
+	// Get weights from config
+	cfg := config.Env()
+	importanceWeight := cfg.ImportanceWeight       // Prioritizes designated importance
+	overdueWeight := cfg.OverdueWeight             // Prioritizes items past their due date
+	familiarityWeight := cfg.FamiliarityWeight     // Prioritizes historically difficult items
+	reviewPenaltyWeight := cfg.ReviewPenaltyWeight // De-prioritizes questions seen many times (prevents leeching)
+	easePenaltyWeight := cfg.EasePenaltyWeight     // De-prioritizes "easier" questions to focus on struggles
 
 	// Compute overdue days (at least 0)
 	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
