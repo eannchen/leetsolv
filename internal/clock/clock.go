@@ -22,11 +22,12 @@ func (ClockImpl) Now() time.Time {
 }
 
 func (ClockImpl) Today() time.Time {
-	return time.Now().Truncate(24 * time.Hour)
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 }
 
 func (ClockImpl) ToDate(t time.Time) time.Time {
-	return t.Truncate(24 * time.Hour)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
 func (ClockImpl) AddDays(t time.Time, days int) time.Time {

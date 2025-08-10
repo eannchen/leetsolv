@@ -18,9 +18,15 @@ type CodedError struct {
 func (e *CodedError) Error() string {
 	// For debugging/logging - include technical details
 	if e.TechnicalMsg != "" {
-		return string(e.Kind) + ": " + e.TechnicalMsg + " (" + e.Err.Error() + ")"
+		if e.Err != nil {
+			return string(e.Kind) + ": " + e.TechnicalMsg + " (" + e.Err.Error() + ")"
+		}
+		return string(e.Kind) + ": " + e.TechnicalMsg
 	}
-	return string(e.Kind) + ": " + e.Err.Error()
+	if e.Err != nil {
+		return string(e.Kind) + ": " + e.Err.Error()
+	}
+	return string(e.Kind)
 }
 
 // UserMessage returns the user-friendly message for UI display
@@ -29,7 +35,10 @@ func (e *CodedError) UserMessage() string {
 		return e.UserMsg
 	}
 	// Fallback to technical message if no user message provided
-	return e.Err.Error()
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+	return string(e.Kind)
 }
 
 func (e *CodedError) Unwrap() error {
