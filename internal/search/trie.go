@@ -24,6 +24,9 @@ func NewTrie(minPrefixLength int) *Trie {
 
 func (t *Trie) Insert(word string, id int) {
 	node := t.Root
+	// Always add ID to root for empty string case
+	node.IDs[id] = struct{}{}
+
 	for _, ch := range word {
 		if _, ok := node.Children[ch]; !ok {
 			node.Children[ch] = NewTrieNode()
@@ -35,6 +38,11 @@ func (t *Trie) Insert(word string, id int) {
 }
 
 func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
+	// Special case: empty prefix should return all IDs
+	if prefix == "" {
+		return t.Root.IDs
+	}
+
 	if len([]rune(prefix)) < t.MinPrefixLength {
 		return nil
 	}
@@ -50,6 +58,11 @@ func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
 }
 
 func (t *Trie) Delete(word string, id int) {
+	// Special case: empty string
+	if word == "" {
+		delete(t.Root.IDs, id)
+		return
+	}
 
 	// i: next index to check
 	// node: current node
