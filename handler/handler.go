@@ -286,8 +286,8 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 
 	h.IO.Println("Familiarity:")
 	h.IO.Println("1. Struggled - Solved, but barely; needed heavy effort or help.")
-	h.IO.Println("2. Clumsy    - Solved with partial understanding, some errors.")
-	h.IO.Println("3. Decent    - Solved mostly right, but with inefficiencies or uncertainty.")
+	h.IO.Println("2. Clumsy    - Solved with partial understanding or recurring mistakes.")
+	h.IO.Println("3. Decent    - Solved mostly right, but with uncertainty or slow spots.")
 	h.IO.Println("4. Smooth    - Solved cleanly with clear reasoning, minor pauses, and no real confusion.")
 	h.IO.Println("5. Fluent    - Solved confidently with no hesitation.")
 	famInput := h.IO.ReadLine(scanner, "\nEnter a number (1-5): ")
