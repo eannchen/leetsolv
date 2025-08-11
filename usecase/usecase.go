@@ -276,8 +276,14 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	} else {
 		// Create a new question
 		store.MaxID++
-		newState = u.Scheduler.ScheduleNewQuestion(store.MaxID, url, note, familiarity, importance, memory)
-		newState.UpdatedAt = u.Clock.Now() // Set UpdatedAt for new questions
+		newState = &core.Question{
+			ID:        store.MaxID,
+			URL:       url,
+			Note:      note,
+			UpdatedAt: u.Clock.Now(),
+			CreatedAt: u.Clock.Now(),
+		}
+		newState = u.Scheduler.ScheduleNewQuestion(newState, familiarity, importance, memory)
 		store.Questions[store.MaxID] = newState
 		store.URLIndex[url] = store.MaxID
 

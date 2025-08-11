@@ -10,7 +10,7 @@ import (
 )
 
 type Scheduler interface {
-	ScheduleNewQuestion(id int, url, note string, familiarity Familiarity, importance Importance, memory MemoryUse) *Question
+	ScheduleNewQuestion(q *Question, familiarity Familiarity, importance Importance, memory MemoryUse) *Question
 	Schedule(q *Question, familiarity Familiarity, memory MemoryUse)
 	CalculatePriorityScore(q *Question) float64
 }
@@ -58,23 +58,14 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 	}
 }
 
-func (s SM2Scheduler) ScheduleNewQuestion(id int, url, note string, familiarity Familiarity, importance Importance, memory MemoryUse) *Question {
+func (s SM2Scheduler) ScheduleNewQuestion(q *Question, familiarity Familiarity, importance Importance, memory MemoryUse) *Question {
 	today := s.Clock.Today()
 
-	// Dynamic default EaseFactor based on importance
-	startingEase := s.startEaseFactors[importance]
-
-	q := &Question{
-		ID:           id,
-		URL:          url,
-		Note:         note,
-		Familiarity:  familiarity,
-		Importance:   importance,
-		EaseFactor:   startingEase,
-		ReviewCount:  1,
-		LastReviewed: today,
-		CreatedAt:    s.Clock.Now(),
-	}
+	q.Familiarity = familiarity
+	q.Importance = importance
+	q.EaseFactor = s.startEaseFactors[importance]
+	q.ReviewCount = 1
+	q.LastReviewed = today
 
 	intervalDays := s.baseIntervals[importance]
 
