@@ -250,10 +250,10 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			NextReview:   foundQuestion.NextReview,
 			ReviewCount:  foundQuestion.ReviewCount,
 			EaseFactor:   foundQuestion.EaseFactor,
-			CreatedAt:    foundQuestion.CreatedAt,
 			UpdatedAt:    u.Clock.Now(),
+			CreatedAt:    foundQuestion.CreatedAt,
 		}
-		u.Scheduler.Schedule(newState, familiarity, memory)
+		u.Scheduler.Schedule(newState, memory)
 		store.Questions[foundQuestion.ID] = newState
 
 		// Update the note indices for search
@@ -277,13 +277,15 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		// Create a new question
 		store.MaxID++
 		newState = &core.Question{
-			ID:        store.MaxID,
-			URL:       url,
-			Note:      note,
-			UpdatedAt: u.Clock.Now(),
-			CreatedAt: u.Clock.Now(),
+			ID:          store.MaxID,
+			URL:         url,
+			Note:        note,
+			Familiarity: familiarity,
+			Importance:  importance,
+			UpdatedAt:   u.Clock.Now(),
+			CreatedAt:   u.Clock.Now(),
 		}
-		newState = u.Scheduler.ScheduleNewQuestion(newState, familiarity, importance, memory)
+		newState = u.Scheduler.ScheduleNewQuestion(newState, memory)
 		store.Questions[store.MaxID] = newState
 		store.URLIndex[url] = store.MaxID
 

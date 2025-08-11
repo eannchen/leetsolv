@@ -10,8 +10,8 @@ import (
 )
 
 type Scheduler interface {
-	ScheduleNewQuestion(q *Question, familiarity Familiarity, importance Importance, memory MemoryUse) *Question
-	Schedule(q *Question, familiarity Familiarity, memory MemoryUse)
+	ScheduleNewQuestion(q *Question, memory MemoryUse) *Question
+	Schedule(q *Question, memory MemoryUse)
 	CalculatePriorityScore(q *Question) float64
 }
 
@@ -58,19 +58,17 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 	}
 }
 
-func (s SM2Scheduler) ScheduleNewQuestion(q *Question, familiarity Familiarity, importance Importance, memory MemoryUse) *Question {
+func (s SM2Scheduler) ScheduleNewQuestion(q *Question, memory MemoryUse) *Question {
 	today := s.Clock.Today()
 
-	q.Familiarity = familiarity
-	q.Importance = importance
-	q.EaseFactor = s.startEaseFactors[importance]
+	q.EaseFactor = s.startEaseFactors[q.Importance]
 	q.ReviewCount = 1
 	q.LastReviewed = today
 
-	intervalDays := s.baseIntervals[importance]
+	intervalDays := s.baseIntervals[q.Importance]
 
 	// Small tweaks to interval for early grading signal
-	switch familiarity {
+	switch q.Familiarity {
 	case VeryEasy:
 		intervalDays += 7
 	case Easy:
@@ -86,18 +84,17 @@ func (s SM2Scheduler) ScheduleNewQuestion(q *Question, familiarity Familiarity, 
 }
 
 // Schedule updates the question's review schedule based on familiarity and importance
-func (s SM2Scheduler) Schedule(q *Question, familiarity Familiarity, memory MemoryUse) {
+func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 	q.ReviewCount++
 	today := s.Clock.Today()
 
 	baseInterval := s.baseIntervals[q.Importance]
 
 	// Reset if still struggling
-	if familiarity == VeryHard {
+	if q.Familiarity == VeryHard {
 		s.setNextReview(q, today, baseInterval)
-		s.setEaseFactorWithPenalty(q, familiarity)
+		s.setEaseFactorWithPenalty(q)
 		q.LastReviewed = today
-		q.Familiarity = familiarity
 		return
 	}
 
@@ -105,7 +102,7 @@ func (s SM2Scheduler) Schedule(q *Question, familiarity Familiarity, memory Memo
 	if config.Env().OverduePenalty {
 		overdueLimit := config.Env().OverdueLimit
 		overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
-		if overdueDays > overdueLimit && q.Importance > LowImportance && familiarity < VeryEasy {
+		if overdueDays > overdueLimit && q.Importance > LowImportance && q.Familiarity < VeryEasy {
 			penaltyFactor := math.Min(float64(overdueDays-overdueLimit)*0.01, 0.1)
 			q.EaseFactor -= penaltyFactor
 		}
@@ -121,10 +118,9 @@ func (s SM2Scheduler) Schedule(q *Question, familiarity Familiarity, memory Memo
 	intervalDays *= int(math.Round(float64(intervalDays) * s.memoryMultipliers[memory]))
 
 	s.setNextReview(q, today, intervalDays)
-	s.setEaseFactorWithPenalty(q, familiarity)
+	s.setEaseFactorWithPenalty(q)
 	s.setEaseFactorWithMemoryPenalty(q, memory)
 	q.LastReviewed = today
-	q.Familiarity = familiarity
 }
 
 func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays int) {
@@ -144,7 +140,7 @@ func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays in
 }
 
 // Update ease factor based on familiarity and importance
-func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, familiarity Familiarity) {
+func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question) {
 	// How forgiving each importance level is
 	importanceEaseBonus := map[Importance]float64{
 		LowImportance:      0.15, // More aggressive boost
@@ -163,13 +159,13 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question, familiarity Familiar
 	}
 
 	bonus := importanceEaseBonus[q.Importance]
-	penalty := familiarityPenalty[familiarity]
+	penalty := familiarityPenalty[q.Familiarity]
 
 	// Apply core adjustment
 	q.EaseFactor += bonus - penalty
 
 	// Encourage stability if consistently good
-	if q.ReviewCount >= 3 && familiarity >= Medium {
+	if q.ReviewCount >= 3 && q.Familiarity >= Medium {
 		q.EaseFactor += bonus * 0.5 // Smaller additive bonus
 	}
 
