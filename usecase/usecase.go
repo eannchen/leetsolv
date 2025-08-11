@@ -466,15 +466,22 @@ func (u *QuestionUseCaseImpl) GetHistory() ([]core.Delta, error) {
 		return nil, errs.WrapInternalError(err, "Failed to load deltas")
 	}
 
+	// Copy the deltas to avoid modifying the cache
+	reversedDeltas := make([]core.Delta, len(deltas))
+
 	// Reverse the order to show most recent first
 	L, R := 0, len(deltas)-1
-	for L < R {
-		deltas[L], deltas[R] = deltas[R], deltas[L]
+	for L <= R {
+		if L == R {
+			reversedDeltas[L] = deltas[L]
+		} else {
+			reversedDeltas[L], reversedDeltas[R] = deltas[R], deltas[L]
+		}
 		L++
 		R--
 	}
 
-	return deltas, nil
+	return reversedDeltas, nil
 }
 
 func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta) []core.Delta {
