@@ -308,6 +308,22 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 
 	h.IO.Printf("\n")
 
+	memory := core.MemoryReasoned
+	if familiarity >= core.Easy {
+		h.IO.Println("Memory Use:")
+		h.IO.Println("1. Reasoned - Solved purely from reasoning.")
+		h.IO.Println("2. Partial  - Recalled some solution fragments, but still reasoned through the rest.")
+		h.IO.Println("3. Full     - Solved mainly from memory of the full approach or exact steps.")
+		h.IO.PrintlnColored(ColorAnnotation, "When you report that you solved the problem from memory, the scheduler interprets that as weaker learning.")
+		memoryInput := h.IO.ReadLine(scanner, "\nEnter a number (1-3): ")
+		memory, err = h.validateMemoryUse(memoryInput)
+		if err != nil {
+			h.IO.PrintError(err)
+			return
+		}
+		h.IO.Printf("\n")
+	}
+
 	h.IO.Println("Importance:")
 	h.IO.Println("1. Low Importance")
 	h.IO.Println("2. Medium Importance")
@@ -321,7 +337,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 	}
 
 	// Call the updated UpsertQuestion function
-	delta, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
@@ -347,6 +363,14 @@ func (h *HandlerImpl) validateImportance(input string) (core.Importance, error) 
 		return 0, errs.ErrInvalidImportanceLevel
 	}
 	return core.Importance(imp - 1), nil
+}
+
+func (h *HandlerImpl) validateMemoryUse(input string) (core.MemoryUse, error) {
+	memory, err := strconv.Atoi(input)
+	if err != nil || memory < 1 || memory > 3 {
+		return 0, errs.ErrInvalidMemoryUseLevel
+	}
+	return core.MemoryUse(memory - 1), nil
 }
 
 func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {

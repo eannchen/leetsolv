@@ -58,9 +58,10 @@ func TestQuestionUseCase_UpsertQuestion(t *testing.T) {
 	note := "Test question for unit testing"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
 	// Test upserting a new question
-	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to upsert question: %v", err)
 	}
@@ -96,8 +97,9 @@ func TestQuestionUseCase_UpsertQuestion(t *testing.T) {
 	updatedNote := "Updated test question"
 	updatedFamiliarity := core.Easy
 	updatedImportance := core.HighImportance
+	updatedMemory := core.MemoryPartial
 
-	updatedDelta, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
+	updatedDelta, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance, updatedMemory)
 	if err != nil {
 		t.Fatalf("Failed to update question: %v", err)
 	}
@@ -273,12 +275,12 @@ func TestQuestionUseCase_SearchQuestions_WithQueries(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
 	// Add questions using the proper method to populate tries
-	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/two-sum", "Find two numbers that add up to target", core.Medium, core.MediumImportance)
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/two-sum", "Find two numbers that add up to target", core.Medium, core.MediumImportance, core.MemoryReasoned)
 	if err != nil {
 		t.Fatalf("Failed to add first question: %v", err)
 	}
 
-	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/add-two-numbers", "Add two linked lists representing numbers", core.Medium, core.MediumImportance)
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/add-two-numbers", "Add two linked lists representing numbers", core.Medium, core.MediumImportance, core.MemoryReasoned)
 	if err != nil {
 		t.Fatalf("Failed to add second question: %v", err)
 	}
@@ -317,12 +319,12 @@ func TestQuestionUseCase_SearchQuestions_WithFilters(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
 	// Add questions using the proper method to populate tries
-	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "Test question 1", core.Easy, core.HighImportance)
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "Test question 1", core.Easy, core.HighImportance, core.MemoryReasoned)
 	if err != nil {
 		t.Fatalf("Failed to add first question: %v", err)
 	}
 
-	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test2", "Test question 2", core.Hard, core.LowImportance)
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test2", "Test question 2", core.Hard, core.LowImportance, core.MemoryReasoned)
 	if err != nil {
 		t.Fatalf("Failed to add second question: %v", err)
 	}
@@ -348,12 +350,12 @@ func TestQuestionUseCase_SearchQuestions_EmptyQuery(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
 	// Add questions using the proper method
-	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "Test question 1", core.Medium, core.MediumImportance)
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "Test question 1", core.Medium, core.MediumImportance, core.MemoryReasoned)
 	if err != nil {
 		t.Fatalf("Failed to add first question: %v", err)
 	}
 
-	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test2", "Test question 2", core.Medium, core.MediumImportance)
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test2", "Test question 2", core.Medium, core.MediumImportance, core.MemoryReasoned)
 	if err != nil {
 		t.Fatalf("Failed to add second question: %v", err)
 	}
@@ -377,8 +379,9 @@ func TestQuestionUseCase_Undo_AddAction(t *testing.T) {
 	note := "Test question for undo"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
-	_, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	_, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to add question: %v", err)
 	}
@@ -410,8 +413,9 @@ func TestQuestionUseCase_Undo_UpdateAction(t *testing.T) {
 	note := "Original note"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
-	_, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	_, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to add question: %v", err)
 	}
@@ -420,8 +424,9 @@ func TestQuestionUseCase_Undo_UpdateAction(t *testing.T) {
 	updatedNote := "Updated note"
 	updatedFamiliarity := core.Easy
 	updatedImportance := core.HighImportance
+	updatedMemory := core.MemoryPartial
 
-	_, err = useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
+	_, err = useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance, updatedMemory)
 	if err != nil {
 		t.Fatalf("Failed to update question: %v", err)
 	}
@@ -461,8 +466,9 @@ func TestQuestionUseCase_Undo_DeleteAction(t *testing.T) {
 	note := "Test question for delete undo"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
-	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to add question: %v", err)
 	}
@@ -534,7 +540,7 @@ func TestQuestionUseCase_InvalidURL(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
 	// Try to upsert with invalid URL
-	_, err := useCase.UpsertQuestion("invalid-url", "test", core.Medium, core.MediumImportance)
+	_, err := useCase.UpsertQuestion("invalid-url", "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
 	if err == nil {
 		t.Error("Expected error when upserting with invalid URL")
 	}
@@ -551,7 +557,7 @@ func TestQuestionUseCase_ConcurrentAccess(t *testing.T) {
 		defer func() { done <- true }()
 		for i := 0; i < 5; i++ {
 			url := "https://leetcode.com/problems/test"
-			_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance)
+			_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
 			if err != nil {
 				t.Errorf("Failed to add question in goroutine 1: %v", err)
 			}
@@ -592,7 +598,7 @@ func TestQuestionUseCase_LargeDataSet(t *testing.T) {
 	// Add many questions with unique URLs
 	for i := 0; i < 10; i++ {
 		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
-		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance)
+		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
 		if err != nil {
 			t.Fatalf("Failed to add question %d: %v", i, err)
 		}
@@ -636,7 +642,7 @@ func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
 
 	for i, tc := range testCases {
 		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
-		delta, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance)
+		delta, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance, core.MemoryReasoned)
 		if err != nil {
 			t.Fatalf("Failed to add question with familiarity %d: %v", tc.familiarity, err)
 		}

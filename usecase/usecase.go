@@ -24,7 +24,7 @@ type QuestionUseCase interface {
 	ListQuestionsOrderByDesc() ([]core.Question, error)
 	GetQuestion(target string) (*core.Question, error)
 	SearchQuestions(queries []string, filter *core.SearchFilter) ([]core.Question, error)
-	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Delta, error)
+	UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance, memory core.MemoryUse) (*core.Delta, error)
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
 	GetHistory() ([]core.Delta, error)
@@ -212,7 +212,7 @@ func (u *QuestionUseCaseImpl) matchesFilter(question core.Question, filter core.
 	return true
 }
 
-func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Delta, error) {
+func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance, memory core.MemoryUse) (*core.Delta, error) {
 	logger.Logger().Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
 	u.Storage.Lock()
@@ -253,7 +253,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 			CreatedAt:    foundQuestion.CreatedAt,
 			UpdatedAt:    u.Clock.Now(),
 		}
-		u.Scheduler.Schedule(newState, familiarity)
+		u.Scheduler.Schedule(newState, familiarity, memory)
 		store.Questions[foundQuestion.ID] = newState
 
 		// Update the note indices for search
@@ -276,7 +276,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 	} else {
 		// Create a new question
 		store.MaxID++
-		newState = u.Scheduler.ScheduleNewQuestion(store.MaxID, url, note, familiarity, importance)
+		newState = u.Scheduler.ScheduleNewQuestion(store.MaxID, url, note, familiarity, importance, memory)
 		newState.UpdatedAt = u.Clock.Now() // Set UpdatedAt for new questions
 		store.Questions[store.MaxID] = newState
 		store.URLIndex[url] = store.MaxID

@@ -28,8 +28,9 @@ func TestQuestionUseCase_Integration_UpsertAndGet(t *testing.T) {
 	note := "Test integration question"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
-	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to upsert question: %v", err)
 	}
@@ -80,8 +81,9 @@ func TestQuestionUseCase_Integration_UpdateQuestion(t *testing.T) {
 	note := "Initial note"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
-	_, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	_, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to create initial question: %v", err)
 	}
@@ -90,8 +92,9 @@ func TestQuestionUseCase_Integration_UpdateQuestion(t *testing.T) {
 	updatedNote := "Updated note"
 	updatedFamiliarity := core.Easy
 	updatedImportance := core.HighImportance
+	updatedMemory := core.MemoryPartial
 
-	updatedDelta, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance)
+	updatedDelta, err := useCase.UpsertQuestion(url, updatedNote, updatedFamiliarity, updatedImportance, updatedMemory)
 	if err != nil {
 		t.Fatalf("Failed to update question: %v", err)
 	}
@@ -124,8 +127,9 @@ func TestQuestionUseCase_Integration_DeleteAndUndo(t *testing.T) {
 	note := "Test question for deletion"
 	familiarity := core.Medium
 	importance := core.MediumImportance
+	memory := core.MemoryReasoned
 
-	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance)
+	delta, err := useCase.UpsertQuestion(url, note, familiarity, importance, memory)
 	if err != nil {
 		t.Fatalf("Failed to create question: %v", err)
 	}

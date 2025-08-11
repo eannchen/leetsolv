@@ -24,6 +24,14 @@ const (
 	VeryEasy
 )
 
+type MemoryUse int
+
+const (
+	MemoryReasoned MemoryUse = iota
+	MemoryPartial
+	MemoryFull
+)
+
 type QuestionMap map[int]*Question
 
 type Question struct {

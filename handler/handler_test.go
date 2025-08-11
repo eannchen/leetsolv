@@ -182,7 +182,7 @@ func (m *MockQuestionUseCase) SearchQuestions(queries []string, filter *core.Sea
 	return m.searchResults, nil
 }
 
-func (m *MockQuestionUseCase) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance) (*core.Delta, error) {
+func (m *MockQuestionUseCase) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance, memory core.MemoryUse) (*core.Delta, error) {
 	if m.shouldError {
 		return nil, m.errorToReturn
 	}
