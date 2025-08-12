@@ -18,23 +18,34 @@ type Scheduler interface {
 // SM2Scheduler implements the spaced repetition scheduling logic
 type SM2Scheduler struct {
 	Clock clock.Clock
-	// Base intervals for each importance level (in days)
-	baseIntervals map[Importance]int
-	// Memory multipliers for each memory use level
+
+	// Interval settings (in days)
+	maxInterval       int
+	baseIntervals     map[Importance]int
 	memoryMultipliers map[MemoryUse]float64
-	// Maximum interval to prevent overly long gaps (in days)
-	maxInterval int
-	// Starting ease factors for each importance level
-	startEaseFactors map[Importance]float64
-	// Minimum and maximum ease factors
-	minEaseFactor float64
-	maxEaseFactor float64
+
+	// Ease Factor settings
+	minEaseFactor          float64
+	maxEaseFactor          float64
+	startEaseFactors       map[Importance]float64
+	importanceEaseBonus    map[Importance]float64
+	familiarityEasePenalty map[Familiarity]float64
+	memoryEasePenalty      map[MemoryUse]float64
+
+	// Due Priority List settings
+	importanceWeight    float64
+	overdueWeight       float64
+	familiarityWeight   float64
+	reviewPenaltyWeight float64
+	easePenaltyWeight   float64
 }
 
-// NewSM2Scheduler creates a new scheduler with configured parameters
 func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 	return &SM2Scheduler{
 		Clock: clock,
+
+		// Interval settings (in days)
+		maxInterval: 90, // 90 days is the maximum interval
 		baseIntervals: map[Importance]int{
 			LowImportance:      8, // Faster growth, so start more spaced
 			MediumImportance:   6, // Balanced
@@ -46,15 +57,41 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 			MemoryPartial:  1.10, // give more forgetting time
 			MemoryFull:     1.25, // give even more forgetting time
 		},
-		maxInterval: 90, // 90 days is the maximum interval
+
+		// Ease Factor settings
+		minEaseFactor: 1.3, // Lower bound for ease factor
+		maxEaseFactor: 2.6, // Upper bound to prevent overly long intervals
 		startEaseFactors: map[Importance]float64{
 			LowImportance:      2.0,
 			MediumImportance:   1.9,
 			HighImportance:     1.8,
 			CriticalImportance: 1.7,
 		},
-		minEaseFactor: 1.3, // Lower bound for ease factor
-		maxEaseFactor: 2.6, // Upper bound to prevent overly long intervals
+		importanceEaseBonus: map[Importance]float64{
+			LowImportance:      0.15, // Positive bonus = boost EF (because EF adds bonus)
+			MediumImportance:   0.10,
+			HighImportance:     0.05,
+			CriticalImportance: 0.03, // Positive bonus = boost EF (because EF adds bonus)
+		},
+		familiarityEasePenalty: map[Familiarity]float64{
+			VeryHard: 0.40, // Positive penalty = shrink EF (because EF subtracts penalty)
+			Hard:     0.25,
+			Medium:   0.10,
+			Easy:     -0.05,
+			VeryEasy: -0.15, // Negative penalty = boost EF (because EF subtracts penalty)
+		},
+		memoryEasePenalty: map[MemoryUse]float64{
+			MemoryReasoned: 0.00,  // neutral
+			MemoryPartial:  -0.02, // Negative penalty = shrink EF (because EF adds penalty)
+			MemoryFull:     -0.05, // Negative penalty = shrink EF (because EF adds penalty)
+		},
+
+		// Due Priority List settings
+		importanceWeight:    config.Env().ImportanceWeight,    // Prioritizes designated importance
+		overdueWeight:       config.Env().OverdueWeight,       // Prioritizes items past their due date
+		familiarityWeight:   config.Env().FamiliarityWeight,   // Prioritizes historically difficult items
+		reviewPenaltyWeight: config.Env().ReviewPenaltyWeight, // De-prioritizes questions seen many times (prevents leeching)
+		easePenaltyWeight:   config.Env().EasePenaltyWeight,   // De-prioritizes "easier" questions to focus on struggles
 	}
 }
 
@@ -83,7 +120,6 @@ func (s SM2Scheduler) ScheduleNewQuestion(q *Question, memory MemoryUse) *Questi
 	return q
 }
 
-// Schedule updates the question's review schedule based on familiarity and importance
 func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 	q.ReviewCount++
 	today := s.Clock.Today()
@@ -138,27 +174,10 @@ func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays in
 	q.NextReview = s.Clock.AddDays(date, intervalDays)
 }
 
-// Update ease factor based on familiarity and importance
 func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question) {
-	// How forgiving each importance level is
-	importanceEaseBonus := map[Importance]float64{
-		LowImportance:      0.15, // More aggressive boost
-		MediumImportance:   0.10,
-		HighImportance:     0.05,
-		CriticalImportance: 0.03, // Tightest boost
-	}
 
-	// Penalties based on recall difficulty
-	familiarityPenalty := map[Familiarity]float64{
-		VeryHard: 0.40,
-		Hard:     0.25,
-		Medium:   0.10,
-		Easy:     -0.05,
-		VeryEasy: -0.15, // Negative penalty = small bonus
-	}
-
-	bonus := importanceEaseBonus[q.Importance]
-	penalty := familiarityPenalty[q.Familiarity]
+	bonus := s.importanceEaseBonus[q.Importance]
+	penalty := s.familiarityEasePenalty[q.Familiarity]
 
 	// Apply core adjustment
 	q.EaseFactor += bonus - penalty
@@ -172,19 +191,13 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question) {
 }
 
 func (s SM2Scheduler) setEaseFactorWithMemoryPenalty(q *Question, memory MemoryUse) {
-	memoryPenalty := map[MemoryUse]float64{
-		MemoryReasoned: 0.00,  // neutral
-		MemoryPartial:  -0.02, // lower EF slightly for partial recall
-		MemoryFull:     -0.05, // lower EF for brittle recall
-	}
 
-	penalty := memoryPenalty[memory]
+	penalty := s.memoryEasePenalty[memory]
 	q.EaseFactor += penalty
 
 	s.secureEaseFactorBounds(q)
 }
 
-// Secure ease factor within bounds
 func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
 	if q.EaseFactor < s.minEaseFactor {
 		q.EaseFactor = s.minEaseFactor
@@ -196,14 +209,6 @@ func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
 func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 	today := s.Clock.Today()
 
-	// Get weights from config
-	cfg := config.Env()
-	importanceWeight := cfg.ImportanceWeight       // Prioritizes designated importance
-	overdueWeight := cfg.OverdueWeight             // Prioritizes items past their due date
-	familiarityWeight := cfg.FamiliarityWeight     // Prioritizes historically difficult items
-	reviewPenaltyWeight := cfg.ReviewPenaltyWeight // De-prioritizes questions seen many times (prevents leeching)
-	easePenaltyWeight := cfg.EasePenaltyWeight     // De-prioritizes "easier" questions to focus on struggles
-
 	// Compute overdue days (at least 0)
 	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
 	if overdueDays < 0 {
@@ -214,11 +219,11 @@ func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 	// A higher score for harder questions.
 	famScore := 4 - int(q.Familiarity)
 
-	score := importanceWeight*float64(q.Importance) +
-		overdueWeight*float64(overdueDays) +
-		familiarityWeight*float64(famScore) +
-		reviewPenaltyWeight*float64(q.ReviewCount) +
-		easePenaltyWeight*q.EaseFactor
+	score := s.importanceWeight*float64(q.Importance) +
+		s.overdueWeight*float64(overdueDays) +
+		s.familiarityWeight*float64(famScore) +
+		s.reviewPenaltyWeight*float64(q.ReviewCount) +
+		s.easePenaltyWeight*q.EaseFactor
 
 	return score
 }
