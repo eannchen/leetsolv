@@ -29,9 +29,9 @@ type env struct {
 	ReviewPenaltyWeight float64
 	EasePenaltyWeight   float64
 	// SRS settings
+	RandomizeInterval bool
 	OverduePenalty    bool
 	OverdueLimit      int
-	RandomizeInterval bool
 }
 
 var (
@@ -57,9 +57,9 @@ var (
 		ReviewPenaltyWeight: -1.5, // De-prioritizes questions seen many times (prevents leeching)
 		EasePenaltyWeight:   -1.0, // De-prioritizes "easier" questions to focus on struggles
 		// SRS settings
+		RandomizeInterval: true,  // Enable/disable randomized interval
 		OverduePenalty:    false, // Enable/disable overdue penalty
 		OverdueLimit:      7,     // Days after which overdue questions are at risk of penalty
-		RandomizeInterval: true,  // Enable/disable randomized interval
 	}
 )
 

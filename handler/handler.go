@@ -266,7 +266,7 @@ func (h *HandlerImpl) HandleStatus() {
 		h.IO.Printf("\n")
 		h.IO.Printf("\n")
 		cfg := config.Env()
-		h.IO.PrintfColored(ColorAnnotation, "* Priority Scoring Formula = (%.1f×Importance)+(%.1f×Overdue Days)+(%.1f×Difficulty)+(%.1f×Review Count)+(%.1f×Ease Factor)\n  Please adjust the weights in the config file to prioritize what you want.\n",
+		h.IO.PrintfColored(ColorAnnotation, "* Priority Scoring Formula = (%.1f×Importance)+(%.1f×Overdue Days)+(%.1f×Difficulty)+(%.1f×Review Count)+(%.1f×Ease Factor)\n",
 			cfg.ImportanceWeight, cfg.OverdueWeight, cfg.FamiliarityWeight, cfg.ReviewPenaltyWeight, cfg.EasePenaltyWeight)
 	}
 
