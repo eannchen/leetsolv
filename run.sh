@@ -14,7 +14,7 @@ read -p "Enter your choice (1-3): " choice
 case $choice in
     1)
         echo "Starting in TEST mode..."
-        ./run_test.sh "$@"
+        ./run_dev.sh "$@"
         ;;
     2)
         echo "Starting in PRODUCTION mode..."

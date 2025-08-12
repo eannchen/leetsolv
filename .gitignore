@@ -38,10 +38,11 @@ info.log
 error.log
 
 # Test data files
-questions.test.json
-deltas.test.json
-info.test.log
-error.test.log
+questions.*.json
+deltas.*.json
+info.*.log
+error.*.log
+settings.*.json
 
 # Build binary
 leetsolv
