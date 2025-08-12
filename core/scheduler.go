@@ -212,7 +212,6 @@ func (s SM2Scheduler) CalculatePriorityScore(q *Question) float64 {
 	}
 
 	// Invert Familiarity (VeryEasy = 0, VeryHard = 4)
-	// A higher score for harder questions.
 	famScore := 4 - int(q.Familiarity)
 
 	score := s.importanceWeight*float64(q.Importance) +
