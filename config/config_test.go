@@ -60,6 +60,9 @@ func TestSaveAndLoad(t *testing.T) {
 func TestValidation(t *testing.T) {
 	env := Env()
 
+	// Store original values
+	originalPageSize := env.PageSize
+
 	// Test valid configuration
 	if err := env.Validate(); err != nil {
 		t.Errorf("Valid configuration should not return error: %v", err)
@@ -72,11 +75,15 @@ func TestValidation(t *testing.T) {
 	}
 
 	// Reset to valid state
-	env.PageSize = 5
+	env.PageSize = originalPageSize
 }
 
 func TestResetToDefaults(t *testing.T) {
 	env := Env()
+
+	// Store original values
+	originalPageSize := env.PageSize
+	originalMaxDelta := env.MaxDelta
 
 	// Modify some values
 	env.PageSize = 999
@@ -92,4 +99,8 @@ func TestResetToDefaults(t *testing.T) {
 	if env.MaxDelta != 50 {
 		t.Errorf("Expected MaxDelta to be 50, got %d", env.MaxDelta)
 	}
+
+	// Restore original values to avoid affecting other tests
+	env.PageSize = originalPageSize
+	env.MaxDelta = originalMaxDelta
 }

@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+
+	"leetsolv/internal/copy"
 )
 
 type env struct {
@@ -65,7 +67,10 @@ var (
 
 func Env() *env {
 	once.Do(func() {
-		envInstance = defaultEnv
+		envInstance = &env{}
+		if err := copy.DeepCopyGob(envInstance, defaultEnv); err != nil {
+			panic(errors.Wrap(err, "Failed to copy default environment"))
+		}
 
 		// Load environment variable overrides first
 		envInstance.loadFromEnvironment()
@@ -172,19 +177,22 @@ func (e *env) loadFromEnvironment() {
 }
 
 // ResetToDefaults resets all configuration values to their defaults except for the data files
-func (e *env) ResetToDefaults() {
+func (e *env) ResetToDefaults() error {
 	questionsFile := e.QuestionsFile
 	deltasFile := e.DeltasFile
 	infoLogFile := e.InfoLogFile
 	errorLogFile := e.ErrorLogFile
 	settingsFile := e.SettingsFile
 
-	*e = *defaultEnv
+	if err := copy.DeepCopyGob(e, defaultEnv); err != nil {
+		return errors.Wrap(err, "Failed to copy default environment")
+	}
 	e.QuestionsFile = questionsFile
 	e.DeltasFile = deltasFile
 	e.InfoLogFile = infoLogFile
 	e.ErrorLogFile = errorLogFile
 	e.SettingsFile = settingsFile
+	return nil
 }
 
 // Validate checks if the current configuration is valid
