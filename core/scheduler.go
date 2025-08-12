@@ -59,8 +59,8 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 		},
 
 		// Ease Factor settings
-		minEaseFactor: 1.3, // Lower bound for ease factor
-		maxEaseFactor: 2.6, // Upper bound to prevent overly long intervals
+		minEaseFactor: 1.3,
+		maxEaseFactor: 2.6,
 		startEaseFactors: map[Importance]float64{
 			LowImportance:      2.0,
 			MediumImportance:   1.9,
@@ -68,22 +68,22 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 			CriticalImportance: 1.7,
 		},
 		importanceEaseBonus: map[Importance]float64{
-			LowImportance:      0.15, // Positive bonus = boost EF (because EF adds bonus)
+			LowImportance:      0.15,
 			MediumImportance:   0.10,
 			HighImportance:     0.05,
-			CriticalImportance: 0.03, // Positive bonus = boost EF (because EF adds bonus)
+			CriticalImportance: 0.03,
 		},
 		familiarityEasePenalty: map[Familiarity]float64{
-			VeryHard: 0.40, // Positive penalty = shrink EF (because EF subtracts penalty)
-			Hard:     0.25,
-			Medium:   0.10,
-			Easy:     -0.05,
-			VeryEasy: -0.15, // Negative penalty = boost EF (because EF subtracts penalty)
+			VeryHard: -0.40,
+			Hard:     -0.25,
+			Medium:   -0.10,
+			Easy:     0.05,
+			VeryEasy: 0.15,
 		},
 		memoryEasePenalty: map[MemoryUse]float64{
-			MemoryReasoned: 0.00,  // neutral
-			MemoryPartial:  -0.02, // Negative penalty = shrink EF (because EF adds penalty)
-			MemoryFull:     -0.05, // Negative penalty = shrink EF (because EF adds penalty)
+			MemoryReasoned: 0.00,
+			MemoryPartial:  -0.02,
+			MemoryFull:     -0.05,
 		},
 
 		// Due Priority List settings
@@ -180,7 +180,8 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question) {
 	penalty := s.familiarityEasePenalty[q.Familiarity]
 
 	// Apply core adjustment
-	q.EaseFactor += bonus - penalty
+	q.EaseFactor += bonus
+	q.EaseFactor += penalty
 
 	// Encourage stability if consistently good
 	if q.ReviewCount >= 3 && q.Familiarity >= Medium {
