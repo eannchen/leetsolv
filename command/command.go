@@ -155,3 +155,12 @@ func (c *HistoryCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	c.Handler.HandleHistory()
 	return false
 }
+
+type SettingCommand struct {
+	Handler handler.Handler
+}
+
+func (c *SettingCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleSetting(scanner, args)
+	return false
+}

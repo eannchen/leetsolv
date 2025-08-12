@@ -2,8 +2,10 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -34,6 +36,17 @@ type env struct {
 	RandomizeInterval bool
 	OverduePenalty    bool
 	OverdueLimit      int
+}
+
+// SettingDefinition defines a configurable setting
+type SettingDefinition struct {
+	Name         string
+	Type         string // "bool", "int", "float64", "string"
+	Description  string
+	DefaultValue interface{}
+	Validator    func(interface{}) error
+	Getter       func(*env) interface{}
+	Setter       func(*env, interface{}) error
 }
 
 var (
@@ -213,4 +226,117 @@ func (e *env) Validate() error {
 		return errors.New("OverdueLimit must be positive")
 	}
 	return nil
+}
+
+// GetSettingsRegistry returns the registry of all configurable settings
+func GetSettingsRegistry() map[string]SettingDefinition {
+	return map[string]SettingDefinition{
+		"randomizeinterval": {
+			Name:         "RandomizeInterval",
+			Type:         "bool",
+			Description:  "Enable/disable randomized interval",
+			DefaultValue: true,
+			Validator: func(value interface{}) error {
+				if _, ok := value.(bool); !ok {
+					return errors.New("RandomizeInterval must be a boolean value")
+				}
+				return nil
+			},
+			Getter: func(e *env) interface{} {
+				return e.RandomizeInterval
+			},
+			Setter: func(e *env, value interface{}) error {
+				if boolValue, ok := value.(bool); ok {
+					e.RandomizeInterval = boolValue
+					return nil
+				}
+				return errors.New("RandomizeInterval must be a boolean value")
+			},
+		},
+		"overduepenalty": {
+			Name:         "OverduePenalty",
+			Type:         "bool",
+			Description:  "Enable/disable overdue penalty",
+			DefaultValue: false,
+			Validator: func(value interface{}) error {
+				if _, ok := value.(bool); !ok {
+					return errors.New("OverduePenalty must be a boolean value")
+				}
+				return nil
+			},
+			Getter: func(e *env) interface{} {
+				return e.OverduePenalty
+			},
+			Setter: func(e *env, value interface{}) error {
+				if boolValue, ok := value.(bool); ok {
+					e.OverduePenalty = boolValue
+					return nil
+				}
+				return errors.New("OverduePenalty must be a boolean value")
+			},
+		},
+		"overduelimit": {
+			Name:         "OverdueLimit",
+			Type:         "int",
+			Description:  "Days after which overdue questions are at risk of penalty",
+			DefaultValue: 7,
+			Validator: func(value interface{}) error {
+				if intValue, ok := value.(int); ok {
+					if intValue <= 0 {
+						return errors.New("OverdueLimit must be a positive integer")
+					}
+					return nil
+				}
+				return errors.New("OverdueLimit must be an integer value")
+			},
+			Getter: func(e *env) interface{} {
+				return e.OverdueLimit
+			},
+			Setter: func(e *env, value interface{}) error {
+				if intValue, ok := value.(int); ok {
+					if intValue <= 0 {
+						return errors.New("OverdueLimit must be a positive integer")
+					}
+					e.OverdueLimit = intValue
+					return nil
+				}
+				return errors.New("OverdueLimit must be an integer value")
+			},
+		},
+	}
+}
+
+// GetSettingValue retrieves a setting value by name
+func (e *env) GetSettingValue(settingName string) (interface{}, error) {
+	registry := GetSettingsRegistry()
+	setting, exists := registry[strings.ToLower(settingName)]
+	if !exists {
+		return nil, fmt.Errorf("Unknown setting: %s", settingName)
+	}
+	return setting.Getter(e), nil
+}
+
+// SetSettingValue sets a setting value by name
+func (e *env) SetSettingValue(settingName string, value interface{}) error {
+	registry := GetSettingsRegistry()
+	setting, exists := registry[strings.ToLower(settingName)]
+	if !exists {
+		return fmt.Errorf("Unknown setting: %s", settingName)
+	}
+
+	if err := setting.Validator(value); err != nil {
+		return err
+	}
+
+	return setting.Setter(e, value)
+}
+
+// GetSettingInfo returns information about a setting
+func GetSettingInfo(settingName string) (*SettingDefinition, error) {
+	registry := GetSettingsRegistry()
+	setting, exists := registry[strings.ToLower(settingName)]
+	if !exists {
+		return nil, fmt.Errorf("Unknown setting: %s", settingName)
+	}
+	return &setting, nil
 }

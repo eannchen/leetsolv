@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
@@ -28,6 +29,8 @@ type QuestionUseCase interface {
 	DeleteQuestion(target string) (*core.Question, error)
 	Undo() error
 	GetHistory() ([]core.Delta, error)
+	GetSettings() error
+	UpdateSetting(settingName string, value interface{}) error
 }
 
 // QuestionUseCaseImpl struct encapsulates dependencies for use cases
@@ -549,4 +552,26 @@ func (u *QuestionUseCaseImpl) extractLeetCodeQuestionName(inputURL string) (stri
 	}
 	questionName := strings.TrimSpace(matches[1])
 	return questionName, nil
+}
+
+func (u *QuestionUseCaseImpl) GetSettings() error {
+	// This method is a no-op since we can access config.Env() directly
+	// It's kept for interface consistency and potential future use
+	return nil
+}
+
+func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value interface{}) error {
+	env := config.Env()
+
+	// Use the registry-based approach
+	if err := env.SetSettingValue(settingName, value); err != nil {
+		return err
+	}
+
+	// Save the configuration
+	if err := env.Save(); err != nil {
+		return fmt.Errorf("Failed to save settings: %v", err)
+	}
+
+	return nil
 }

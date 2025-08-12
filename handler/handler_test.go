@@ -221,6 +221,20 @@ func (m *MockQuestionUseCase) GetHistory() ([]core.Delta, error) {
 	}, nil
 }
 
+func (m *MockQuestionUseCase) GetSettings() error {
+	if m.shouldError {
+		return m.errorToReturn
+	}
+	return nil
+}
+
+func (m *MockQuestionUseCase) UpdateSetting(settingName string, value interface{}) error {
+	if m.shouldError {
+		return m.errorToReturn
+	}
+	return nil
+}
+
 // setupTestHandler creates a test handler with mocked dependencies
 func setupTestHandler(t *testing.T) (*HandlerImpl, *MockIOHandler, *MockQuestionUseCase) {
 	mockIO := NewMockIOHandler("")

@@ -74,6 +74,10 @@ func (m *MockHandler) HandleHistory() {
 	m.historyCalled = true
 }
 
+func (m *MockHandler) HandleSetting(scanner *bufio.Scanner, args []string) {
+	// Not used in command tests
+}
+
 func (m *MockHandler) HandleUnknown(command string) {
 	// Not used in command tests
 }
