@@ -129,7 +129,7 @@ func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 	// Reset if still struggling
 	if q.Familiarity == VeryHard {
 		s.setNextReview(q, today, baseInterval)
-		s.setEaseFactorWithPenalty(q)
+		s.setEaseFactor(q, memory)
 		q.LastReviewed = today
 		return
 	}
@@ -153,53 +153,44 @@ func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 	intervalDays := int(math.Round(float64(prevInterval) * q.EaseFactor * s.memoryMultipliers[memory]))
 
 	s.setNextReview(q, today, intervalDays)
-	s.setEaseFactorWithPenalty(q)
-	s.setEaseFactorWithMemoryPenalty(q, memory)
+	s.setEaseFactor(q, memory)
 	q.LastReviewed = today
 }
 
 func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays int) {
 
-	// Randomize interval to avoid overfitting to the same interval
+	// Randomize interval to avoid over-fitting to a specific date
 	if config.Env().RandomizeInterval {
 		// Randomize between -1 and 2 days
 		intervalDays += rand.IntN(4) - 1
 	}
 
+	// Secure bounds
 	if intervalDays < 1 {
 		intervalDays = 1
 	} else if intervalDays > s.maxInterval {
 		intervalDays = s.maxInterval
 	}
+
 	q.NextReview = s.Clock.AddDays(date, intervalDays)
 }
 
-func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question) {
-
+func (s SM2Scheduler) setEaseFactor(q *Question, memory MemoryUse) {
 	bonus := s.importanceEaseBonus[q.Importance]
 	penalty := s.familiarityEasePenalty[q.Familiarity]
+	memoryPenalty := s.memoryEasePenalty[memory]
 
-	// Apply core adjustment
+	// Apply core adjustments
 	q.EaseFactor += bonus
 	q.EaseFactor += penalty
+	q.EaseFactor += memoryPenalty
 
 	// Encourage stability if consistently good
-	if q.ReviewCount >= 3 && q.Familiarity >= Medium {
-		q.EaseFactor += bonus * 0.5 // Smaller additive bonus
+	if q.ReviewCount >= 3 && q.Familiarity >= Medium && memory == MemoryReasoned {
+		q.EaseFactor += bonus * 0.5
 	}
 
-	s.secureEaseFactorBounds(q)
-}
-
-func (s SM2Scheduler) setEaseFactorWithMemoryPenalty(q *Question, memory MemoryUse) {
-
-	penalty := s.memoryEasePenalty[memory]
-	q.EaseFactor += penalty
-
-	s.secureEaseFactorBounds(q)
-}
-
-func (s SM2Scheduler) secureEaseFactorBounds(q *Question) {
+	// Secure bounds
 	if q.EaseFactor < s.minEaseFactor {
 		q.EaseFactor = s.minEaseFactor
 	} else if q.EaseFactor > s.maxEaseFactor {
