@@ -45,12 +45,12 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 		Clock: clock,
 
 		// Interval settings (in days)
-		maxInterval: 90, // 90 days is the maximum interval
+		maxInterval: 90,
 		baseIntervals: map[Importance]int{
-			LowImportance:      8, // Faster growth, so start more spaced
-			MediumImportance:   6, // Balanced
-			HighImportance:     5, // Slightly tighter
-			CriticalImportance: 4, // Tightest
+			LowImportance:      8,
+			MediumImportance:   6,
+			HighImportance:     5,
+			CriticalImportance: 4,
 		},
 		memoryMultipliers: map[MemoryUse]float64{
 			MemoryReasoned: 1.00, // don't change
@@ -113,7 +113,6 @@ func (s SM2Scheduler) ScheduleNewQuestion(q *Question, memory MemoryUse) *Questi
 	case Medium:
 		intervalDays += 2
 	}
-
 	intervalDays *= int(math.Round(float64(intervalDays) * s.memoryMultipliers[memory]))
 
 	s.setNextReview(q, today, intervalDays)
@@ -136,21 +135,15 @@ func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 
 	// Penalty for being overdue
 	if config.Env().OverduePenalty {
-		overdueLimit := config.Env().OverdueLimit
-		overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
-		if overdueDays > overdueLimit && q.Importance > LowImportance && q.Familiarity < VeryEasy {
-			penaltyFactor := math.Min(float64(overdueDays-overdueLimit)*0.01, 0.1)
-			q.EaseFactor -= penaltyFactor
-		}
+		s.setEaseFactorOverduePenalty(q)
 	}
 
-	// Growth based on last interval × EaseFactor
-	prevInterval := int(q.NextReview.Sub(q.LastReviewed).Hours() / 24)
-	if prevInterval < 1 {
-		prevInterval = baseInterval // fallback
+	// Growth based on last interval × EaseFactor × MemoryUse
+	prevIntervalDays := int(q.NextReview.Sub(q.LastReviewed).Hours() / 24)
+	if prevIntervalDays < 1 {
+		prevIntervalDays = baseInterval // fallback
 	}
-
-	intervalDays := int(math.Round(float64(prevInterval) * q.EaseFactor * s.memoryMultipliers[memory]))
+	intervalDays := int(math.Round(float64(prevIntervalDays) * q.EaseFactor * s.memoryMultipliers[memory]))
 
 	s.setNextReview(q, today, intervalDays)
 	s.setEaseFactor(q, memory)
@@ -195,6 +188,17 @@ func (s SM2Scheduler) setEaseFactor(q *Question, memory MemoryUse) {
 		q.EaseFactor = s.minEaseFactor
 	} else if q.EaseFactor > s.maxEaseFactor {
 		q.EaseFactor = s.maxEaseFactor
+	}
+}
+
+func (s SM2Scheduler) setEaseFactorOverduePenalty(q *Question) {
+	today := s.Clock.Today()
+
+	overdueLimit := config.Env().OverdueLimit
+	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
+	if overdueDays > overdueLimit && q.Importance > LowImportance && q.Familiarity < VeryEasy {
+		penaltyFactor := math.Min(float64(overdueDays-overdueLimit)*0.01, 0.1)
+		q.EaseFactor -= penaltyFactor
 	}
 }
 
