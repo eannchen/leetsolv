@@ -113,7 +113,7 @@ func (s SM2Scheduler) ScheduleNewQuestion(q *Question, memory MemoryUse) *Questi
 	case Medium:
 		intervalDays += 2
 	}
-	intervalDays *= int(math.Round(float64(intervalDays) * s.memoryMultipliers[memory]))
+	intervalDays = int(math.Round(float64(intervalDays) * s.memoryMultipliers[memory]))
 
 	s.setNextReview(q, today, intervalDays)
 	return q
