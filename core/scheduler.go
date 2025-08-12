@@ -114,8 +114,7 @@ func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 		prevInterval = baseInterval // fallback
 	}
 
-	intervalDays := int(math.Round(float64(prevInterval) * q.EaseFactor))
-	intervalDays *= int(math.Round(float64(intervalDays) * s.memoryMultipliers[memory]))
+	intervalDays := int(math.Round(float64(prevInterval) * q.EaseFactor * s.memoryMultipliers[memory]))
 
 	s.setNextReview(q, today, intervalDays)
 	s.setEaseFactorWithPenalty(q)
@@ -174,8 +173,8 @@ func (s SM2Scheduler) setEaseFactorWithPenalty(q *Question) {
 
 func (s SM2Scheduler) setEaseFactorWithMemoryPenalty(q *Question, memory MemoryUse) {
 	memoryPenalty := map[MemoryUse]float64{
-		MemoryReasoned: 0.03,  // slight boost for reasoning
-		MemoryPartial:  0.00,  // neutral
+		MemoryReasoned: 0.00,  // neutral
+		MemoryPartial:  -0.02, // lower EF slightly for partial recall
 		MemoryFull:     -0.05, // lower EF for brittle recall
 	}
 
