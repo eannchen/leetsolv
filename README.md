@@ -273,6 +273,9 @@ leetsolv ❯
 # Search for problems
 ./leetsolv search "binary tree"
 
+# Search with filters
+./leetsolv search "tree" --familiarity=3 --importance=2 --due-only
+
 # Get problem details
 ./leetsolv get 123
 
@@ -433,6 +436,7 @@ The SM-2 scheduler adapts the standard spaced repetition algorithm:
 
 ### Memory Assessment System
 - **Three-Level Memory Tracking**: Reasoned, Partial, and Full recall assessment
+- **Interactive Assessment Flow**: Guided prompts for familiarity and memory evaluation
 - **Adaptive Scheduling**: Intervals adjust based on memory performance
 - **Performance Analytics**: Track improvement over time with detailed metrics
 
