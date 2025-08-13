@@ -39,11 +39,14 @@ type FileStorage struct {
 	DeltasFile    string
 	mu            sync.Mutex
 
-	// Cache fields with proper encapsulation
-	questionStoreCache *QuestionStore
-	deltasCache        []core.Delta
+	questionStoreCache      *QuestionStore
+	questionStoreCacheMutex sync.RWMutex
+
+	deltasCache      []core.Delta
+	deltasCacheMutex sync.RWMutex
 }
 
+// Lock and Unlock are higher-level locks used to ensure atomicity for a read-and-then-write (lost update or write skew) sequence in the business logic layer.
 func (fs *FileStorage) Lock() {
 	fs.mu.Lock()
 }
@@ -54,9 +57,15 @@ func (fs *FileStorage) Unlock() {
 
 func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 	// Try to load from cache first
+	fs.questionStoreCacheMutex.RLock()
 	if fs.questionStoreCache != nil {
+		fs.questionStoreCacheMutex.RUnlock()
 		return fs.questionStoreCache, nil
 	}
+	fs.questionStoreCacheMutex.RUnlock()
+
+	fs.questionStoreCacheMutex.Lock()
+	defer fs.questionStoreCacheMutex.Unlock()
 
 	// Load question store from file
 	var store QuestionStore
@@ -86,6 +95,9 @@ func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 }
 
 func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
+	fs.questionStoreCacheMutex.Lock()
+	defer fs.questionStoreCacheMutex.Unlock()
+
 	err := fs.saveJSONToFile(store, fs.QuestionsFile)
 	if err != nil {
 		return err
@@ -99,9 +111,15 @@ func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
 
 func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
 	// Try to load from cache first
+	fs.deltasCacheMutex.RLock()
 	if fs.deltasCache != nil {
+		fs.deltasCacheMutex.RUnlock()
 		return fs.deltasCache, nil
 	}
+	fs.deltasCacheMutex.RUnlock()
+
+	fs.deltasCacheMutex.Lock()
+	defer fs.deltasCacheMutex.Unlock()
 
 	// Load deltas from file
 	var deltas []core.Delta
@@ -117,6 +135,9 @@ func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
 }
 
 func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
+	fs.deltasCacheMutex.Lock()
+	defer fs.deltasCacheMutex.Unlock()
+
 	err := fs.saveJSONToFile(deltas, fs.DeltasFile)
 	if err != nil {
 		return err
