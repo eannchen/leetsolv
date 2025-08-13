@@ -19,6 +19,13 @@ import (
 	"leetsolv/usecase"
 )
 
+// Version information - will be set during build
+var (
+	Version   = "dev"
+	BuildTime = "unknown"
+	GitCommit = "unknown"
+)
+
 func main() {
 	// Setup dependencies once
 	env := config.Env()
@@ -73,6 +80,11 @@ func main() {
 	helpCommand := &command.HelpCommand{Handler: h}
 	commandRegistry.Register("help", helpCommand)
 	commandRegistry.Register("h", helpCommand)
+
+	versionCommand := &command.VersionCommand{Handler: h}
+	commandRegistry.Register("version", versionCommand)
+	commandRegistry.Register("ver", versionCommand)
+	commandRegistry.Register("v", versionCommand)
 
 	clearCommand := &command.ClearCommand{Handler: h}
 	commandRegistry.Register("clear", clearCommand)

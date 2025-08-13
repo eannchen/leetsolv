@@ -164,3 +164,12 @@ func (c *SettingCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	c.Handler.HandleSetting(scanner, args)
 	return false
 }
+
+type VersionCommand struct {
+	Handler handler.Handler
+}
+
+func (c *VersionCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleVersion()
+	return false
+}

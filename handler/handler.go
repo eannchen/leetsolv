@@ -31,6 +31,7 @@ type Handler interface {
 	HandleClear()
 	HandleQuit()
 	HandleSetting(scanner *bufio.Scanner, args []string)
+	HandleVersion()
 }
 
 type HandlerImpl struct {
@@ -627,6 +628,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.Println("  undo/back                     - Undo the last action")
 	h.IO.Println("  history/hist/log              - Show action history")
 	h.IO.Println("  setting/config                - View and modify application settings")
+	h.IO.Println("  version/ver/v                 - Show version information")
 	h.IO.Println("  help/h                        - Show this help message")
 	h.IO.Println("  clear/cls                     - Clear the screen")
 	h.IO.Println("  quit/q/exit                   - Exit the application")
@@ -700,4 +702,11 @@ func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
 		}
 		return fmt.Sprintf("%d days ago", days)
 	}
+}
+
+func (h *HandlerImpl) HandleVersion() {
+	h.IO.PrintfColored(ColorHeader, "LeetSolv Version Information:\n")
+	h.IO.Printf("Version: %s\n", "dev")        // TODO: Get from main package
+	h.IO.Printf("Build Time: %s\n", "unknown") // TODO: Get from main package
+	h.IO.Printf("Git Commit: %s\n", "unknown") // TODO: Get from main package
 }
