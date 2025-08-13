@@ -144,8 +144,9 @@ The workflow file `.github/workflows/ci.yml` defines:
 - Check for platform-specific code
 
 #### Test Failures
-- Run tests locally: `make test`
-- Check for race conditions: `go test -race`
+- Run tests locally: `make test` (with race detection)
+- For platforms without race support: `make test-no-race`
+- Check for race conditions: `go test -race` (requires CGO_ENABLED=1)
 - Verify test data files
 
 #### Release Failures

@@ -20,7 +20,6 @@ on:
 
 env:
   GO_VERSION: "1.24.4"
-  CGO_ENABLED: 0
 
 jobs:
   test:
@@ -54,7 +53,14 @@ jobs:
         run: go mod download
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+        run: |
+          if [ "${{ matrix.os }}" = "windows" ]; then
+            # Windows doesn't support race detection well, skip it
+            go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+          else
+            # Enable CGO for race detection on Linux/macOS
+            CGO_ENABLED=1 go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -97,13 +103,13 @@ jobs:
           # Create build directory
           mkdir -p dist
 
-          # Build for different architectures
-          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-linux-amd64
-          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-linux-arm64
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-darwin-amd64
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-darwin-arm64
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-amd64.exe
-          GOOS=windows GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-arm64.exe
+          # Build for different architectures (CGO disabled for cross-platform builds)
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-linux-amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-linux-arm64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-darwin-amd64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-darwin-arm64
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-amd64.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-arm64.exe
 
       - name: Create checksums
         run: |

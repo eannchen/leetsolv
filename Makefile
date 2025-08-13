@@ -8,7 +8,8 @@ help:
 	@echo "  make clean     - Remove all testing data files and build artifacts"
 	@echo "  make build     - Build the application for current platform"
 	@echo "  make build-all - Build for all supported platforms"
-	@echo "  make test      - Run tests with coverage"
+	@echo "  make test      - Run tests with coverage and race detection"
+	@echo "  make test-no-race - Run tests without race detection"
 	@echo "  make lint      - Run linting and formatting"
 	@echo "  make install   - Install the application locally"
 	@echo "  make help      - Show this help"
@@ -52,7 +53,14 @@ build-all:
 # Run tests with coverage
 test:
 	@echo "Running tests with coverage..."
-	@go test -v -race -coverprofile=coverage.out ./...
+	@CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "Test coverage report: coverage.html"
+
+# Run tests without race detection (for platforms that don't support it)
+test-no-race:
+	@echo "Running tests without race detection..."
+	@go test -v -coverprofile=coverage.out ./...
 	@go tool cover -html=coverage.out -o coverage.html
 	@echo "Test coverage report: coverage.html"
 
