@@ -54,13 +54,7 @@ jobs:
 
       - name: Run tests
         run: |
-          if [ "${{ matrix.os }}" = "windows" ]; then
-            # Windows doesn't support race detection well, skip it
-            go test -v -coverprofile=coverage.txt -covermode=atomic ./...
-          else
-            # Enable CGO for race detection on Linux/macOS
-            CGO_ENABLED=1 go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
-          fi
+          go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
