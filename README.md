@@ -8,6 +8,25 @@ LeetSolv is a command-line tool designed to help developers systematically revie
 
 **🚀 Zero Dependencies**: Built entirely in pure Go without any third-party libraries, making it perfect for learning data structures and algorithms while building a practical tool.
 
+```mermaid
+graph TD
+    A[LeetCode Problem] --> B[Add to LeetSolv]
+    B --> C[Set Familiarity, Importance, and Reasoning Scale]
+    C --> D[SRS Algorithm Calculates Next Review]
+    D --> E[Apply Due Penalty, optional]
+    E --> F[Apply Interval Randomization, optional]
+    F --> G[Algorithm Adjusts Schedule]
+    G --> D
+
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#f1f8e9
+    style G fill:#e0f2f1
+```
+
 ## ✨ Features
 
 ### Core Functionality
@@ -93,10 +112,70 @@ leetsolv/
 - **Intelligent Caching**: Smart cache invalidation and memory management
 - **Backup Protection**: Automatic backup creation before major changes
 
+```mermaid
+graph TD
+    A["User Action"] --> B["Handler Layer"]
+    B --> C["Use Case Layer"]
+    C --> D["Storage Layer"]
+    D --> G["Write to Temp File"]
+    G --> H["Atomic Rename"]
+    H --> I["Update Delta History"]
+    I --> J["Rollback Available"]
+    J --> K["Data Persistence"]
+
+
+    L["Cache Hit"] --> M["Return Cached Data"] & N["Load from File"]
+    N --> O["Update Cache"]
+    O --> M
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style G fill:#e0f2f1
+    style H fill:#e8f5e8
+    style I fill:#fff3e0
+    style J fill:#fce4ec
+    style K fill:#f1f8e9
+    style L fill:#e0f2f1
+    style M fill:#e3f2fd
+    style N fill:#f3e5f5
+    style O fill:#e8f5e8
+```
+
 #### Command System (`command/`)
 - **Command Registry**: Extensible command system
 - **Handler Integration**: Clean separation of concerns
 - **Alias Support**: Multiple command names for convenience
+
+```mermaid
+graph TD
+    A[User Input] --> B[Command Registry]
+    B --> C{Command Found?}
+
+    C -->|Yes| D[Execute Command]
+    C -->|No| E[Handle Unknown Command]
+
+    D --> F[Command Handler]
+    F --> G[Business Logic]
+    G --> H[Storage Operations]
+    H --> I[Response to User]
+
+    J[Command Aliases] --> B
+    K[New Commands] --> B
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e0f2f1
+    style D fill:#e8f5e8
+    style E fill:#ffebee
+    style F fill:#fff3e0
+    style G fill:#fce4ec
+    style H fill:#f1f8e9
+    style I fill:#e0f2f1
+    style J fill:#e8f5e8
+    style K fill:#fff3e0
+```
 
 ## 🚀 Installation
 
@@ -432,6 +511,45 @@ The SM-2 scheduler adapts the standard spaced repetition algorithm:
 7. **Overdue Penalties**: Automatic difficulty adjustment for neglected problems
 8. **Stability Bonuses**: Rewards consistent performance over time
 
+```mermaid
+flowchart TD
+    A[New Question] --> B[Set Base Interval by Importance]
+    B --> C[Calculate Initial Ease Factor]
+    C --> D[Schedule First Review]
+
+    E[Review Question] --> F[Assess Memory Performance]
+    F --> G{Memory Assessment}
+    G -->|Reasoned| H[Increase Interval × Ease Factor]
+    G -->|Partial| I[Smaller Increase]
+    G -->|Full| J[Larger Increase]
+
+    H --> K[Adjust Ease Factor]
+    I --> K
+    J --> K
+
+    K --> L[Apply Familiarity Penalties]
+    L --> M[Apply Importance Bonuses]
+    M --> N[Randomize Interval ±1 day]
+    N --> O[Schedule Next Review]
+    O --> E
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#f1f8e9
+    style G fill:#e0f2f1
+    style H fill:#e8f5e8
+    style I fill:#fff3e0
+    style J fill:#fce4ec
+    style K fill:#f3e5f5
+    style L fill:#e1f5fe
+    style M fill:#e8f5e8
+    style N fill:#fff3e0
+    style O fill:#f1f8e9
+```
+
 ## 🚀 Advanced Features
 
 ### Memory Assessment System
@@ -440,15 +558,136 @@ The SM-2 scheduler adapts the standard spaced repetition algorithm:
 - **Adaptive Scheduling**: Intervals adjust based on memory performance
 - **Performance Analytics**: Track improvement over time with detailed metrics
 
+```mermaid
+flowchart TD
+    A[Review Question] --> B[Assess Familiarity]
+    B --> C{How difficult was it?}
+
+    C -->|1. Struggled| D[VeryHard]
+    C -->|2. Clumsy| E[Hard]
+    C -->|3. Decent| F[Medium]
+    C -->|4. Smooth| G[Easy]
+    C -->|5. Fluent| H[VeryEasy]
+
+    I{Was it from memory?} --> J[Memory Assessment]
+
+    J -->|1. Reasoned| K[Pure reasoning]
+    J -->|2. Partial| L[Some memory + reasoning]
+    J -->|3. Full| M[Mainly from memory]
+
+    D --> N[Calculate New Interval]
+    E --> N
+    F --> N
+    G --> N
+    H --> N
+
+    K --> O[Adjust Ease Factor]
+    L --> O
+    M --> O
+
+    N --> P[Schedule Next Review]
+    O --> P
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e0f2f1
+    style D fill:#ffebee
+    style E fill:#ffebee
+    style F fill:#fff3e0
+    style G fill:#e8f5e8
+    style H fill:#e8f5e8
+    style I fill:#e0f2f1
+    style J fill:#f3e5f5
+    style K fill:#e8f5e8
+    style L fill:#fff3e0
+    style M fill:#fce4ec
+    style N fill:#f1f8e9
+    style O fill:#e0f2f1
+    style P fill:#e8f5e8
+```
+
 ### Intelligent Prioritization
 - **Multi-Factor Scoring**: Combines importance, familiarity, overdue status, and review count
 - **Dynamic Weighting**: Configurable weights for different priority factors
 - **Anti-Leeching**: Prevents easy problems from dominating review sessions
 
+```mermaid
+graph LR
+    A[Question] --> B[Priority Score Calculation]
+    B --> C[Importance Weight × 1.5]
+    B --> D[Overdue Weight × 0.5]
+    B --> E[Familiarity Weight × 3.0]
+    B --> F[Review Penalty × -1.5]
+    B --> G[Ease Penalty × -1.0]
+
+    C --> H[Final Priority Score]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I[Sort by Score]
+    I --> J[Top-K Due Questions]
+    I --> K[Top-K Upcoming Questions]
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#ffebee
+    style G fill:#ffebee
+    style H fill:#f1f8e9
+    style I fill:#e0f2f1
+    style J fill:#e8f5e8
+    style K fill:#fff3e0
+```
+
 ### Advanced Search Engine
 - **Trie-Based Indexing**: Fast prefix matching for URLs and notes
 - **Multi-Field Filtering**: Filter by familiarity, importance, review count, and due status
 - **Fuzzy Matching**: Flexible search with partial text matching
+
+```mermaid
+graph TD
+    A[Search Query] --> B[Parse Query & Filters]
+    B --> C[Text Search via Trie]
+    B --> D[Filter by Familiarity]
+    B --> E[Filter by Importance]
+    B --> F[Filter by Review Count]
+    B --> G[Filter by Due Status]
+
+    C --> H[Prefix Matching]
+    D --> I[Familiarity Filter]
+    E --> J[Importance Filter]
+    F --> K[Review Count Filter]
+    G --> L[Due Status Filter]
+
+    H --> M[Intersect Results]
+    I --> M
+    J --> M
+    K --> M
+    L --> M
+
+    M --> N[Ranked Results]
+    N --> O[Pagination Display]
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#f1f8e9
+    style G fill:#e0f2f1
+    style H fill:#e8f5e8
+    style I fill:#fff3e0
+    style J fill:#fce4ec
+    style K fill:#f1f8e9
+    style L fill:#e0f2f1
+    style M fill:#f3e5f5
+    style N fill:#e1f5fe
+    style O fill:#e8f5e8
+```
 
 ## 🔮 Upcoming Features
 
@@ -460,6 +699,54 @@ The SM-2 scheduler adapts the standard spaced repetition algorithm:
 - **Growth Curve Editor**: Interactive command to tweak SRS algorithm parameters
 - **Custom Scheduling Rules**: Fine-tune the spaced repetition algorithm to match your learning style
 - **Algorithm Visualization**: See how your changes affect the review schedule
+
+```mermaid
+graph TD
+    A[Upcoming Features] --> B[Tag System]
+    A --> C[Export Functionality]
+    A --> D[SRS Customization]
+
+    B --> E[Topic Tags]
+    B --> F[Difficulty Tags]
+    B --> G[Custom Tags]
+
+    C --> H[JSON Export]
+    C --> I[CSV Export]
+    C --> J[Progress Reports]
+
+    D --> K[Growth Curve Editor]
+    D --> L[Custom Scheduling Rules]
+    D --> M[Algorithm Visualization]
+
+    E --> N[Better Organization]
+    F --> N
+    G --> N
+
+    H --> O[Data Portability]
+    I --> O
+    J --> O
+
+    K --> P[Personalized Learning]
+    L --> P
+    M --> P
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#f1f8e9
+    style G fill:#e0f2f1
+    style H fill:#e8f5e8
+    style I fill:#fff3e0
+    style J fill:#fce4ec
+    style K fill:#f1f8e9
+    style L fill:#e0f2f1
+    style M fill:#e3f2fd
+    style N fill:#e8f5e8
+    style O fill:#fff3e0
+    style P fill:#fce4ec
+```
 
 ## 🚀 Performance Features
 
