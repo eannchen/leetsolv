@@ -107,10 +107,11 @@ func TestScheduleNewQuestion(t *testing.T) {
 				if !q.LastReviewed.Equal(mockClock.Today()) {
 					t.Errorf("Expected LastReviewed to be today, got %v", q.LastReviewed)
 				}
-				// Base interval for LowImportance is 8, no familiarity bonus for Medium
-				// With randomization (-1 to +2 days), expect 7-10 days
-				expectedMin := mockClock.AddDays(mockClock.Today(), 7)
-				expectedMax := mockClock.AddDays(mockClock.Today(), 10)
+				// Base interval for LowImportance is 8, Medium familiarity adds 2 days
+				// Total: (8 + 2) × 1.00 = 10 days
+				// With randomization (-1 to +2 days), expect 9-12 days
+				expectedMin := mockClock.AddDays(mockClock.Today(), 9)
+				expectedMax := mockClock.AddDays(mockClock.Today(), 12)
 				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
 					t.Errorf("Expected NextReview to be between %v and %v, got %v", expectedMin, expectedMax, q.NextReview)
 				}
@@ -130,7 +131,7 @@ func TestScheduleNewQuestion(t *testing.T) {
 					t.Errorf("Expected EaseFactor to be 1.7, got %f", q.EaseFactor)
 				}
 				// Base interval for CriticalImportance is 4, VeryEasy adds 7 days, MemoryFull multiplies by 1.25
-				// Expected: (4+7) * 1.25 = 13.75 ≈ 14 days, with randomization 13-16 days
+				// Expected: (4+7) * 1.25 = 13.75 ≈ 14 days, with randomization (-1 to +2): 13-16 days
 				expectedMin := mockClock.AddDays(mockClock.Today(), 13)
 				expectedMax := mockClock.AddDays(mockClock.Today(), 16)
 				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
@@ -152,7 +153,7 @@ func TestScheduleNewQuestion(t *testing.T) {
 					t.Errorf("Expected EaseFactor to be 1.8, got %f", q.EaseFactor)
 				}
 				// Base interval for HighImportance is 5, Easy adds 5 days, MemoryPartial multiplies by 1.10
-				// Expected: (5+5) * 1.10 = 11 days, with randomization 10-13 days
+				// Expected: (5+5) * 1.10 = 11 days, with randomization (-1 to +2): 10-13 days
 				expectedMin := mockClock.AddDays(mockClock.Today(), 10)
 				expectedMax := mockClock.AddDays(mockClock.Today(), 13)
 				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {

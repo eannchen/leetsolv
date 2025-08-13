@@ -154,7 +154,8 @@ func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays in
 
 	// Randomize interval to avoid over-fitting to a specific date
 	if config.Env().RandomizeInterval {
-		// Randomize between -1 and 2 days
+		// Randomize between -1 and +2 days
+		// rand.IntN(4) produces 0,1,2,3; subtracting 1 gives -1,0,1,2
 		intervalDays += rand.IntN(4) - 1
 	}
 
