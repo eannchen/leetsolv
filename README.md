@@ -18,13 +18,13 @@ graph TD
     F --> G[Algorithm Adjusts Schedule]
     G --> D
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
 ```
 
 ## ✨ Features
@@ -128,19 +128,19 @@ graph TD
     N --> O["Update Cache"]
     O --> M
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style L fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style M fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style N fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style O fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style K fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style L fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style M fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style N fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style O fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
 ```
 
 #### Command System (`command/`)
@@ -164,17 +164,17 @@ graph TD
     J[Command Aliases] --> B
     K[New Commands] --> B
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style D fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style E fill:#F44336,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style F fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style G fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style H fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style I fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style J fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style K fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style D fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style E fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
+    style F fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style G fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style H fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style I fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style J fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style K fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
 ```
 
 ## 🚀 Installation
@@ -533,21 +533,21 @@ flowchart TD
     N --> O[Schedule Next Review]
     O --> E
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style L fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style M fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style N fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style O fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style K fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style L fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style M fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style N fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style O fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
 ```
 
 ## 🚀 Advanced Features
@@ -588,22 +588,22 @@ flowchart TD
     N --> P[Schedule Next Review]
     O --> P
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style D fill:#F44336,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style E fill:#F44336,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style F fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style G fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style J fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style K fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style L fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style M fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style N fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style O fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style P fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style D fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
+    style E fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
+    style F fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style G fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style I fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style J fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style K fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style L fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style M fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style N fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style O fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style P fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
 ```
 
 ### Intelligent Prioritization
@@ -630,17 +630,17 @@ graph LR
     I --> J[Top-K Due Questions]
     I --> K[Top-K Upcoming Questions]
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#F44336,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style G fill:#F44336,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style H fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style I fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style J fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style K fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style F fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
+    style G fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
+    style H fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style I fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style J fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style K fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
 ```
 
 ### Advanced Search Engine
@@ -672,21 +672,21 @@ graph TD
     M --> N[Ranked Results]
     N --> O[Pagination Display]
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style L fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style M fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style N fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style O fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style K fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style L fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style M fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style N fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style O fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
 ```
 
 ## 🔮 Upcoming Features
@@ -730,22 +730,22 @@ graph TD
     L --> P
     M --> P
 
-    style A fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#8BC34A,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style L fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style M fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style N fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style O fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style P fill:#E91E63,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
+    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
+    style K fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
+    style L fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    style M fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
+    style N fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
+    style O fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
+    style P fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
 ```
 
 ## 🚀 Performance Features
