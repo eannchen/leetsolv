@@ -5,8 +5,20 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  # It’s triggered when you publish a release in GitHub’s web UI or API.
+  # That means:
+  #   Go to repository’s "Releases" tab.
+  #   Click "Draft a new release".
+  #   Choose a tag (or create a new one).
+  #   Click "Publish release".
   release:
     types: [published]
+  # This is manual execution from GitHub Actions UI:
+  # Go to your repo → Actions tab → Select this workflow.
+  # You’ll see a "Run workflow" button.
+  # When you click it:
+  # GitHub will ask you to choose a branch (from the options you defined: main or develop).
+  # That choice becomes an input accessible inside the workflow.
   workflow_dispatch:
     inputs:
       branch:
@@ -31,14 +43,24 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
+      # This pulls your repository’s code into the runner’s working directory so subsequent commands can access it.
+      # Without this, the VM starts empty — no code files at all.
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Installs the Go version for that matrix run.
+      # This makes go available in the runner’s environment.
       - name: Set up Go ${{ matrix.go-version }}
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
+      # Speeds up future runs by reusing:
+      # ~/.cache/go-build → compiled build cache
+      # ~/go/pkg/mod → downloaded dependencies
+      # Key:
+      # Based on OS, Go version, and go.sum hash.
+      # If go.sum changes (dependencies updated), the cache is rebuilt.
       - name: Cache Go modules
         uses: actions/cache@v4
         with:
@@ -52,6 +74,10 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      # -v → verbose output (shows each test name & result).
+      # -coverprofile=coverage.txt → writes code coverage stats to a file.
+      # -covermode=atomic → precise coverage tracking, even if tests run in parallel.
+      # ./... → runs tests in all subdirectories recursively.
       - name: Run tests
         run: |
           go test -v -coverprofile=coverage.txt -covermode=atomic ./...
@@ -59,18 +85,25 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    # This means build will not run unless test passes.
     needs: test
+    # Even if test passes, the build job only runs for:
     if: github.event_name == 'push' || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
 
     steps:
+      # This pulls your repository’s code into the runner’s working directory so subsequent commands can access it.
+      # Without this, the VM starts empty — no code files at all.
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Uses the global GO_VERSION from env: (instead of the matrix).
+      # This makes the build job single-version — usually the "official" release version.
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      # git describe --tags --always --dirty → Nearest tag if available. (--dirty if there are uncommitted changes.)
       - name: Get version
         id: get_version
         run: |
@@ -84,6 +117,12 @@ jobs:
             echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
           fi
 
+      # CGO_ENABLED=0 → disables Cgo for pure Go builds (better portability, no C toolchain needed).
+      # GOOS / GOARCH → target OS & architecture.
+      # -ldflags:
+      #   -s -w → strip debug info (smaller binaries).
+      #   -X main.Version=... → set a variable in your code at compile time (often declared like var Version string).
+      #   -o dist/... → output binary to dist directory.
       - name: Build for multiple platforms
         run: |
           # Create build directory
@@ -97,11 +136,22 @@ jobs:
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-amd64.exe
           CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-arm64.exe
 
+      # Generates SHA256 hashes for all built binaries.
+      # Allows users to verify download integrity (especially important for security).
+      # A checksum (like SHA256) is a fingerprint of the file. If even 1 byte changes, the checksum changes completely.
+      # If a user downloads leetsolv-linux-amd64, they can also download checksums.txt and run:
+      #   `sha256sum --check checksums.txt`
+      # If the output says OK, the file is intact and untampered.
       - name: Create checksums
         run: |
           cd dist
           sha256sum leetsolv-* > checksums.txt
 
+      # Saves the compiled binaries & checksums to GitHub’s artifact storage.
+      # name: includes the version so artifacts are easy to match later.
+      # Kept for 30 days — useful for:
+      #   Testing before release.
+      #   Manual download without re-building.
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -112,20 +162,36 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    # This job will only start when the `test` and `build` job succeed.
     needs: [test, build]
+    # Even if test passes, the build job only runs for:
     if: github.event_name == 'release'
+    # Required so this job can upload assets to repo's releases.
     permissions:
       contents: write
 
     steps:
+      # This pulls your repository’s code into the runner’s working directory so subsequent commands can access it.
+      # This is mainly needed so softprops/action-gh-release can work with metadata from your repo (tags, commit messages, etc.).
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Fetches the binaries created in the build job.
+      # The `name` must exactly match what build uploaded
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: leetsolv-${{ github.event.release.tag_name }}
 
+      # softprops/action-gh-release:
+      #   Talks to the GitHub Releases API.
+      #   Adds the downloaded binaries as release assets.
+      # files: — the assets to attach:
+      #   All dist/leetsolv-* binaries.
+      #   The checksum file.
+      # draft: false — release is immediately public.
+      # prerelease: false — marks it as a stable release.
+      # generate_release_notes: true — auto-generate a changelog based on merged PRs & commits since the last tag.
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
