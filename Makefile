@@ -35,19 +35,26 @@ clean:
 # Build the application for current platform
 build:
 	@echo "Building leetsolv for current platform..."
-	@go build -ldflags="-s -w" -o leetsolv
+	@BUILD_TIME=$$(date -u +"%Y-%m-%dT%H:%M:%SZ"); \
+	GIT_COMMIT=$$(git rev-parse --short HEAD 2>/dev/null || echo "unknown"); \
+	VERSION=$$(git describe --tags --always --dirty 2>/dev/null || echo "dev"); \
+	go build -ldflags="-s -w -X main.Version=$$VERSION -X main.BuildTime=$$BUILD_TIME -X main.GitCommit=$$GIT_COMMIT" -o leetsolv
 	@echo "Build complete! Binary: leetsolv"
 
 # Build for all supported platforms
 build-all:
 	@echo "Building leetsolv for all platforms..."
 	@mkdir -p dist
-	@GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/leetsolv-linux-amd64
-	@GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/leetsolv-linux-arm64
-	@GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/leetsolv-darwin-amd64
-	@GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/leetsolv-darwin-arm64
-	@GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/leetsolv-windows-amd64.exe
-	@GOOS=windows GOARCH=arm64 go build -ldflags="-s -w" -o dist/leetsolv-windows-arm64.exe
+	@BUILD_TIME=$$(date -u +"%Y-%m-%dT%H:%M:%SZ"); \
+	GIT_COMMIT=$$(git rev-parse --short HEAD 2>/dev/null || echo "unknown"); \
+	VERSION=$$(git describe --tags --always --dirty 2>/dev/null || echo "dev"); \
+	LDFLAGS="-s -w -X main.Version=$$VERSION -X main.BuildTime=$$BUILD_TIME -X main.GitCommit=$$GIT_COMMIT"; \
+	GOOS=linux GOARCH=amd64 go build -ldflags="$$LDFLAGS" -o dist/leetsolv-linux-amd64; \
+	GOOS=linux GOARCH=arm64 go build -ldflags="$$LDFLAGS" -o dist/leetsolv-linux-arm64; \
+	GOOS=darwin GOARCH=amd64 go build -ldflags="$$LDFLAGS" -o dist/leetsolv-darwin-amd64; \
+	GOOS=darwin GOARCH=arm64 go build -ldflags="$$LDFLAGS" -o dist/leetsolv-darwin-arm64; \
+	GOOS=windows GOARCH=amd64 go build -ldflags="$$LDFLAGS" -o dist/leetsolv-windows-amd64.exe; \
+	GOOS=windows GOARCH=arm64 go build -ldflags="$$LDFLAGS" -o dist/leetsolv-windows-arm64.exe
 	@echo "Build complete! Check dist/ directory for binaries"
 
 # Run tests with coverage

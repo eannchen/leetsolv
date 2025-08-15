@@ -243,7 +243,7 @@ func setupTestHandler(t *testing.T) (*HandlerImpl, *MockIOHandler, *MockQuestion
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
 	mockIO := NewMockIOHandler("")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version", "test-build-time", "test-commit")
 	return handler, mockIO, mockUseCase
 }
 
@@ -516,7 +516,7 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version", "test-build-time", "test-commit")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -673,7 +673,7 @@ func TestHandler_HandleDelete_Success(t *testing.T) {
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version", "test-build-time", "test-commit")
 
 	// Set up successful deletion
 	deletedQuestion := &core.Question{
@@ -746,7 +746,7 @@ func TestHandler_HandleDelete_UseCaseError(t *testing.T) {
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version", "test-build-time", "test-commit")
 
 	// Set up use case error
 	mockUseCase.shouldError = true
@@ -775,7 +775,7 @@ func TestHandler_HandleUndo_Success(t *testing.T) {
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version", "test-build-time", "test-commit")
 
 	// Simulate user confirmation
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -800,7 +800,7 @@ func TestHandler_HandleUndo_Error(t *testing.T) {
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version", "test-build-time", "test-commit")
 
 	// Set up error
 	mockUseCase.shouldError = true

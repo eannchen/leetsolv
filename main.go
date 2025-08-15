@@ -42,7 +42,7 @@ func main() {
 	scheduler := core.NewSM2Scheduler(cfg, clock)
 	questionUseCase := usecase.NewQuestionUseCase(cfg, logger, storage, scheduler, clock)
 	ioHandler := handler.NewIOHandler(clock)
-	h := handler.NewHandler(cfg, logger, questionUseCase, ioHandler)
+	h := handler.NewHandler(cfg, logger, questionUseCase, ioHandler, Version, BuildTime, GitCommit)
 
 	commandRegistry := command.NewCommandRegistry(h.HandleUnknown)
 

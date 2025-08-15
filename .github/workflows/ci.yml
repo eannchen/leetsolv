@@ -124,14 +124,22 @@ jobs:
         run: |
           # Create build directory
           mkdir -p dist
+          
+          # Get build information
+          BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          GIT_COMMIT=$(git rev-parse --short HEAD)
+          VERSION="${{ steps.get_version.outputs.version }}"
+          
+          # Build flags with all version information
+          LDFLAGS="-s -w -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitCommit=${GIT_COMMIT}"
 
           # Build for different architectures (CGO disabled for cross-platform builds)
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-linux-amd64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-linux-arm64
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-darwin-amd64
-          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-darwin-arm64
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-amd64.exe
-          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-s -w -X main.Version=${{ steps.get_version.outputs.version }}" -o dist/leetsolv-windows-arm64.exe
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -o dist/leetsolv-linux-amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="${LDFLAGS}" -o dist/leetsolv-linux-arm64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="${LDFLAGS}" -o dist/leetsolv-darwin-amd64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="${LDFLAGS}" -o dist/leetsolv-darwin-arm64
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -o dist/leetsolv-windows-amd64.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="${LDFLAGS}" -o dist/leetsolv-windows-arm64.exe
 
       # Generates SHA256 hashes for all built binaries.
       # Allows users to verify download integrity (especially important for security).
