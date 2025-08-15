@@ -1,12 +1,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"leetsolv/internal/copy"
 	"leetsolv/internal/fileutil"
@@ -205,17 +204,17 @@ func NewConfig(file fileutil.FileUtil) (*Config, error) {
 
 	// Load default configuration first
 	if err := config.loadFromDefault(); err != nil {
-		return nil, errors.Wrap(err, "Failed to load default configuration")
+		return nil, fmt.Errorf("Failed to load default configuration: %v", err)
 	}
 
 	// Load environment variable overrides first
 	if err := config.loadFromEnvironment(); err != nil {
-		return nil, errors.Wrap(err, "Failed to load environment variables")
+		return nil, fmt.Errorf("Failed to load environment variables: %v", err)
 	}
 
 	// Then load user settings file (which can override env vars)
 	if err := config.loadFromFile(); err != nil {
-		return nil, errors.Wrap(err, "Failed to load settings file")
+		return nil, fmt.Errorf("Failed to load settings file: %v", err)
 	}
 
 	return config, nil

@@ -4,7 +4,7 @@ This guide explains how to install LeetSolv on your system using various methods
 
 ## Prerequisites
 
-- **Go 1.24.4 or later** (for building from source)
+- **Go 1.25.0 or later** (for building from source)
 - **Git** (for cloning the repository)
 - **Internet connection** (for downloading releases)
 
@@ -149,7 +149,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Check your Go version
 go version
 
-# Update Go if needed (should be 1.24.4 or later)
+# Update Go if needed (should be 1.25.0 or later)
 ```
 
 ### Getting Help

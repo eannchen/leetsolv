@@ -180,7 +180,7 @@ graph TD
 ## 🚀 Installation
 
 ### Prerequisites
-- **Go 1.24.4 or later** (for building from source)
+- **Go 1.25.0 or later** (for building from source)
 - **Git** (for cloning the repository)
 - **Internet connection** (for downloading releases)
 
@@ -330,7 +330,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 **Go Version Issues**
 ```bash
-go version  # Should be 1.24.4 or later
+go version  # Should be 1.25.0 or later
 ```
 
 ## 📖 Usage

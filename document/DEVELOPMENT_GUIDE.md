@@ -233,7 +233,7 @@ git push origin --delete hotfix/critical-bug
 **Jobs:**
 
 #### 1. Test Job
-- **Matrix**: Multiple Go versions (1.24.4) × Platforms (Linux, macOS, Windows)
+- **Matrix**: Multiple Go versions (1.25.0) × Platforms (Linux, macOS, Windows)
 - **Features**: Race condition detection, code coverage, dependency caching
 - **Output**: Coverage reports uploaded to Codecov
 
