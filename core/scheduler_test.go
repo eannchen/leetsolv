@@ -333,6 +333,8 @@ func TestSetEaseFactor(t *testing.T) {
 func TestSetEaseFactorOverduePenalty(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 20, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
+	// Enable overdue penalty for this test
+	cfg.OverduePenalty = true
 	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
@@ -389,6 +391,9 @@ func TestSetEaseFactorOverduePenalty(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Set the overdue limit for this test
+			scheduler.cfg.OverdueLimit = tt.overdueLimit
+			
 			originalEaseFactor := tt.question.EaseFactor
 			scheduler.setEaseFactorOverduePenalty(tt.question)
 

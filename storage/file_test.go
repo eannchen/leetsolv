@@ -9,13 +9,15 @@ import (
 
 	"leetsolv/config"
 	"leetsolv/core"
+	"leetsolv/internal/fileutil"
 	"leetsolv/internal/search"
 )
 
 // setupTestStorage creates a test storage with temporary files
 func setupTestStorage(t *testing.T) (*FileStorage, *config.TestConfig) {
 	testConfig, _ := config.MockEnv(t)
-	storage := NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
+	fileUtil := fileutil.NewJSONFileUtil()
+	storage := NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, fileUtil)
 	return storage, testConfig
 }
 
@@ -364,7 +366,7 @@ func TestFileStorage_FilePermissionIssues(t *testing.T) {
 
 	// Test with a directory that doesn't exist (more reliable than read-only permissions)
 	nonExistentDir := "/non/existent/directory"
-	storageWithBadPath := NewFileStorage(nonExistentDir+"/questions.json", testConfig.DeltasFile, &config.MockFileUtil{})
+	storageWithBadPath := NewFileStorage(nonExistentDir+"/questions.json", testConfig.DeltasFile, fileutil.NewJSONFileUtil())
 
 	store := &QuestionStore{MaxID: 2}
 	err := storageWithBadPath.SaveQuestionStore(store)

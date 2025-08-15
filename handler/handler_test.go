@@ -1209,12 +1209,12 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 		t.Fatalf("Failed to get first page: %v", err)
 	}
 
-	if len(results) != 5 { // Page size is 5 from config
-		t.Errorf("Expected 5 questions on first page, got %d", len(results))
+	if len(results) != 3 { // Page size is 3 from test config
+		t.Errorf("Expected 3 questions on first page, got %d", len(results))
 	}
 
-	if totalPages != 1 {
-		t.Errorf("Expected 1 total pages, got %d", totalPages)
+	if totalPages != 2 { // 5 questions with page size 3 = 2 pages
+		t.Errorf("Expected 2 total pages, got %d", totalPages)
 	}
 
 	// Test with more questions to test pagination
@@ -1234,12 +1234,12 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 		t.Fatalf("Failed to get first page with more questions: %v", err)
 	}
 
-	if len(results) != 5 {
-		t.Errorf("Expected 5 questions on first page, got %d", len(results))
+	if len(results) != 3 { // Page size is 3
+		t.Errorf("Expected 3 questions on first page, got %d", len(results))
 	}
 
-	if totalPages != 2 {
-		t.Errorf("Expected 2 total pages, got %d", totalPages)
+	if totalPages != 3 { // 7 questions with page size 3 = 3 pages
+		t.Errorf("Expected 3 total pages, got %d", totalPages)
 	}
 
 	// Test second page
@@ -1248,8 +1248,8 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 		t.Fatalf("Failed to get second page: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Errorf("Expected 2 questions on second page, got %d", len(results))
+	if len(results) != 3 { // Page size is 3
+		t.Errorf("Expected 3 questions on second page, got %d", len(results))
 	}
 
 	// Test invalid page number
@@ -1258,8 +1258,8 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 		t.Error("Expected error for invalid page number")
 	}
 
-	// Test page number too high
-	_, _, err = handler.getQuestionsPage(questions, 1)
+	// Test page number too high (page 2 for 5 questions with page size 3 = only pages 0,1 exist)
+	_, _, err = handler.getQuestionsPage(questions, 2)
 	if err == nil {
 		t.Error("Expected error for page number too high")
 	}
