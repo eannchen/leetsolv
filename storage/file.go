@@ -1,12 +1,10 @@
 package storage
 
 import (
-	"encoding/json"
-	"os"
 	"sync"
 
 	"leetsolv/core"
-	"leetsolv/internal/logger"
+	"leetsolv/internal/fileutil"
 	"leetsolv/internal/search"
 )
 
@@ -19,10 +17,11 @@ type Storage interface {
 	SaveDeltas([]core.Delta) error
 }
 
-func NewFileStorage(questionsFile, deltasFile string) *FileStorage {
+func NewFileStorage(questionsFileName, deltasFileName string, file fileutil.FileUtil) *FileStorage {
 	return &FileStorage{
-		QuestionsFile: questionsFile,
-		DeltasFile:    deltasFile,
+		questionsFileName: questionsFileName,
+		deltasFileName:    deltasFileName,
+		file:              file,
 	}
 }
 
@@ -35,9 +34,10 @@ type QuestionStore struct {
 }
 
 type FileStorage struct {
-	QuestionsFile string
-	DeltasFile    string
-	mu            sync.Mutex
+	questionsFileName string
+	deltasFileName    string
+	file              fileutil.FileUtil
+	mu                sync.Mutex
 
 	questionStoreCache      *QuestionStore
 	questionStoreCacheMutex sync.RWMutex
@@ -69,7 +69,7 @@ func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 
 	// Load question store from file
 	var store QuestionStore
-	err := fs.loadJSONFromFile(&store, fs.QuestionsFile)
+	err := fs.file.Load(&store, fs.questionsFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
 	fs.questionStoreCacheMutex.Lock()
 	defer fs.questionStoreCacheMutex.Unlock()
 
-	err := fs.saveJSONToFile(store, fs.QuestionsFile)
+	err := fs.file.Save(store, fs.questionsFileName)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
 
 	// Load deltas from file
 	var deltas []core.Delta
-	err := fs.loadJSONFromFile(&deltas, fs.DeltasFile)
+	err := fs.file.Load(&deltas, fs.deltasFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
 	fs.deltasCacheMutex.Lock()
 	defer fs.deltasCacheMutex.Unlock()
 
-	err := fs.saveJSONToFile(deltas, fs.DeltasFile)
+	err := fs.file.Save(deltas, fs.deltasFileName)
 	if err != nil {
 		return err
 	}
@@ -153,73 +153,4 @@ func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
 func (fs *FileStorage) InvalidateCache() {
 	fs.questionStoreCache = nil
 	fs.deltasCache = nil
-}
-
-// Private helper methods
-
-// loadFile is a generic helper to load JSON data from a file into the provided data structure.
-func (fs *FileStorage) loadJSONFromFile(data interface{}, filename string) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil // Return nil for non-existent file
-		}
-		logger.Logger().Error.Printf("Failed to open file: %s. Error: %v", filename, err)
-		return err
-	}
-	defer file.Close()
-
-	// Check if file is empty
-	fileInfo, err := file.Stat()
-	if err != nil {
-		logger.Logger().Error.Printf("Failed to get file info: %s. Error: %v", filename, err)
-		return err
-	}
-	if fileInfo.Size() == 0 {
-		return nil // Leave data in its zero state
-	}
-
-	if err := json.NewDecoder(file).Decode(data); err != nil {
-		logger.Logger().Error.Printf("Failed to decode JSON from file: %s. Error: %v", filename, err)
-		return err
-	}
-	return nil
-}
-
-// Generic helper for atomic file writes
-func (fs *FileStorage) saveJSONToFile(data interface{}, filename string) error {
-	tempFile, err := os.CreateTemp("", "temp_*.json")
-	if err != nil {
-		logger.Logger().Error.Printf("Failed to create temporary file for %s. Error: %v", filename, err)
-		return err
-	}
-
-	// Ensure cleanup on any error
-	cleanup := func() {
-		tempFile.Close()
-		os.Remove(tempFile.Name())
-	}
-	defer cleanup()
-
-	// Write JSON data
-	enc := json.NewEncoder(tempFile)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(data); err != nil {
-		logger.Logger().Error.Printf("Failed to encode JSON to temporary file: %s. Error: %v", tempFile.Name(), err)
-		return err
-	}
-
-	// Close temp file before rename
-	if err := tempFile.Close(); err != nil {
-		logger.Logger().Error.Printf("Failed to close temporary file: %s. Error: %v", tempFile.Name(), err)
-		return err
-	}
-
-	// Atomic replace - disable cleanup since we want to keep the file
-	cleanup = func() {} // No-op
-	if err := os.Rename(tempFile.Name(), filename); err != nil {
-		logger.Logger().Error.Printf("Failed to rename temporary file: %s. Error: %v", tempFile.Name(), err)
-		return err
-	}
-	return nil
 }

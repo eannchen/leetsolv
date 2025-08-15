@@ -13,6 +13,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/errs"
+	"leetsolv/internal/logger"
 	"leetsolv/internal/tokenizer"
 	"leetsolv/usecase"
 )
@@ -35,12 +36,16 @@ type Handler interface {
 }
 
 type HandlerImpl struct {
+	cfg             *config.Config
+	Logger          *logger.Logger
 	QuestionUseCase usecase.QuestionUseCase
 	IO              IOHandler
 }
 
-func NewHandler(IOHandler IOHandler, questionUseCase usecase.QuestionUseCase) *HandlerImpl {
+func NewHandler(cfg *config.Config, logger *logger.Logger, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler) *HandlerImpl {
 	return &HandlerImpl{
+		cfg:             cfg,
+		Logger:          logger,
 		QuestionUseCase: questionUseCase,
 		IO:              IOHandler,
 	}
@@ -184,7 +189,7 @@ func (h *HandlerImpl) getQuestionsPage(questions []core.Question, page int) ([]c
 		return nil, 0, nil
 	}
 
-	pageSize := config.Env().PageSize
+	pageSize := h.cfg.PageSize
 
 	// Round up to get total pages needed; ensures partial last page is counted
 	totalPages := (totalQuestions + pageSize - 1) / pageSize
@@ -268,9 +273,8 @@ func (h *HandlerImpl) HandleStatus() {
 	if summary.TotalDue != 0 || summary.TotalUpcoming != 0 {
 		h.IO.Printf("\n")
 		h.IO.Printf("\n")
-		cfg := config.Env()
 		h.IO.PrintfColored(ColorAnnotation, "* Priority Scoring Formula = (%.1f×Importance)+(%.1f×Overdue Days)+(%.1f×Difficulty)+(%.1f×Review Count)+(%.1f×Ease Factor)\n",
-			cfg.ImportanceWeight, cfg.OverdueWeight, cfg.FamiliarityWeight, cfg.ReviewPenaltyWeight, cfg.EasePenaltyWeight)
+			h.cfg.ImportanceWeight, h.cfg.OverdueWeight, h.cfg.FamiliarityWeight, h.cfg.ReviewPenaltyWeight, h.cfg.EasePenaltyWeight)
 	}
 
 	h.IO.Printf("\n")
@@ -507,15 +511,13 @@ func (h *HandlerImpl) HandleHistory() {
 }
 
 func (h *HandlerImpl) HandleSetting(scanner *bufio.Scanner, args []string) {
-	env := config.Env()
-
 	if len(args) == 0 {
 		// Show current settings using the registry
-		registry := config.GetSettingsRegistry()
+		registry := h.cfg.GetSettingsRegistry()
 		h.IO.PrintfColored(ColorHeader, "Current Settings:\n")
 
 		for _, setting := range registry {
-			value, err := env.GetSettingValue(setting.Name)
+			value, err := h.cfg.GetSettingValue(setting.Name)
 			if err == nil {
 				switch setting.Type {
 				case "bool":
@@ -554,7 +556,7 @@ func (h *HandlerImpl) HandleSetting(scanner *bufio.Scanner, args []string) {
 	valueStr := args[1]
 
 	// Get setting info to determine the type
-	settingInfo, err := config.GetSettingInfo(settingName)
+	settingInfo, err := h.cfg.GetSettingInfo(settingName)
 	if err != nil {
 		h.IO.PrintError(err)
 		return

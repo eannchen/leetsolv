@@ -17,6 +17,7 @@ type Scheduler interface {
 
 // SM2Scheduler implements the spaced repetition scheduling logic
 type SM2Scheduler struct {
+	cfg   *config.Config
 	Clock clock.Clock
 
 	// Interval settings (in days)
@@ -40,8 +41,9 @@ type SM2Scheduler struct {
 	easePenaltyWeight   float64
 }
 
-func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
+func NewSM2Scheduler(cfg *config.Config, clock clock.Clock) *SM2Scheduler {
 	return &SM2Scheduler{
+		cfg:   cfg,
 		Clock: clock,
 
 		// Interval settings (in days)
@@ -87,11 +89,11 @@ func NewSM2Scheduler(clock clock.Clock) *SM2Scheduler {
 		},
 
 		// Due Priority List settings
-		importanceWeight:    config.Env().ImportanceWeight,    // Prioritizes designated importance
-		overdueWeight:       config.Env().OverdueWeight,       // Prioritizes items past their due date
-		familiarityWeight:   config.Env().FamiliarityWeight,   // Prioritizes historically difficult items
-		reviewPenaltyWeight: config.Env().ReviewPenaltyWeight, // De-prioritizes questions seen many times (prevents leeching)
-		easePenaltyWeight:   config.Env().EasePenaltyWeight,   // De-prioritizes "easier" questions to focus on struggles
+		importanceWeight:    cfg.ImportanceWeight,    // Prioritizes designated importance
+		overdueWeight:       cfg.OverdueWeight,       // Prioritizes items past their due date
+		familiarityWeight:   cfg.FamiliarityWeight,   // Prioritizes historically difficult items
+		reviewPenaltyWeight: cfg.ReviewPenaltyWeight, // De-prioritizes questions seen many times (prevents leeching)
+		easePenaltyWeight:   cfg.EasePenaltyWeight,   // De-prioritizes "easier" questions to focus on struggles
 	}
 }
 
@@ -134,7 +136,7 @@ func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 	}
 
 	// Penalty for being overdue
-	if config.Env().OverduePenalty {
+	if s.cfg.OverduePenalty {
 		s.setEaseFactorOverduePenalty(q)
 	}
 
@@ -153,7 +155,7 @@ func (s SM2Scheduler) Schedule(q *Question, memory MemoryUse) {
 func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays int) {
 
 	// Randomize interval to avoid over-fitting to a specific date
-	if config.Env().RandomizeInterval {
+	if s.cfg.RandomizeInterval {
 		// Randomize between -1 and +2 days
 		// rand.IntN(4) produces 0,1,2,3; subtracting 1 gives -1,0,1,2
 		intervalDays += rand.IntN(4) - 1
@@ -195,7 +197,7 @@ func (s SM2Scheduler) setEaseFactor(q *Question, memory MemoryUse) {
 func (s SM2Scheduler) setEaseFactorOverduePenalty(q *Question) {
 	today := s.Clock.Today()
 
-	overdueLimit := config.Env().OverdueLimit
+	overdueLimit := s.cfg.OverdueLimit
 	overdueDays := int(today.Sub(q.NextReview).Hours() / 24)
 	if overdueDays > overdueLimit && q.Importance > LowImportance && q.Familiarity < VeryEasy {
 		penaltyFactor := math.Min(float64(overdueDays-overdueLimit)*0.01, 0.1)

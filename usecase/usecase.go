@@ -35,14 +35,18 @@ type QuestionUseCase interface {
 
 // QuestionUseCaseImpl struct encapsulates dependencies for use cases
 type QuestionUseCaseImpl struct {
+	cfg       *config.Config
+	logger    *logger.Logger
 	Storage   storage.Storage
 	Scheduler core.Scheduler
 	Clock     clock.Clock
 }
 
 // NewQuestionUseCase creates a new QuestionUseCase instance
-func NewQuestionUseCase(storage storage.Storage, scheduler core.Scheduler, clock clock.Clock) *QuestionUseCaseImpl {
+func NewQuestionUseCase(cfg *config.Config, logger *logger.Logger, storage storage.Storage, scheduler core.Scheduler, clock clock.Clock) *QuestionUseCaseImpl {
 	return &QuestionUseCaseImpl{
+		cfg:       cfg,
+		logger:    logger,
 		Storage:   storage,
 		Scheduler: scheduler,
 		Clock:     clock,
@@ -67,10 +71,10 @@ func (u *QuestionUseCaseImpl) ListQuestionsSummary() (QuestionsSummary, error) {
 	oneDayLater := u.Clock.AddDays(today, 1)
 
 	var dueTotal int
-	dueHeap := rank.NewTopKMinHeap(config.Env().TopKDue)
+	dueHeap := rank.NewTopKMinHeap(u.cfg.TopKDue)
 
 	var upcomingTotal int
-	upcomingHeap := rank.NewTopKMinHeap(config.Env().TopKUpcoming)
+	upcomingHeap := rank.NewTopKMinHeap(u.cfg.TopKUpcoming)
 
 	for _, q := range store.Questions {
 		nextReviewDate := u.Clock.ToDate(q.NextReview)
@@ -216,7 +220,7 @@ func (u *QuestionUseCaseImpl) matchesFilter(question core.Question, filter core.
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance, memory core.MemoryUse) (*core.Delta, error) {
-	logger.Logger().Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
+	u.logger.Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
 	u.Storage.Lock()
 	defer u.Storage.Unlock()
@@ -319,13 +323,13 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		return nil, errs.WrapInternalError(err, "Failed to save question store")
 	}
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
+		u.logger.Error.Printf("Failed to save deltas: %v", err)
 	}
 	return delta, nil
 }
 
 func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {
-	logger.Logger().Info.Printf("Deleting question: Target=%s", target)
+	u.logger.Info.Printf("Deleting question: Target=%s", target)
 
 	u.Storage.Lock()
 	defer u.Storage.Unlock()
@@ -369,13 +373,13 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		CreatedAt:  u.Clock.Now(),
 	})
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
+		u.logger.Error.Printf("Failed to save deltas: %v", err)
 	}
 	return deletedQuestion, nil
 }
 
 func (u *QuestionUseCaseImpl) Undo() error {
-	logger.Logger().Info.Printf("Undoing last action")
+	u.logger.Info.Printf("Undoing last action")
 
 	u.Storage.Lock()
 	defer u.Storage.Unlock()
@@ -465,7 +469,7 @@ func (u *QuestionUseCaseImpl) Undo() error {
 	// Remove the last delta only after successful undo
 	deltas = deltas[:len(deltas)-1]
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		logger.Logger().Error.Printf("Failed to save deltas: %v", err)
+		u.logger.Error.Printf("Failed to save deltas: %v", err)
 	}
 
 	return nil
@@ -498,7 +502,7 @@ func (u *QuestionUseCaseImpl) GetHistory() ([]core.Delta, error) {
 func (u *QuestionUseCaseImpl) appendDelta(deltas []core.Delta, delta core.Delta) []core.Delta {
 	deltas = append(deltas, delta)
 
-	maxDelta := config.Env().MaxDelta
+	maxDelta := u.cfg.MaxDelta
 	if len(deltas) > maxDelta {
 		// Remove the oldest delta if we exceed the maximum limit
 		deltas = deltas[len(deltas)-maxDelta:]
@@ -561,15 +565,13 @@ func (u *QuestionUseCaseImpl) GetSettings() error {
 }
 
 func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value interface{}) error {
-	env := config.Env()
-
 	// Use the registry-based approach
-	if err := env.SetSettingValue(settingName, value); err != nil {
+	if err := u.cfg.SetSettingValue(settingName, value); err != nil {
 		return err
 	}
 
 	// Save the configuration
-	if err := env.Save(); err != nil {
+	if err := u.cfg.Save(); err != nil {
 		return fmt.Errorf("Failed to save settings: %v", err)
 	}
 
