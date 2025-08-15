@@ -41,19 +41,15 @@ type HandlerImpl struct {
 	QuestionUseCase usecase.QuestionUseCase
 	IO              IOHandler
 	Version         string
-	BuildTime       string
-	GitCommit       string
 }
 
-func NewHandler(cfg *config.Config, logger *logger.Logger, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler, version, buildTime, gitCommit string) *HandlerImpl {
+func NewHandler(cfg *config.Config, logger *logger.Logger, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler, version string) *HandlerImpl {
 	return &HandlerImpl{
 		cfg:             cfg,
 		Logger:          logger,
 		QuestionUseCase: questionUseCase,
 		IO:              IOHandler,
 		Version:         version,
-		BuildTime:       buildTime,
-		GitCommit:       gitCommit,
 	}
 }
 
@@ -675,8 +671,5 @@ func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
 }
 
 func (h *HandlerImpl) HandleVersion() {
-	h.IO.PrintfColored(ColorHeader, "LeetSolv Version Information:\n")
-	h.IO.Printf("Version: %s\n", h.Version)
-	h.IO.Printf("Build Time: %s\n", h.BuildTime)
-	h.IO.Printf("Git Commit: %s\n", h.GitCommit)
+	h.IO.Println(h.Version)
 }
