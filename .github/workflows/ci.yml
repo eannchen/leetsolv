@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   # It’s triggered when you publish a release in GitHub’s web UI or API.
   # That means:
   #   Go to repository’s "Releases" tab.
@@ -17,18 +17,17 @@ on:
   # Go to your repo → Actions tab → Select this workflow.
   # You’ll see a "Run workflow" button.
   # When you click it:
-  # GitHub will ask you to choose a branch (from the options you defined: main or develop).
+  # GitHub will ask you to choose a branch (from the options you defined: main).
   # That choice becomes an input accessible inside the workflow.
   workflow_dispatch:
     inputs:
       branch:
         description: "Branch to build from"
         required: true
-        default: "develop"
+        default: "main"
         type: choice
         options:
           - main
-          - develop
 
 env:
   GO_VERSION: "1.24.4"
@@ -111,8 +110,6 @@ jobs:
             echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            echo "version=$(git describe --tags --always --dirty)-dev" >> $GITHUB_OUTPUT
           else
             echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
           fi
