@@ -84,6 +84,7 @@ func main() {
 	settingCommand := &command.SettingCommand{Handler: h}
 	commandRegistry.Register("setting", settingCommand)
 	commandRegistry.Register("config", settingCommand)
+	commandRegistry.Register("cfg", settingCommand)
 
 	helpCommand := &command.HelpCommand{Handler: h}
 	commandRegistry.Register("help", helpCommand)

@@ -15,11 +15,11 @@ import (
 var (
 	defaultConfig = &Config{
 		// Default data files
-		QuestionsFile: "questions.default.json",
-		DeltasFile:    "deltas.default.json",
-		InfoLogFile:   "info.default.log",
-		ErrorLogFile:  "error.default.log",
-		SettingsFile:  "settings.default.json",
+		QuestionsFile: "questions.json",
+		DeltasFile:    "deltas.json",
+		InfoLogFile:   "info.log",
+		ErrorLogFile:  "error.log",
+		SettingsFile:  "settings.json",
 		// Pagination settings
 		Paginator: Paginator{
 			PageSize: 5,
@@ -79,6 +79,12 @@ var (
 			Name:        "RandomizeInterval",
 			Type:        "bool",
 			Description: "Enable/disable randomized interval",
+			Validator: func(valueStr string) (any, error) {
+				if boolValue, err := strconv.ParseBool(valueStr); err == nil {
+					return boolValue, nil
+				}
+				return nil, errors.New("RandomizeInterval must be a boolean value")
+			},
 			Getter: func(e *Config) any {
 				return e.RandomizeInterval
 			},
@@ -94,6 +100,12 @@ var (
 			Name:        "OverduePenalty",
 			Type:        "bool",
 			Description: "Enable/disable overdue penalty",
+			Validator: func(valueStr string) (any, error) {
+				if boolValue, err := strconv.ParseBool(valueStr); err == nil {
+					return boolValue, nil
+				}
+				return nil, errors.New("OverduePenalty must be a boolean value")
+			},
 			Getter: func(e *Config) any {
 				return e.OverduePenalty
 			},
@@ -108,7 +120,14 @@ var (
 		"overduelimit": {
 			Name:        "OverdueLimit",
 			Type:        "int",
+			Unit:        "days",
 			Description: "Days after which overdue questions are at risk of penalty",
+			Validator: func(valueStr string) (any, error) {
+				if intValue, err := strconv.Atoi(valueStr); err == nil {
+					return intValue, nil
+				}
+				return nil, errors.New("OverdueLimit must be an integer value")
+			},
 			Getter: func(e *Config) any {
 				return e.OverdueLimit
 			},
@@ -127,7 +146,9 @@ var (
 type SettingDefinition struct {
 	Name        string
 	Type        string // "bool", "int", "float64", "string"
+	Unit        string
 	Description string
+	Validator   func(string) (any, error)
 	Getter      func(*Config) any
 	Setter      func(*Config, any) error
 }

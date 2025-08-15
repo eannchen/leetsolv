@@ -3,11 +3,11 @@
 # Development mode script for leetsolv
 # This script sets environment variables to use test files and runs the application
 
-export LEETSOLV_QUESTIONS_FILE="questions.test.json"
-export LEETSOLV_DELTAS_FILE="deltas.test.json"
-export LEETSOLV_INFO_LOG_FILE="info.test.log"
-export LEETSOLV_ERROR_LOG_FILE="error.test.log"
-export LEETSOLV_SETTINGS_FILE="settings.test.json"
+export LEETSOLV_QUESTIONS_FILE="questions.dev.json"
+export LEETSOLV_DELTAS_FILE="deltas.dev.json"
+export LEETSOLV_INFO_LOG_FILE="info.dev.log"
+export LEETSOLV_ERROR_LOG_FILE="error.dev.log"
+export LEETSOLV_SETTINGS_FILE="settings.dev.json"
 
 echo "Running leetsolv in DEVELOPMENT mode with files:"
 echo "  Questions: $LEETSOLV_QUESTIONS_FILE"

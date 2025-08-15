@@ -36,6 +36,7 @@ questions.json
 deltas.json
 info.log
 error.log
+settings.json
 
 # Test data files
 questions.*.json

@@ -466,10 +466,10 @@ func (h *HandlerImpl) HandleHistory() {
 		return
 	}
 
-	formatWithStrId := "%-6s %-9s %-35s %-22s %s"
-	formatWithIntId := "%-6d %-9s %-35s %-22s %s"
+	formatWithStrId := "%-6s %-9s %-60s %-22s %s"
+	formatWithIntId := "%-6d %-9s %-60s %-22s %s"
 
-	h.IO.PrintlnColored(ColorHeader, "──────────────────────────────────── Action History ────────────────────────────────────")
+	h.IO.PrintlnColored(ColorHeader, "─────────────────────────────────────────────── Action History ────────────────────────────────────────────────")
 	h.IO.PrintfColored(ColorHeader, formatWithStrId, "# ID", "Action", "Question", "Changes", "When")
 	h.IO.Printf("\n")
 	for _, delta := range deltas {
@@ -512,98 +512,60 @@ func (h *HandlerImpl) HandleHistory() {
 
 func (h *HandlerImpl) HandleSetting(scanner *bufio.Scanner, args []string) {
 	if len(args) == 0 {
-		// Show current settings using the registry
+		// Show current configurable settings
 		registry := h.cfg.GetSettingsRegistry()
 		h.IO.PrintfColored(ColorHeader, "Current Settings:\n")
 
 		for _, setting := range registry {
 			value, err := h.cfg.GetSettingValue(setting.Name)
-			if err == nil {
-				switch setting.Type {
-				case "bool":
-					h.IO.Printf("  %s: %t\n", setting.Name, value)
-				case "int":
-					h.IO.Printf("  %s: %d", setting.Name, value)
-					if setting.Name == "OverdueLimit" {
-						h.IO.Printf(" days")
-					}
-					h.IO.Println()
-				default:
-					h.IO.Printf("  %s: %v\n", setting.Name, value)
-				}
+			if err != nil {
+				continue
 			}
+			h.IO.Printf("  %s: %v %s\n", setting.Name, value, setting.Unit)
 		}
 
 		h.IO.Println()
-		h.IO.Println("To change a setting, use: setting <setting_name> <value>")
-		h.IO.Println("Available settings:")
+		h.IO.Println("To change a setting, use:")
+		h.IO.PrintlnColored(ColorYellow, "setting <setting_name> <value>")
+		h.IO.Println()
+		h.IO.PrintlnColored(ColorHeader, "Available settings:")
 		for _, setting := range registry {
 			h.IO.Printf("  %s (%s): %s\n", setting.Name, setting.Type, setting.Description)
 		}
-		h.IO.Println("Examples:")
-		h.IO.Println("  setting RandomizeInterval false")
-		h.IO.Println("  setting OverduePenalty true")
-		h.IO.Println("  setting OverdueLimit 14")
+
+		h.IO.PrintlnColored(ColorAnnotation, "Examples:")
+		h.IO.PrintlnColored(ColorAnnotation, "  setting RandomizeInterval false")
+		h.IO.PrintlnColored(ColorAnnotation, "  setting OverduePenalty true")
+		h.IO.PrintlnColored(ColorAnnotation, "  setting OverdueLimit 14")
 		return
 	}
 
 	if len(args) < 2 {
-		h.IO.PrintError(errors.New("Usage: setting <setting_name> <value>"))
+		h.IO.PrintError(errs.WrapValidationError(errors.New("Usage: setting <setting_name> <value>"), ""))
 		return
 	}
 
 	settingName := args[0]
 	valueStr := args[1]
 
-	// Get setting info to determine the type
 	settingInfo, err := h.cfg.GetSettingInfo(settingName)
 	if err != nil {
-		h.IO.PrintError(err)
+		h.IO.PrintError(errs.WrapValidationError(err, ""))
+		return
+	}
+	value, err := settingInfo.Validator(valueStr)
+	if err != nil {
+		h.IO.PrintError(errs.WrapValidationError(err, ""))
 		return
 	}
 
-	// Parse the value based on setting type
-	var value interface{}
-
-	switch settingInfo.Type {
-	case "bool":
-		value, err = strconv.ParseBool(valueStr)
-		if err != nil {
-			h.IO.PrintError(fmt.Errorf("Invalid value for %s: %v", settingName, err))
-			return
-		}
-
-	case "int":
-		value, err = strconv.Atoi(valueStr)
-		if err != nil {
-			h.IO.PrintError(fmt.Errorf("Invalid value for %s: %v", settingName, err))
-			return
-		}
-
-	default:
-		h.IO.PrintError(fmt.Errorf("Unsupported setting type: %s", settingInfo.Type))
-		return
-	}
-
-	// Use the usecase to update the setting
 	if err := h.QuestionUseCase.UpdateSetting(settingName, value); err != nil {
 		h.IO.PrintError(err)
 		return
 	}
 
-	// Show success message based on the setting type
-	switch settingInfo.Type {
-	case "bool":
-		h.IO.PrintSuccess(fmt.Sprintf("%s set to %t", settingInfo.Name, value))
-	case "int":
-		if settingInfo.Name == "OverdueLimit" {
-			h.IO.PrintSuccess(fmt.Sprintf("%s set to %d days", settingInfo.Name, value))
-		} else {
-			h.IO.PrintSuccess(fmt.Sprintf("%s set to %d", settingInfo.Name, value))
-		}
-	}
-
-	h.IO.PrintSuccess("Settings saved successfully!")
+	h.IO.PrintSuccess(fmt.Sprintf("%s set to %v %s", settingInfo.Name, value, settingInfo.Unit))
+	h.IO.Printf("\n")
 }
 
 func (h *HandlerImpl) HandleUnknown(command string) {
@@ -629,7 +591,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.Println("  remove/rm/delete/del [id|url] - Delete a question by ID or URL")
 	h.IO.Println("  undo/back                     - Undo the last action")
 	h.IO.Println("  history/hist/log              - Show action history")
-	h.IO.Println("  setting/config                - View and modify application settings")
+	h.IO.Println("  setting/config/cfg            - View and modify application settings")
 	h.IO.Println("  version/ver/v                 - Show version information")
 	h.IO.Println("  help/h                        - Show this help message")
 	h.IO.Println("  clear/cls                     - Clear the screen")

@@ -564,7 +564,7 @@ func (u *QuestionUseCaseImpl) GetSettings() error {
 	return nil
 }
 
-func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value interface{}) error {
+func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value any) error {
 	// Use the registry-based approach
 	if err := u.cfg.SetSettingValue(settingName, value); err != nil {
 		return err
