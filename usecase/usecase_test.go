@@ -9,6 +9,7 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/clock"
+	"leetsolv/internal/logger"
 	"leetsolv/internal/search"
 	"leetsolv/storage"
 )
@@ -16,19 +17,22 @@ import (
 // setupTestEnvironment creates a test environment with temporary files
 func setupTestEnvironment(t *testing.T) (*config.TestConfig, *QuestionUseCaseImpl) {
 	// Create test configuration with temporary files
-	testConfig := config.MockEnv(t)
+	testConfig, cfg := config.MockEnv(t)
 
 	// Create mock clock
 	mockClock := clock.NewClock()
 
 	// Create storage with test files
-	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile)
+	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
 
 	// Create scheduler
-	scheduler := core.NewSM2Scheduler(mockClock)
+	scheduler := core.NewSM2Scheduler(cfg, mockClock)
+
+	// Create logger
+	logger := logger.NewLogger(testConfig.InfoLogFile, testConfig.ErrorLogFile)
 
 	// Create use case
-	useCase := NewQuestionUseCase(storage, scheduler, mockClock)
+	useCase := NewQuestionUseCase(cfg, logger, storage, scheduler, mockClock)
 
 	return testConfig, useCase
 }

@@ -3,6 +3,8 @@ package core
 import (
 	"testing"
 	"time"
+
+	"leetsolv/config"
 )
 
 // MockClock implements clock.Clock for testing
@@ -32,7 +34,8 @@ func (m *MockClock) AddDays(t time.Time, days int) time.Time {
 
 func TestNewSM2Scheduler(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	// Test that scheduler is properly initialized
 	if scheduler.Clock != mockClock {
@@ -81,7 +84,8 @@ func TestNewSM2Scheduler(t *testing.T) {
 
 func TestScheduleNewQuestion(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
 		name     string
@@ -179,7 +183,8 @@ func TestScheduleNewQuestion(t *testing.T) {
 
 func TestSchedule(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
 		name     string
@@ -260,7 +265,8 @@ func TestSchedule(t *testing.T) {
 
 func TestSetEaseFactor(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
 		name     string
@@ -326,7 +332,8 @@ func TestSetEaseFactor(t *testing.T) {
 
 func TestSetEaseFactorOverduePenalty(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 20, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
 		name           string
@@ -400,7 +407,8 @@ func TestSetEaseFactorOverduePenalty(t *testing.T) {
 
 func TestSetNextReview(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
 		name         string
@@ -454,7 +462,8 @@ func TestSetNextReview(t *testing.T) {
 
 func TestCalculatePriorityScore(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	tests := []struct {
 		name     string
@@ -526,7 +535,8 @@ func TestCalculatePriorityScore(t *testing.T) {
 
 func TestSchedulerInterface(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	var scheduler Scheduler = NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	var scheduler Scheduler = NewSM2Scheduler(cfg, mockClock)
 
 	// Test that we can call interface methods
 	question := &Question{
@@ -553,7 +563,8 @@ func TestSchedulerInterface(t *testing.T) {
 
 func TestEdgeCases(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	t.Run("Question with zero interval", func(t *testing.T) {
 		question := &Question{
@@ -601,7 +612,8 @@ func TestEdgeCases(t *testing.T) {
 
 func TestMemoryMultipliers(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
-	scheduler := NewSM2Scheduler(mockClock)
+	_, cfg := config.MockEnv(t)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
 
 	question := &Question{
 		ID:          1,

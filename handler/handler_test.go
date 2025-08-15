@@ -9,8 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/errs"
+	"leetsolv/internal/logger"
 	"leetsolv/usecase"
 )
 
@@ -237,9 +239,11 @@ func (m *MockQuestionUseCase) UpdateSetting(settingName string, value interface{
 
 // setupTestHandler creates a test handler with mocked dependencies
 func setupTestHandler(t *testing.T) (*HandlerImpl, *MockIOHandler, *MockQuestionUseCase) {
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
 	mockIO := NewMockIOHandler("")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(mockIO, mockUseCase)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
 	return handler, mockIO, mockUseCase
 }
 
@@ -510,7 +514,9 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	// Create mock IO with proper input
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n3\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(mockIO, mockUseCase)
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -665,7 +671,9 @@ func TestHandler_HandleDelete_Success(t *testing.T) {
 	// Create mock IO with proper input
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(mockIO, mockUseCase)
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
 
 	// Set up successful deletion
 	deletedQuestion := &core.Question{
@@ -736,7 +744,9 @@ func TestHandler_HandleDelete_UseCaseError(t *testing.T) {
 	// Create mock IO with proper input
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(mockIO, mockUseCase)
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
 
 	// Set up use case error
 	mockUseCase.shouldError = true
@@ -763,7 +773,9 @@ func TestHandler_HandleUndo_Success(t *testing.T) {
 	// Create mock IO with proper input
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(mockIO, mockUseCase)
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
 
 	// Simulate user confirmation
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -786,7 +798,9 @@ func TestHandler_HandleUndo_Error(t *testing.T) {
 	// Create mock IO with proper input
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(mockIO, mockUseCase)
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO)
 
 	// Set up error
 	mockUseCase.shouldError = true

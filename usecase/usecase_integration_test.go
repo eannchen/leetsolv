@@ -7,16 +7,18 @@ import (
 	"leetsolv/config"
 	"leetsolv/core"
 	"leetsolv/internal/clock"
+	"leetsolv/internal/logger"
 	"leetsolv/storage"
 )
 
 // setupIntegrationTest creates a complete test environment with real dependencies
 func setupIntegrationTest(t *testing.T) (*QuestionUseCaseImpl, *config.TestConfig) {
-	testConfig := config.MockEnv(t)
+	testConfig, cfg := config.MockEnv(t)
 	mockClock := clock.NewClock()
-	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile)
-	scheduler := core.NewSM2Scheduler(mockClock)
-	useCase := NewQuestionUseCase(storage, scheduler, mockClock)
+	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
+	scheduler := core.NewSM2Scheduler(cfg, mockClock)
+	logger := logger.NewLogger(testConfig.InfoLogFile, testConfig.ErrorLogFile)
+	useCase := NewQuestionUseCase(cfg, logger, storage, scheduler, mockClock)
 	return useCase, testConfig
 }
 

@@ -14,8 +14,8 @@ import (
 
 // setupTestStorage creates a test storage with temporary files
 func setupTestStorage(t *testing.T) (*FileStorage, *config.TestConfig) {
-	testConfig := config.MockEnv(t)
-	storage := NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile)
+	testConfig, _ := config.MockEnv(t)
+	storage := NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
 	return storage, testConfig
 }
 
@@ -281,10 +281,10 @@ func TestFileStorage_AtomicWrite(t *testing.T) {
 }
 
 func TestFileStorage_LoadQuestionStore_NonExistentFile(t *testing.T) {
-	storage, _ := setupTestStorage(t)
+	storage, testConfig := setupTestStorage(t)
 
 	// Remove the file to simulate non-existent file
-	os.Remove(storage.QuestionsFile)
+	os.Remove(testConfig.QuestionsFile)
 
 	// Should not return an error for non-existent file
 	store, err := storage.LoadQuestionStore()
@@ -303,10 +303,10 @@ func TestFileStorage_LoadQuestionStore_NonExistentFile(t *testing.T) {
 }
 
 func TestFileStorage_LoadDeltas_NonExistentFile(t *testing.T) {
-	storage, _ := setupTestStorage(t)
+	storage, testConfig := setupTestStorage(t)
 
 	// Remove the file to simulate non-existent file
-	os.Remove(storage.DeltasFile)
+	os.Remove(testConfig.DeltasFile)
 
 	// Should not return an error for non-existent file
 	deltas, err := storage.LoadDeltas()
@@ -364,7 +364,7 @@ func TestFileStorage_FilePermissionIssues(t *testing.T) {
 
 	// Test with a directory that doesn't exist (more reliable than read-only permissions)
 	nonExistentDir := "/non/existent/directory"
-	storageWithBadPath := NewFileStorage(nonExistentDir+"/questions.json", testConfig.DeltasFile)
+	storageWithBadPath := NewFileStorage(nonExistentDir+"/questions.json", testConfig.DeltasFile, &config.MockFileUtil{})
 
 	store := &QuestionStore{MaxID: 2}
 	err := storageWithBadPath.SaveQuestionStore(store)

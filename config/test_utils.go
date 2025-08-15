@@ -3,7 +3,22 @@ package config
 import (
 	"os"
 	"testing"
+
 )
+
+// MockFileUtil implements FileUtil for testing
+type MockFileUtil struct {
+	loadError error
+	saveError error
+}
+
+func (m *MockFileUtil) Load(data interface{}, filename string) error {
+	return m.loadError
+}
+
+func (m *MockFileUtil) Save(data interface{}, filename string) error {
+	return m.saveError
+}
 
 // TestConfig provides a way to override configuration for testing
 type TestConfig struct {
@@ -27,8 +42,8 @@ type TestConfig struct {
 	EasePenaltyWeight   float64
 }
 
-// MockEnv creates a test environment with temporary files
-func MockEnv(t *testing.T) *TestConfig {
+// MockEnv creates a test environment with temporary files and returns a Config instance
+func MockEnv(t *testing.T) (*TestConfig, *Config) {
 	// Create temporary files for testing
 	questionsFile, err := os.CreateTemp("", "test_questions_*.json")
 	if err != nil {
@@ -69,7 +84,7 @@ func MockEnv(t *testing.T) *TestConfig {
 		os.Remove(settingsFile.Name())
 	})
 
-	return &TestConfig{
+	testConfig := &TestConfig{
 		QuestionsFile:       questionsFile.Name(),
 		DeltasFile:          deltasFile.Name(),
 		InfoLogFile:         infoLogFile.Name(),
@@ -88,30 +103,36 @@ func MockEnv(t *testing.T) *TestConfig {
 		ReviewPenaltyWeight: -1.0,  // Standard value
 		EasePenaltyWeight:   -0.5,  // Standard value
 	}
+
+	// Create a Config instance using dependency injection
+	fileUtil := &MockFileUtil{}
+	config, err := NewConfig(fileUtil)
+	if err != nil {
+		t.Fatalf("Failed to create test config: %v", err)
+	}
+
+	// Override with test values
+	config.QuestionsFile = testConfig.QuestionsFile
+	config.DeltasFile = testConfig.DeltasFile
+	config.InfoLogFile = testConfig.InfoLogFile
+	config.ErrorLogFile = testConfig.ErrorLogFile
+	config.SettingsFile = testConfig.SettingsFile
+	config.PageSize = testConfig.PageSize
+	config.MaxDelta = testConfig.MaxDelta
+	config.TopKDue = testConfig.TopKDue
+	config.TopKUpcoming = testConfig.TopKUpcoming
+	config.OverduePenalty = testConfig.OverduePenalty
+	config.OverdueLimit = testConfig.OverdueLimit
+	config.RandomizeInterval = testConfig.RandomizeInterval
+	config.ImportanceWeight = testConfig.ImportanceWeight
+	config.OverdueWeight = testConfig.OverdueWeight
+	config.FamiliarityWeight = testConfig.FamiliarityWeight
+	config.ReviewPenaltyWeight = testConfig.ReviewPenaltyWeight
+	config.EasePenaltyWeight = testConfig.EasePenaltyWeight
+
+	return testConfig, config
 }
 
-// GetTestEnv returns the test configuration as an env struct
-func (tc *TestConfig) GetTestEnv() *env {
-	return &env{
-		QuestionsFile:       tc.QuestionsFile,
-		DeltasFile:          tc.DeltasFile,
-		InfoLogFile:         tc.InfoLogFile,
-		ErrorLogFile:        tc.ErrorLogFile,
-		SettingsFile:        tc.SettingsFile,
-		PageSize:            tc.PageSize,
-		MaxDelta:            tc.MaxDelta,
-		TopKDue:             tc.TopKDue,
-		TopKUpcoming:        tc.TopKUpcoming,
-		OverduePenalty:      tc.OverduePenalty,
-		OverdueLimit:        tc.OverdueLimit,
-		RandomizeInterval:   tc.RandomizeInterval,
-		ImportanceWeight:    tc.ImportanceWeight,
-		OverdueWeight:       tc.OverdueWeight,
-		FamiliarityWeight:   tc.FamiliarityWeight,
-		ReviewPenaltyWeight: tc.ReviewPenaltyWeight,
-		EasePenaltyWeight:   tc.EasePenaltyWeight,
-	}
-}
 
 // SetTestEnvironment sets environment variables for testing
 func (tc *TestConfig) SetTestEnvironment() {

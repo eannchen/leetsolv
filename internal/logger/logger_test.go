@@ -6,21 +6,34 @@ import (
 	"testing"
 )
 
-func TestLogger_Singleton(t *testing.T) {
-	// Test that multiple calls to Logger() return the same instance
-	logger1 := Logger()
-	logger2 := Logger()
+func TestNewLogger(t *testing.T) {
+	// Test that NewLogger creates new instances with DI
+	infoPath := filepath.Join(os.TempDir(), "test_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
+	logger1 := NewLogger(infoPath, errorPath)
+	logger2 := NewLogger(infoPath, errorPath)
 
-	if logger1 != logger2 {
-		t.Error("Logger() should return the same instance on multiple calls")
+	// Should create different instances (not singleton)
+	if logger1 == logger2 {
+		t.Error("NewLogger should create different instances, not singleton")
 	}
 }
 
 func TestLogger_InstanceCreation(t *testing.T) {
-	logger := Logger()
+	infoPath := filepath.Join(os.TempDir(), "test_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
+	logger := NewLogger(infoPath, errorPath)
 
 	if logger == nil {
-		t.Fatal("Logger() returned nil")
+		t.Fatal("NewLogger returned nil")
 	}
 
 	if logger.Info == nil {
@@ -33,34 +46,49 @@ func TestLogger_InstanceCreation(t *testing.T) {
 }
 
 func TestLogger_FileCreation(t *testing.T) {
-	// Get the current working directory to check if log files are created
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get working directory: %v", err)
+	// Create temporary log files
+	infoPath := filepath.Join(os.TempDir(), "test_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+
+	// Create logger with specific paths
+	logger := NewLogger(infoPath, errorPath)
+	if logger == nil {
+		t.Fatal("NewLogger returned nil")
 	}
 
-	// Check if info log file exists (it should be created by Logger())
-	infoLogPath := filepath.Join(cwd, "logs", "info.log")
-	if _, err := os.Stat(infoLogPath); os.IsNotExist(err) {
-		t.Logf("Info log file not found at %s (this is expected if logs directory doesn't exist)", infoLogPath)
+	// Write a test message to ensure files are created
+	logger.Info.Println("Test info message")
+	logger.Error.Println("Test error message")
+
+	// Check if info log file exists
+	if _, err := os.Stat(infoPath); os.IsNotExist(err) {
+		t.Errorf("Info log file not created at %s", infoPath)
 	}
 
-	// Check if error log file exists (it should be created by Logger())
-	errorLogPath := filepath.Join(cwd, "logs", "error.log")
-	if _, err := os.Stat(errorLogPath); os.IsNotExist(err) {
-		t.Logf("Error log file not found at %s (this is expected if logs directory doesn't exist)", errorLogPath)
+	// Check if error log file exists
+	if _, err := os.Stat(errorPath); os.IsNotExist(err) {
+		t.Errorf("Error log file not created at %s", errorPath)
 	}
 }
 
 func TestLogger_ConcurrentAccess(t *testing.T) {
-	// Test that Logger() can be called concurrently without issues
+	// Test that NewLogger can be called concurrently without issues
+	infoPath := filepath.Join(os.TempDir(), "test_concurrent_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_concurrent_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
 	done := make(chan bool, 10)
 
 	for i := 0; i < 10; i++ {
 		go func() {
-			logger := Logger()
+			logger := NewLogger(infoPath, errorPath)
 			if logger == nil {
-				t.Error("Logger() returned nil in goroutine")
+				t.Error("NewLogger returned nil in goroutine")
 			}
 			done <- true
 		}()
@@ -73,7 +101,13 @@ func TestLogger_ConcurrentAccess(t *testing.T) {
 }
 
 func TestLogger_Logging(t *testing.T) {
-	logger := Logger()
+	infoPath := filepath.Join(os.TempDir(), "test_logging_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_logging_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
+	logger := NewLogger(infoPath, errorPath)
 
 	// Test that we can call logging methods without panicking
 	// Note: We can't easily test the actual output without mocking the filesystem
@@ -100,25 +134,34 @@ func TestLogger_Logging(t *testing.T) {
 	}()
 }
 
-func TestLogger_EnvironmentDependency(t *testing.T) {
-	// Test that Logger() depends on config.Env()
-	// This is an integration test that verifies the dependency
-	logger := Logger()
+func TestLogger_PathHandling(t *testing.T) {
+	// Test that NewLogger handles different path scenarios
+	infoPath := filepath.Join(os.TempDir(), "test_path_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_path_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
+	logger := NewLogger(infoPath, errorPath)
 
-	// The logger should be created successfully even if config.Env() fails
-	// (it would use default values or fail gracefully)
+	// The logger should be created successfully with valid paths
 	if logger == nil {
-		t.Error("Logger() should handle config.Env() gracefully")
+		t.Error("NewLogger should handle valid paths gracefully")
 	}
 }
 
 func TestLogger_FilePermissions(t *testing.T) {
 	// Test that log files are created with appropriate permissions
-	// Note: This test may not work in all environments due to file permissions
-	logger := Logger()
+	infoPath := filepath.Join(os.TempDir(), "test_perms_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_perms_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
+	logger := NewLogger(infoPath, errorPath)
 
 	if logger == nil {
-		t.Fatal("Logger() returned nil")
+		t.Fatal("NewLogger returned nil")
 	}
 
 	// The logger should be functional even if we can't check file permissions
@@ -127,18 +170,30 @@ func TestLogger_FilePermissions(t *testing.T) {
 }
 
 func TestLogger_RepeatedCalls(t *testing.T) {
-	// Test that calling Logger() multiple times doesn't cause issues
+	// Test that calling NewLogger multiple times doesn't cause issues
+	infoPath := filepath.Join(os.TempDir(), "test_repeated_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_repeated_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
 	for i := 0; i < 100; i++ {
-		logger := Logger()
+		logger := NewLogger(infoPath, errorPath)
 		if logger == nil {
-			t.Errorf("Logger() returned nil on call %d", i)
+			t.Errorf("NewLogger returned nil on call %d", i)
 		}
 	}
 }
 
 func TestLogger_InterfaceCompliance(t *testing.T) {
 	// Test that the logger struct has the expected fields and methods
-	logger := Logger()
+	infoPath := filepath.Join(os.TempDir(), "test_interface_info.log")
+	errorPath := filepath.Join(os.TempDir(), "test_interface_error.log")
+	
+	defer os.Remove(infoPath)
+	defer os.Remove(errorPath)
+	
+	logger := NewLogger(infoPath, errorPath)
 
 	// Test Info logger
 	if logger.Info == nil {
