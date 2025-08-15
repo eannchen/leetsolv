@@ -2,9 +2,25 @@
 
 This comprehensive guide covers the CI/CD pipeline, installation system, and GitHub Flow workflow for LeetSolv development.
 
-## 🚀 Quick Start
+## 🚀 Quick Start for Developers
 
-### 1. Create Your First Release
+### 1. Setup Development Environment
+```bash
+# Clone the repository
+git clone https://github.com/eannchen/leetsolv.git
+cd leetsolv
+
+# Install dependencies
+go mod download
+
+# Run tests
+make test
+
+# Build locally
+make build
+```
+
+### 2. Create Your First Release
 ```bash
 # Create and push a tag (recommended for development)
 git tag -a v0.1.0-alpha -m "Alpha release - development version"
@@ -15,15 +31,7 @@ git push origin v0.1.0-alpha
 # Click "Create a new release" and select the tag
 ```
 
-### 2. Install LeetSolv
-```bash
-# Linux/macOS
-curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
-
-# Windows (PowerShell)
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.ps1' -OutFile 'install.ps1'
-.\install.ps1
-```
+> **Note**: For installation instructions, see [INSTALL.md](INSTALL.md)
 
 ## 📁 File Structure
 
@@ -36,9 +44,10 @@ leetsolv/
 ├── uninstall.sh                      # Linux/macOS uninstall script
 ├── uninstall.bat                     # Windows batch uninstall script
 ├── Makefile                          # Enhanced build system
-├── INSTALL.md                        # Installation guide
-├── RELEASE.md                        # Release workflow guide
-└── DEVELOPMENT_GUIDE.md              # This file
+├── document/
+│   ├── INSTALL.md                    # Installation guide
+│   └── DEVELOPMENT_GUIDE.md          # This file
+└── README.md                         # Project overview
 ```
 
 ## 🌿 GitHub Flow Workflow
@@ -303,38 +312,15 @@ The CI pipeline automatically injects version information:
 - `BuildTime`: Build timestamp
 - `GitCommit`: Git commit hash
 
-## 📱 Installation System
+## 📱 Installation System Overview
 
-### Installation Scripts
+The project includes automated installation scripts for all platforms. For detailed installation instructions, see [INSTALL.md](INSTALL.md).
 
-#### Linux/macOS (`install.sh`)
-- **Features**: Cross-platform detection, automatic download, PATH management
-- **Installation**: `/usr/local/bin` (system-wide) or `~/.local/bin` (user)
-- **Options**: `--help`, `--version`, `--uninstall`
-
-#### Windows Command Prompt (`install.bat`)
-- **Features**: Windows batch script, PowerShell fallback
-- **Installation**: `%USERPROFILE%\AppData\Local\Programs\leetsolv`
-- **PATH**: Automatically added to user PATH
-
-#### Windows PowerShell (`install.ps1`)
-- **Features**: Modern PowerShell, better error handling
-- **Execution Policy**: Checks and guides user through restrictions
-- **Options**: `-Help`, `-Version`, `-Uninstall`
-
-### Uninstall Scripts
-
-#### Linux/macOS (`uninstall.sh`)
-- **Features**: Automatic detection, backup creation, PATH cleanup
-- **Options**: `--help`, `--force`, `--config-only`
-- **Safety**: Confirms before removal, creates backups
-
-#### Windows (`uninstall.bat`)
-- **Features**: Windows-specific cleanup, directory cleanup
-- **Options**: `--help`, `--force`, `--config-only`
-- **Safety**: Confirms before removal, creates backups
-
-## 🔧 Configuration
+### Installation Script Features
+- **Cross-platform**: Linux, macOS, Windows support
+- **Automatic detection**: Platform and architecture detection
+- **PATH management**: Automatic PATH configuration
+- **Uninstall support**: Dedicated uninstall scripts with backup creation
 
 ### Installation Locations
 - **Linux/macOS**: `/usr/local/bin` (system) or `~/.local/bin` (user)
@@ -631,10 +617,11 @@ gh run rerun <run-id>
 ## 🆘 Support
 
 ### Getting Help
-1. Check the documentation files
-2. Run `leetsolv help` for command information
-3. Check GitHub Issues for known problems
-4. Review CI/CD logs for build failures
+1. **Installation**: See [INSTALL.md](INSTALL.md)
+2. **Development**: This guide
+3. Run `leetsolv help` for command information
+4. Check GitHub Issues for known problems
+5. Review CI/CD logs for build failures
 
 ### Contributing
 1. Fork the repository

@@ -210,27 +210,13 @@ rmdir /s /q "%USERPROFILE%\.leetsolv"  # Windows
 
 ## Development Installation
 
-For developers who want to work on LeetSolv:
-
-```bash
-# Clone the repository
-git clone https://github.com/eannchen/leetsolv.git
-cd leetsolv
-
-# Install dependencies
-go mod download
-
-# Run tests
-make test
-
-# Build and run
-make build
-./leetsolv
-```
+For developers who want to work on LeetSolv, see the [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) for complete development setup instructions.
 
 ## Support
 
-- **Documentation**: [README.md](README.md)
+- **Installation Help**: This guide
+- **Development Guide**: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)
+- **Documentation**: [README.md](../README.md)
 - **Issues**: [GitHub Issues](https://github.com/eannchen/leetsolv/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
 
