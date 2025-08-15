@@ -177,161 +177,24 @@ graph TD
     style K fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
 ```
 
-## 🚀 Installation
+## 🚀 Quick Installation
 
-### Prerequisites
-- **Go 1.25.0 or later** (for building from source)
-- **Git** (for cloning the repository)
-- **Internet connection** (for downloading releases)
-
-### Method 1: Quick Installation (Recommended)
-
-#### Linux/macOS
+### One-Command Install
 ```bash
-# One-command installation
+# Linux/macOS
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 
-# Or download first, then run
-wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
-chmod +x install.sh
-./install.sh
+# Windows (PowerShell)
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.ps1' -OutFile 'install.ps1'; .\install.ps1
 ```
 
-#### Windows
-```cmd
-# Command Prompt
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.bat' -OutFile 'install.bat'"
-install.bat
-
-# PowerShell
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.ps1' -OutFile 'install.ps1'
-.\install.ps1
-```
-
-### Method 2: Build from Source
-
-#### Clone and Build
+### Verify Installation
 ```bash
-# Clone the repository
-git clone https://github.com/eannchen/leetsolv.git
-cd leetsolv
-
-# Build the application
-make build
-
-# Or use Go directly
-go build -o leetsolv .
-
-# Make executable (Linux/macOS)
-chmod +x leetsolv
-
-# Install locally
-make install
-```
-
-> **💡 Zero Dependencies**: Check out `go.mod` - you'll see only Go standard library imports. Every data structure and algorithm is implemented from scratch!
-
-#### Quick Development Commands
-```bash
-# Development mode (uses test files)
-make dev
-
-# Production mode (uses production files)
-make prod
-
-# Show available make targets
-make help
-
-# Run tests
-make test
-```
-
-### Method 3: Manual Download
-
-1. Go to the [Releases page](https://github.com/eannchen/leetsolv/releases)
-2. Download the appropriate binary for your platform
-3. Make it executable (Linux/macOS): `chmod +x leetsolv-<platform>`
-4. Move it to a directory in your PATH or run it directly
-
-### Platform Support
-
-| Platform | Architecture  | Binary Name                  |
-| -------- | ------------- | ---------------------------- |
-| Linux    | AMD64         | `leetsolv-linux-amd64`       |
-| Linux    | ARM64         | `leetsolv-linux-arm64`       |
-| macOS    | Intel         | `leetsolv-darwin-amd64`      |
-| macOS    | Apple Silicon | `leetsolv-darwin-arm64`      |
-| Windows  | AMD64         | `leetsolv-windows-amd64.exe` |
-| Windows  | ARM64         | `leetsolv-windows-arm64.exe` |
-
-### Verification
-
-After installation, verify that LeetSolv is working:
-
-```bash
-# Check if the command is available
 leetsolv --version
-
-# Or run the version command
-leetsolv version
-
-# Check the help
 leetsolv help
 ```
 
-### Configuration
-
-LeetSolv will create its configuration directory at:
-- **Linux/macOS**: `~/.leetsolv/`
-- **Windows**: `%USERPROFILE%\.leetsolv\`
-
-Configuration files will be created automatically when you first run the application.
-
-#### Runtime Configuration
-```bash
-# View current settings
-leetsolv setting
-
-# Modify specific settings
-leetsolv setting randomizeinterval false
-leetsolv setting overduepenalty true
-leetsolv setting overduelimit 10
-```
-
-#### Configuration Persistence
-- **Environment Variables**: Override defaults at startup
-- **Settings File**: Persistent configuration stored in `settings.json`
-- **Runtime Updates**: Modify settings without restarting the application
-
-> **📖 For detailed installation instructions, troubleshooting, and uninstallation, see [INSTALL.md](INSTALL.md)**
-
-### Quick Troubleshooting
-
-#### Common Issues
-
-**Permission Denied (Linux/macOS)**
-```bash
-chmod +x leetsolv
-```
-
-**Command Not Found**
-```bash
-# Check if binary is in PATH
-which leetsolv
-
-# Add to PATH temporarily
-export PATH="$PATH:/path/to/leetsolv"
-```
-
-**Windows Execution Policy Error**
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-**Go Version Issues**
-```bash
-go version  # Should be 1.25.0 or later
-```
+> **📖 For detailed installation options, troubleshooting, and platform-specific instructions, see [INSTALL.md](document/INSTALL.md)**
 
 ## 📖 Usage
 
@@ -423,55 +286,21 @@ leetsolv ❯
 
 ## 🔧 Development
 
-### Project Setup
+### Quick Development Setup
 ```bash
-# Install dependencies
-go mod tidy
+# Clone and setup
+git clone https://github.com/eannchen/leetsolv.git
+cd leetsolv
+go mod download
 
 # Run tests
-go test ./...
+make test
 
-# Run specific test
-go test ./usecase -v
-
-# Run integration tests
-go test ./usecase -tags=integration
+# Build locally
+make build
 ```
 
-### Architecture Principles
-
-#### Clean Architecture
-- **Separation of Concerns**: Clear boundaries between layers
-- **Dependency Inversion**: High-level modules don't depend on low-level modules
-- **Interface Segregation**: Small, focused interfaces
-- **Single Responsibility**: Each component has one clear purpose
-
-#### Design Patterns
-- **Command Pattern**: Extensible command system
-- **Strategy Pattern**: Pluggable scheduling algorithms
-- **Repository Pattern**: Abstracted data access
-- **Factory Pattern**: Dependency creation and management
-
-#### Error Handling
-- **Structured Errors**: Coded error types with context
-- **Graceful Degradation**: Application continues working despite errors
-- **Comprehensive Logging**: Detailed error tracking and debugging
-
-### Testing Strategy
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: End-to-end workflow testing with `-tags=integration`
-- **Test Utilities**: Reusable test helpers and mocks
-- **Coverage Goals**: High test coverage for critical paths
-- **Mock Clock**: Time abstraction for deterministic testing
-- **Test Data Management**: Separate test and production data files
-
-### Code Quality
-- **Go Best Practices**: Following Go idioms and conventions
-- **Error Handling**: Structured error types with context and recovery
-- **Logging System**: Comprehensive logging with configurable levels
-- **Documentation**: Comprehensive code documentation
-- **Consistent Formatting**: Go fmt and linting compliance
-- **Graceful Degradation**: Application continues working despite errors
+> **📖 For complete development workflow, CI/CD setup, and contribution guidelines, see [DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**
 
 ## 📊 Data Model
 
@@ -777,49 +606,31 @@ graph TD
 ## 🤝 Contributing
 
 ### Why Zero Dependencies?
-**🚀 Educational & Customizable**: LeetSolv's zero-dependency approach makes it perfect for:
+**🚀 Educational & Customizable**: Every algorithm is implemented from scratch for learning and customization.
 
-- **Learning DSA**: Every algorithm is implemented from scratch, providing deep insights into how they work
-- **Performance Tuning**: Custom implementations allow for optimizations beyond theoretical complexity
-- **Easy Modification**: Developers can easily modify the SRS algorithm, scoring system, or data structures
-- **Language Porting**: Simple to port to other languages since there are no external library dependencies
-- **Understanding Trade-offs**: Full visibility into implementation choices and their performance implications
-
-### Development Workflow
+### Quick Contribution Guide
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+3. Make your changes with tests
+4. Submit a pull request
 
-### Code Standards
-- Follow Go formatting standards (`go fmt`)
-- Run linter checks (`golangci-lint`)
-- Maintain test coverage
-- Add documentation for new features
-
-### Upcoming Development Areas
-- **Tag System Implementation**: Help build the tagging infrastructure
-- **Export Functionality**: Implement data export in various formats
-- **SRS Algorithm Customization**: Create interactive tools for algorithm tuning
-- **Performance Optimizations**: Improve existing data structures and algorithms
+> **📖 For detailed development workflow, architecture principles, and coding standards, see [DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**
 
 ## 📝 License
 
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
-## 🆘 Support
+## 🆘 Support & Documentation
 
-### Common Issues
-- **File Permissions**: Ensure write access to data files
-- **Data Corruption**: Use `undo` command or restore from backup
-- **Performance**: Check file sizes and consider cleanup
+### 📚 Documentation
+- **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
+- **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
+- **This README**: Project overview and quick start
 
-### Getting Help
-- Check existing issues in the repository
-- Review the code documentation
-- Run with verbose logging for debugging
+### 🔗 Links
+- **Issues**: [GitHub Issues](https://github.com/eannchen/leetsolv/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
+- **Releases**: [GitHub Releases](https://github.com/eannchen/leetsolv/releases)
 
 ---
 
