@@ -3,6 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main]
+    tags:
+      - "v*"
   pull_request:
     branches: [main]
   # It’s triggered when you publish a release in GitHub’s web UI or API.
@@ -106,10 +108,10 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
+          if [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
           else
             echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
           fi
@@ -124,12 +126,12 @@ jobs:
         run: |
           # Create build directory
           mkdir -p dist
-          
+
           # Get build information
           BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           GIT_COMMIT=$(git rev-parse --short HEAD)
           VERSION="${{ steps.get_version.outputs.version }}"
-          
+
           # Build flags with all version information
           LDFLAGS="-s -w -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitCommit=${GIT_COMMIT}"
 
@@ -153,14 +155,10 @@ jobs:
           sha256sum leetsolv-* > checksums.txt
 
       # Saves the compiled binaries & checksums to GitHub’s artifact storage.
-      # name: includes the version so artifacts are easy to match later.
-      # Kept for 30 days — useful for:
-      #   Testing before release.
-      #   Manual download without re-building.
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: leetsolv-${{ steps.get_version.outputs.version }}
+          name: build-artifacts
           path: dist/
           retention-days: 30
 
@@ -186,7 +184,8 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: leetsolv-${{ github.event.release.tag_name }}
+          name: build-artifacts
+          path: dist/
 
       # softprops/action-gh-release:
       #   Talks to the GitHub Releases API.
