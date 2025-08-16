@@ -3,7 +3,6 @@ package config
 import (
 	"os"
 	"testing"
-
 )
 
 // MockFileUtil implements FileUtil for testing
@@ -132,7 +131,6 @@ func MockEnv(t *testing.T) (*TestConfig, *Config) {
 
 	return testConfig, config
 }
-
 
 // SetTestEnvironment sets environment variables for testing
 func (tc *TestConfig) SetTestEnvironment() {

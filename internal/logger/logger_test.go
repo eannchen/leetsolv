@@ -10,10 +10,10 @@ func TestNewLogger(t *testing.T) {
 	// Test that NewLogger creates new instances with DI
 	infoPath := filepath.Join(os.TempDir(), "test_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	logger1 := NewLogger(infoPath, errorPath)
 	logger2 := NewLogger(infoPath, errorPath)
 
@@ -26,10 +26,10 @@ func TestNewLogger(t *testing.T) {
 func TestLogger_InstanceCreation(t *testing.T) {
 	infoPath := filepath.Join(os.TempDir(), "test_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	logger := NewLogger(infoPath, errorPath)
 
 	if logger == nil {
@@ -49,7 +49,7 @@ func TestLogger_FileCreation(t *testing.T) {
 	// Create temporary log files
 	infoPath := filepath.Join(os.TempDir(), "test_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
 
@@ -78,10 +78,10 @@ func TestLogger_ConcurrentAccess(t *testing.T) {
 	// Test that NewLogger can be called concurrently without issues
 	infoPath := filepath.Join(os.TempDir(), "test_concurrent_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_concurrent_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	done := make(chan bool, 10)
 
 	for i := 0; i < 10; i++ {
@@ -103,10 +103,10 @@ func TestLogger_ConcurrentAccess(t *testing.T) {
 func TestLogger_Logging(t *testing.T) {
 	infoPath := filepath.Join(os.TempDir(), "test_logging_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_logging_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	logger := NewLogger(infoPath, errorPath)
 
 	// Test that we can call logging methods without panicking
@@ -138,10 +138,10 @@ func TestLogger_PathHandling(t *testing.T) {
 	// Test that NewLogger handles different path scenarios
 	infoPath := filepath.Join(os.TempDir(), "test_path_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_path_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	logger := NewLogger(infoPath, errorPath)
 
 	// The logger should be created successfully with valid paths
@@ -154,10 +154,10 @@ func TestLogger_FilePermissions(t *testing.T) {
 	// Test that log files are created with appropriate permissions
 	infoPath := filepath.Join(os.TempDir(), "test_perms_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_perms_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	logger := NewLogger(infoPath, errorPath)
 
 	if logger == nil {
@@ -173,10 +173,10 @@ func TestLogger_RepeatedCalls(t *testing.T) {
 	// Test that calling NewLogger multiple times doesn't cause issues
 	infoPath := filepath.Join(os.TempDir(), "test_repeated_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_repeated_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	for i := 0; i < 100; i++ {
 		logger := NewLogger(infoPath, errorPath)
 		if logger == nil {
@@ -189,10 +189,10 @@ func TestLogger_InterfaceCompliance(t *testing.T) {
 	// Test that the logger struct has the expected fields and methods
 	infoPath := filepath.Join(os.TempDir(), "test_interface_info.log")
 	errorPath := filepath.Join(os.TempDir(), "test_interface_error.log")
-	
+
 	defer os.Remove(infoPath)
 	defer os.Remove(errorPath)
-	
+
 	logger := NewLogger(infoPath, errorPath)
 
 	// Test Info logger

@@ -393,7 +393,7 @@ func TestSetEaseFactorOverduePenalty(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set the overdue limit for this test
 			scheduler.cfg.OverdueLimit = tt.overdueLimit
-			
+
 			originalEaseFactor := tt.question.EaseFactor
 			scheduler.setEaseFactorOverduePenalty(tt.question)
 

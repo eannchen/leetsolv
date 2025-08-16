@@ -7,7 +7,6 @@ import (
 	"leetsolv/internal/fileutil"
 )
 
-
 func TestNewConfig(t *testing.T) {
 	// Test that NewConfig creates a new instance with DI
 	fileUtil := &MockFileUtil{}
@@ -15,12 +14,12 @@ func TestNewConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create config: %v", err)
 	}
-	
+
 	config2, err := NewConfig(fileUtil)
 	if err != nil {
 		t.Fatalf("Failed to create config: %v", err)
 	}
-	
+
 	// Should create different instances (not singleton)
 	if config1 == config2 {
 		t.Error("NewConfig should create different instances, not singleton")

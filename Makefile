@@ -27,7 +27,7 @@ prod:
 # Clean all data files and build artifacts
 clean:
 	@echo "Removing all testing data files and build artifacts..."
-	@rm -f questions.test.json deltas.test.json info.test.log error.test.log
+	@rm -f questions.dev.json deltas.dev.json info.dev.log error.dev.log coverage.html coverage.out
 	@rm -rf dist/
 	@rm -f leetsolv
 	@echo "Clean complete!"
