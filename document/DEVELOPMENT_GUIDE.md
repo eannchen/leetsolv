@@ -4,14 +4,23 @@ This comprehensive guide covers the CI/CD pipeline, installation system, and Git
 
 ## 🚀 Quick Start for Developers
 
-### 1. Setup Development Environment
+### 1. Install Go
+
+```bash
+# Install Go (macOS)
+brew install go
+```
+
+Or download from [official website](https://golang.org/dl/).
+
+### 2. Run in Development Mode
 ```bash
 # Clone the repository
 git clone https://github.com/eannchen/leetsolv.git
 cd leetsolv
 
-# Install dependencies
-go mod download
+# Run in development mode
+make dev
 
 # Run tests
 make test
@@ -19,19 +28,6 @@ make test
 # Build locally
 make build
 ```
-
-### 2. Create Your First Release
-```bash
-# Create and push a tag (recommended for development)
-git tag -a v0.1.0-alpha -m "Alpha release - development version"
-git push origin v0.1.0-alpha
-
-# Create a GitHub release from the tag
-# Go to: https://github.com/eannchen/leetsolv/releases
-# Click "Create a new release" and select the tag
-```
-
-> **Note**: For installation instructions, see [INSTALL.md](INSTALL.md)
 
 ## 📁 File Structure
 
@@ -55,9 +51,8 @@ leetsolv/
 ### Branch Structure
 
 #### `main` Branch
-- **Purpose**: Production-ready, stable code
-- **Content**: Only tested, verified, and released code
-- **Protection**: Should be protected, require PR reviews
+- **Content**: Only tested, verified, and production-ready code
+- **Protection**: Protected, require PR reviews
 - **Tags**: Release tags are created from this branch
 - **Merges**: Feature branches merge directly to main
 
@@ -89,7 +84,7 @@ git checkout main
 git pull origin main
 ```
 
-### 2. Feature Development
+### 2. Development
 
 ```bash
 # Start from main branch
@@ -98,15 +93,18 @@ git pull origin main
 
 # Create feature branch
 git checkout -b feature/new-command
+# Or create bug fix branch `git checkout -b hotfix/test-failures`
+
 # ... make your changes ...
+
+# Run local tests to ensure everything works
+make test
+make lint
+make build
 
 # Commit with conventional commit format
 git add .
-git commit -m "feat: add new command functionality
-
-- Implements new 'search' command
-- Adds fuzzy search capabilities
-- Updates help documentation"
+git commit -m "feat: add new command functionality"
 
 # Push feature branch
 git push origin feature/new-command
@@ -115,10 +113,10 @@ git push origin feature/new-command
 # Source: feature/new-command → Target: main
 ```
 
-### 3. Code Review and Integration
+### 3. After PR Merged
 
 ```bash
-# After PR is approved and merged
+# Switch back to main branch
 git checkout main
 git pull origin main
 
@@ -129,31 +127,7 @@ git branch -d feature/new-command
 git push origin --delete feature/new-command
 ```
 
-### 4. Testing and Validation
-
-```bash
-# CI/CD automatically runs on main branch
-# Run local tests to ensure everything works
-make test
-make lint
-make build
-
-# If issues found, create a new feature branch to fix them
-git checkout -b fix/test-failures
-# ... fix issues ...
-git add .
-git commit -m "fix: resolve test failures in new command"
-git push origin fix/test-failures
-# Create PR to merge fix back to main
-```
-
-### 5. Release Preparation
-
-Before creating a release, ensure:
-- All tests pass: `make test`
-- Code is formatted: `make lint`
-- Version information is updated in `main.go`
-- CHANGELOG.md is updated with new features/fixes
+### 4. Release Preparation
 
 ```bash
 # When ready for release, create a tag from main
@@ -161,14 +135,8 @@ git checkout main
 git pull origin main
 
 # Create release tag
-git tag -a v0.1.0-alpha -m "Alpha release - development version
-
-- New search command functionality
-- Improved error handling
-- Updated documentation
-
-This is an alpha release for testing purposes."
-git push origin v0.1.0-alpha
+git tag -a v0.1.0-beta -m "Beta release - ready for testing"
+git push origin v0.1.0-beta
 
 # Create GitHub Release
 # 1. Go to https://github.com/eannchen/leetsolv/releases
@@ -178,56 +146,8 @@ git push origin v0.1.0-alpha
 # 5. Click "Publish release"
 ```
 
-#### Manual Release Process
+The tag style follows [Semantic Versioning](https://semver.org/).
 
-If you need to create a release manually:
-
-```bash
-# Build for all platforms
-make build-all
-
-# Create checksums
-cd dist
-sha256sum leetsolv-* > checksums.txt
-
-# Upload to GitHub release manually
-```
-
-### 6. Hotfix Process (if needed)
-
-```bash
-# For critical bugs that need immediate fix
-git checkout main
-git pull origin main
-git checkout -b hotfix/critical-bug
-# ... fix the critical bug ...
-
-# Test the fix
-make test
-make build
-
-# Commit the fix
-git add .
-git commit -m "fix: resolve critical bug in search functionality
-
-- Fixes crash when searching with empty query
-- Adds input validation
-- Updates error messages"
-
-# Push and create PR
-git push origin hotfix/critical-bug
-# Create PR: hotfix/critical-bug → main
-
-# After PR is merged, create hotfix tag
-git checkout main
-git pull origin main
-git tag -a v0.1.1 -m "Hotfix release - critical bug fix"
-git push origin v0.1.1
-
-# Delete hotfix branch
-git branch -d hotfix/critical-bug
-git push origin --delete hotfix/critical-bug
-```
 
 ## 🔄 CI/CD Pipeline
 
@@ -277,7 +197,7 @@ git push origin --delete hotfix/critical-bug
 
 ## 🛠️ Build System
 
-### Enhanced Makefile
+### Makefile
 ```bash
 make build        # Build for current platform
 make build-all    # Build for all platforms
@@ -318,7 +238,6 @@ The project includes automated installation scripts for all platforms. For detai
 
 ### Installation Script Features
 - **Cross-platform**: Linux, macOS, Windows support
-- **Automatic detection**: Platform and architecture detection
 - **PATH management**: Automatic PATH configuration
 - **Uninstall support**: Dedicated uninstall scripts with backup creation
 
@@ -331,6 +250,10 @@ The project includes automated installation scripts for all platforms. For detai
 - **Windows**: `%USERPROFILE%\.leetsolv\`
 
 ## 🏷️ Tagging Strategy
+
+### Semantic Versioning
+
+The versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Version Naming Convention
 
@@ -390,53 +313,6 @@ git tag -a v0.1.0-alpha -m "Alpha release - development version
 - ✅ Restrict pushes that create files larger than 100 MB
 - ✅ Include administrators in these restrictions
 
-## 🔍 Useful Git Commands
-
-### Branch Management
-```bash
-# List all branches
-git branch -a
-
-# See branch relationships
-git log --graph --oneline --all
-
-# Check which branch you're on
-git branch
-
-# See remote tracking
-git branch -vv
-```
-
-### Tag Management
-```bash
-# List all tags
-git tag -l
-
-# See tag details
-git show v0.1.0-alpha
-
-# Delete local tag
-git tag -d v0.1.0-alpha
-
-# Delete remote tag
-git push origin --delete v0.1.0-alpha
-```
-
-### History and Comparison
-```bash
-# See commit history
-git log --oneline -10
-
-# Compare feature branch with main
-git diff main..feature/my-feature
-
-# See what's in feature branch but not in main
-git log main..feature/my-feature
-
-# See what's in main but not in feature branch
-git log feature/my-feature..main
-```
-
 ## 📚 Best Practices
 
 ### 1. Commit Messages
@@ -465,154 +341,17 @@ git log feature/my-feature..main
 ### 5. Release Management
 - Use semantic versioning (v1.0.0 format)
 - Create detailed release notes with meaningful descriptions
-- Test release builds before publishing
 - Keep release history clean and organized
 - Always test locally before releasing
 - Update documentation with new features
 - Keep CHANGELOG.md updated
 
-## 🚨 Common Pitfalls
-
-### 1. Direct Commits to Main
-- ❌ Never commit directly to main
-- ✅ Always use pull requests
-- ✅ Require code review
-
-### 2. Large Feature Branches
-- ❌ Long-lived feature branches that diverge too much
-- ✅ Keep feature branches small and focused
-- ✅ Merge frequently to main
-
-### 3. Incomplete Testing
-- ❌ Releasing without proper testing
-- ✅ Run full test suite
-- ✅ Test on multiple platforms
-
-### 4. Poor Tag Messages
-- ❌ Generic tag messages
-- ✅ Detailed release notes
-- ✅ Include what's new and breaking changes
-
-## 🔧 Troubleshooting
-
-### Merge Conflicts
-```bash
-# Abort merge if needed
-git merge --abort
-
-# See conflict files
-git status
-
-# Resolve conflicts manually
-# Edit conflicted files, then:
-git add .
-git commit -m "resolve merge conflicts"
-```
-
-### Lost Commits
-```bash
-# Find lost commits
-git reflog
-
-# Recover lost commit
-git checkout -b recovery <commit-hash>
-```
-
-### Branch Cleanup
-```bash
-# Delete merged branches
-git branch --merged | grep -v "\*" | xargs -n 1 git branch -d
-
-# Delete remote branches that no longer exist
-git remote prune origin
-```
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### CI/CD Failures
-- Check Go version compatibility
-- Verify workflow file syntax
-- Check GitHub Actions logs
-
-#### Build Failures
-- Check Go version compatibility
-- Verify all dependencies are available
-- Check for platform-specific code
-
-#### Test Failures
-- Run tests locally: `make test` (with race detection)
-- For platforms without race support: `make test-no-race`
-- Check for race conditions: `go test -race` (requires CGO_ENABLED=1)
-- Verify test data files
-
-#### Release Failures
-- Ensure GitHub token has release permissions
-- Check tag format (should be semantic versioning)
-- Verify workflow file syntax
-
-#### Installation Issues
-- Ensure scripts are executable (`chmod +x install.sh`)
-- Check PATH environment variable
-- Verify platform compatibility
-
-#### Build Issues
-- Run `make test` locally first
-- Check Go version (`go version`)
-- Verify dependencies (`go mod download`)
-
-### Debugging Commands
-```bash
-# Check installation
-which leetsolv
-leetsolv version
-
-# Check configuration
-ls -la ~/.leetsolv/
-
-# Test build locally
-make build
-./leetsolv help
-
-# Check workflow runs
-gh run list
-
-# View workflow logs
-gh run view <run-id>
-
-# Re-run failed workflow
-gh run rerun <run-id>
-```
-
-## 🔒 Security Features
-
-- **Checksums**: SHA256 verification for all binaries
-- **Backups**: Automatic backup creation before uninstallation
-- **Permissions**: Proper file permissions and PATH management
-- **Verification**: Installation verification and integrity checks
-
-### Security Best Practices
-
-- Never commit sensitive information
-- Use GitHub secrets for API keys
-- Verify checksums before installing
-- Keep dependencies updated
-
 ## 📈 Future Enhancements
 
 ### Potential Improvements
-1. **Code signing** for macOS and Windows
-2. **Docker images** for containerized deployment
-3. **Package managers** (Homebrew, Chocolatey, apt)
-4. **Auto-updater** functionality
-5. **CI/CD matrix** expansion (more Go versions)
-
-### Monitoring
-- **Code coverage** tracking
-- **Build success rates** monitoring
-- **Release download** statistics
-- **User feedback** collection
+1. **Package managers** (Homebrew, Chocolatey, apt)
+2. **Auto-updater** functionality
+3. **CI/CD matrix** expansion (more Go versions)
 
 ## 🆘 Support
 
@@ -630,5 +369,3 @@ gh run rerun <run-id>
 4. Submit a pull request to `main`
 
 ---
-
-**Note**: This system uses GitHub Flow for simplified development workflow. The CI/CD pipeline ensures quality, while the installation scripts provide a seamless user experience across all platforms.
