@@ -190,7 +190,7 @@ Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main
 
 ### Verify Installation
 ```bash
-leetsolv --version
+leetsolv version
 leetsolv help
 ```
 

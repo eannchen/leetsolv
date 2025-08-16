@@ -2,17 +2,10 @@
 
 This guide explains how to install LeetSolv on your system using various methods.
 
-## Prerequisites
-
-- **Go 1.25.0 or later** (for building from source)
-- **Git** (for cloning the repository)
-- **Internet connection** (for downloading releases)
-
 ## Installation Methods
 
-### Method 1: Using Installation Scripts (Recommended)
+### Method 1: Using Installation Scripts (Linux/macOS)
 
-#### Linux/macOS
 ```bash
 # Download and run the installation script
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
@@ -23,24 +16,29 @@ chmod +x install.sh
 ./install.sh
 ```
 
-#### Windows (Command Prompt)
-```cmd
-# Download and run the batch file
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.bat' -OutFile 'install.bat'"
-install.bat
-```
+1. The script will install the binary to `/usr/local/bin`.
+2. Binary Selection:
+   | Operating System   | Processor     | uname -s Output | uname -m Output | Final Binary Name     |
+   | ------------------ | ------------- | --------------- | --------------- | --------------------- |
+   | Ubuntu/Debian/etc. | Intel / AMD   | Linux           | x86_64          | leetsolv-linux-amd64  |
+   | Ubuntu/Debian/etc. | ARM           | Linux           | aarch64         | leetsolv-linux-arm64  |
+   | macOS              | Intel         | Darwin          | x86_64          | leetsolv-darwin-amd64 |
+   | macOS              | Apple Silicon | Darwin          | arm64           | leetsolv-darwin-arm64 |
 
-#### Windows (PowerShell)
-```powershell
-# Download and run the PowerShell script
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.ps1' -OutFile 'install.ps1'
-.\install.ps1
+### Method 2: Manual Download (Linux/macOS/Windows)
 
-# If you get execution policy errors, run:
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
+1. Go to the [Releases page](https://github.com/eannchen/leetsolv/releases)
+2. Download the appropriate binary for your platform
+3. Make it executable (Linux/macOS): `chmod +x leetsolv-<platform>`
+4. Move it to a directory in your PATH or run it directly
 
-### Method 2: Building from Source
+### Method 3: Building from Source
+
+#### Prerequisites
+
+- **Git**
+- **Go 1.25.0 or later**
+
 
 #### Clone the Repository
 ```bash
@@ -55,43 +53,13 @@ make build
 
 # Or build for all platforms
 make build-all
-
-# Or use Go directly
-go build -o leetsolv
 ```
 
 #### Install Locally
 ```bash
 # Install to your Go bin directory
 make install
-
-# Or use Go directly
-go install
 ```
-
-### Method 3: Manual Download
-
-1. Go to the [Releases page](https://github.com/eannchen/leetsolv/releases)
-2. Download the appropriate binary for your platform
-3. Make it executable (Linux/macOS): `chmod +x leetsolv-<platform>`
-4. Move it to a directory in your PATH or run it directly
-
-## Platform-Specific Instructions
-
-### Linux
-- **Ubuntu/Debian**: The installation script will install to `/usr/local/bin`
-- **CentOS/RHEL**: Same as Ubuntu
-- **Arch Linux**: Can use AUR or the installation script
-
-### macOS
-- **Intel Macs**: Use the `darwin-amd64` binary
-- **Apple Silicon**: Use the `darwin-arm64` binary
-- The installation script will install to `/usr/local/bin`
-
-### Windows
-- **Windows 10/11**: Use the `windows-amd64.exe` binary
-- **Windows ARM**: Use the `windows-arm64.exe` binary
-- The installation scripts will install to `%USERPROFILE%\AppData\Local\Programs\leetsolv`
 
 ## Verification
 
@@ -99,9 +67,6 @@ After installation, verify that LeetSolv is working:
 
 ```bash
 # Check if the command is available
-leetsolv --version
-
-# Or run the version command
 leetsolv version
 
 # Check the help
@@ -110,11 +75,15 @@ leetsolv help
 
 ## Configuration
 
-LeetSolv will create its configuration directory at:
-- **Linux/macOS**: `~/.leetsolv/`
-- **Windows**: `%USERPROFILE%\.leetsolv\`
+LeetSolv will create its configuration directory at the location of the binary when you first run the application.
 
-Configuration files will be created automatically when you first run the application.
+Configuration files:
+- `questions.json` - Database of questions
+- `deltas.json` - Database for action history
+- `settings.json` - Settings for LeetSolv
+- `info.log` - Informational logs
+- `error.log` - Error logs
+
 
 ## Troubleshooting
 
@@ -138,20 +107,6 @@ which leetsolv
 export PATH="$PATH:/path/to/leetsolv"
 ```
 
-#### Windows Execution Policy
-```powershell
-# If you get execution policy errors
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-#### Go Version Issues
-```bash
-# Check your Go version
-go version
-
-# Update Go if needed (should be 1.25.0 or later)
-```
-
 ### Getting Help
 
 If you encounter issues:
@@ -162,55 +117,14 @@ If you encounter issues:
 
 ## Uninstallation
 
-### Using Dedicated Uninstall Scripts (Recommended)
+Remove the binary and configuration files from the installation directory.
+
+Example:
 ```bash
-# Linux/macOS
-curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/uninstall.sh | bash
-
-# Or download first, then run
-wget https://raw.githubusercontent.com/eannchen/leetsolv/main/uninstall.sh
-chmod +x uninstall.sh
-./uninstall.sh
-
-# Windows (Command Prompt)
-# Download and run
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/uninstall.bat' -OutFile 'uninstall.bat'"
-uninstall.bat
-
-# Windows (PowerShell)
-# Download and run
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/uninstall.ps1' -OutFile 'uninstall.ps1'
-.\uninstall.ps1
+# If you installed using the install.sh script
+rm /usr/local/bin/leetsolv
 ```
 
-### Using Installation Scripts
-```bash
-# Linux/macOS
-./install.sh --uninstall
-
-# Windows (Command Prompt)
-install.bat --uninstall
-
-# Windows (PowerShell)
-.\install.ps1 -Uninstall
-```
-
-### Manual Uninstallation
-```bash
-# Remove the binary
-rm /usr/local/bin/leetsolv  # Linux/macOS
-# or
-rmdir /s /q "%USERPROFILE%\AppData\Local\Programs\leetsolv"  # Windows
-
-# Remove configuration (optional)
-rm -rf ~/.leetsolv  # Linux/macOS
-# or
-rmdir /s /q "%USERPROFILE%\.leetsolv"  # Windows
-```
-
-## Development Installation
-
-For developers who want to work on LeetSolv, see the [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) for complete development setup instructions.
 
 ## Support
 
@@ -221,5 +135,3 @@ For developers who want to work on LeetSolv, see the [DEVELOPMENT_GUIDE.md](DEVE
 - **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
 
 ---
-
-**Note**: Replace `eannchen` with your actual GitHub username in all URLs and commands above.

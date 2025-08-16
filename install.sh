@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # LeetSolv Installation Script
-# This script installs LeetSolv CLI application
+# This script installs LeetSolv CLI application on Linux and macOS
 
 set -e
 
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO_OWNER="eannchen"  # Change this to your GitHub username
+REPO_OWNER="eannchen"
 REPO_NAME="leetsolv"
 BINARY_NAME="leetsolv"
 INSTALL_DIR="/usr/local/bin"
@@ -44,23 +44,21 @@ detect_platform() {
     case "$(uname -s)" in
         Linux*)     OS="linux";;
         Darwin*)    OS="darwin";;
-        CYGWIN*)   OS="windows";;
-        MINGW*)    OS="windows";;
-        MSYS*)     OS="windows";;
-        *)         OS="unknown";;
+        *)
+            print_error "Unsupported operating system. This script only supports Linux and macOS."
+            exit 1
+            ;;
     esac
 
     case "$(uname -m)" in
         x86_64)    ARCH="amd64";;
         aarch64)   ARCH="arm64";;
         arm64)     ARCH="arm64";;
-        *)         ARCH="unknown";;
+        *)
+            print_error "Unsupported architecture: $(uname -m). This script only supports x86_64 (amd64) and aarch64/arm64."
+            exit 1
+            ;;
     esac
-
-    if [ "$OS" = "unknown" ] || [ "$ARCH" = "unknown" ]; then
-        print_error "Unsupported platform: $OS-$ARCH"
-        exit 1
-    fi
 
     print_status "Detected platform: $OS-$ARCH"
 }
@@ -117,9 +115,6 @@ download_release() {
 
     # Download URL
     local download_url="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$latest_release/${BINARY_NAME}-${OS}-${ARCH}"
-    if [ "$OS" = "windows" ]; then
-        download_url="${download_url}.exe"
-    fi
 
     print_status "Downloading from: $download_url"
 
@@ -205,7 +200,7 @@ main() {
     echo -e "${BLUE}│                                                   │${NC}"
     echo -e "${BLUE}│    ░▒▓   LeetSolv — CLI SRS for LeetCode   ▓▒░    │${NC}"
     echo -e "${BLUE}│                                                   │${NC}"
-    echo -e "${BLUE}│                Installation Script               │${NC}"
+    echo -e "${BLUE}│                Installation Script                │${NC}"
     echo -e "${BLUE}│                                                   │${NC}"
     echo -e "${BLUE}╰───────────────────────────────────────────────────╯${NC}"
     echo

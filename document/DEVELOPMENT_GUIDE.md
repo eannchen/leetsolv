@@ -6,6 +6,8 @@ This comprehensive guide covers the CI/CD pipeline, installation system, and Git
 
 ### 1. Install Go
 
+The project requires Go 1.25.0 or later.
+
 ```bash
 # Install Go (macOS)
 brew install go
@@ -231,23 +233,6 @@ The CI pipeline automatically injects version information:
 - `Version`: From Git tag or commit
 - `BuildTime`: Build timestamp
 - `GitCommit`: Git commit hash
-
-## 📱 Installation System Overview
-
-The project includes automated installation scripts for all platforms. For detailed installation instructions, see [INSTALL.md](INSTALL.md).
-
-### Installation Script Features
-- **Cross-platform**: Linux, macOS, Windows support
-- **PATH management**: Automatic PATH configuration
-- **Uninstall support**: Dedicated uninstall scripts with backup creation
-
-### Installation Locations
-- **Linux/macOS**: `/usr/local/bin` (system) or `~/.local/bin` (user)
-- **Windows**: `%USERPROFILE%\AppData\Local\Programs\leetsolv`
-
-### Configuration Directory
-- **Linux/macOS**: `~/.leetsolv/`
-- **Windows**: `%USERPROFILE%\.leetsolv\`
 
 ## 🏷️ Tagging Strategy
 
