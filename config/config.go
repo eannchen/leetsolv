@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -12,38 +13,7 @@ import (
 )
 
 var (
-	defaultConfig = &Config{
-		// Default data files
-		QuestionsFile: "questions.json",
-		DeltasFile:    "deltas.json",
-		InfoLogFile:   "info.log",
-		ErrorLogFile:  "error.log",
-		SettingsFile:  "settings.json",
-		// Pagination settings
-		Paginator: Paginator{
-			PageSize: 5,
-		},
-		// Delta settings
-		Delta: Delta{
-			MaxDelta: 50,
-		},
-		// Due Priority List settings
-		DuePriority: DuePriority{
-			TopKDue:             10,   // Top-K due questions to show in summary
-			TopKUpcoming:        10,   // Top-K upcoming questions to show in summary
-			ImportanceWeight:    1.5,  // Prioritizes designated importance
-			OverdueWeight:       0.5,  // Prioritizes items past their due date
-			FamiliarityWeight:   3.0,  // Prioritizes historically difficult items
-			ReviewPenaltyWeight: -1.5, // De-prioritizes questions seen many times (prevents leeching)
-			EasePenaltyWeight:   -1.0, // De-prioritizes "easier" questions to focus on struggles
-		},
-		// SRS settings
-		SRS: SRS{
-			RandomizeInterval: true,  // Enable/disable randomized interval
-			OverduePenalty:    false, // Enable/disable overdue penalty
-			OverdueLimit:      7,     // Days after which overdue questions are at risk of penalty
-		},
-	}
+	defaultConfig *Config
 
 	// Environment variable loaders
 	envLoaders = []struct {
@@ -141,6 +111,51 @@ var (
 	}
 )
 
+// initDefaultConfig initializes the default configuration with proper file paths
+func initDefaultConfig() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user home directory: %v", err)
+	}
+
+	configDir := filepath.Join(homeDir, ".leetsolv")
+
+	defaultConfig = &Config{
+		// Default data files with absolute paths
+		QuestionsFile: filepath.Join(configDir, "questions.json"),
+		DeltasFile:    filepath.Join(configDir, "deltas.json"),
+		InfoLogFile:   filepath.Join(configDir, "info.log"),
+		ErrorLogFile:  filepath.Join(configDir, "error.log"),
+		SettingsFile:  filepath.Join(configDir, "settings.json"),
+		// Pagination settings
+		Paginator: Paginator{
+			PageSize: 5,
+		},
+		// Delta settings
+		Delta: Delta{
+			MaxDelta: 50,
+		},
+		// Due Priority List settings
+		DuePriority: DuePriority{
+			TopKDue:             10,   // Top-K due questions to show in summary
+			TopKUpcoming:        10,   // Top-K upcoming questions to show in summary
+			ImportanceWeight:    1.5,  // Prioritizes designated importance
+			OverdueWeight:       0.5,  // Prioritizes items past their due date
+			FamiliarityWeight:   3.0,  // Prioritizes historically difficult items
+			ReviewPenaltyWeight: -1.5, // De-prioritizes questions seen many times (prevents leeching)
+			EasePenaltyWeight:   -1.0, // De-prioritizes "easier" questions to focus on struggles
+		},
+		// SRS settings
+		SRS: SRS{
+			RandomizeInterval: true,  // Enable/disable randomized interval
+			OverduePenalty:    false, // Enable/disable overdue penalty
+			OverdueLimit:      7,     // Days after which overdue questions are at risk of penalty
+		},
+	}
+
+	return nil
+}
+
 // SettingDefinition defines a configurable setting
 type SettingDefinition struct {
 	Name        string
@@ -200,6 +215,11 @@ type Config struct {
 }
 
 func NewConfig(file fileutil.FileUtil) (*Config, error) {
+	// Initialize default config with proper paths
+	if err := initDefaultConfig(); err != nil {
+		return nil, fmt.Errorf("Failed to initialize default configuration: %v", err)
+	}
+
 	config := &Config{file: file}
 
 	// Load default configuration first
