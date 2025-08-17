@@ -2,13 +2,20 @@
 
 A sophisticated spaced repetition command-line tool using SM-2 algorithm with custom adaptations for mastering algorithms and data structures problems.
 
-**🚀 Zero Dependencies**: Built entirely in pure Go, without any third-party libraries, APIs, or applications, this project aligns with the spirit of learning data structures and algorithms. Even some built-in Go packages for data structure implementations are not used for granular control.
+**🚀 Zero Dependencies Philosophy**: Built entirely in pure Go, without any third-party libraries, APIs, or applications, this project aligns with the spirit of learning data structures and algorithms. Even some built-in Go packages for data structure implementations are not used for granular control.
 
 [🏗️ TODO: Put the app demo here]()
 
 ## Table of Contents
 - [Features](#features)
+  - [Enhanced Spaced Repetition](#enhanced-spaced-repetition)
+  - [Due Priority Scheduling](#due-priority-scheduling)
+  - [Problem Management](#problem-management)
+  - [CLI Interface](#cli-interface)
+- [SRS Algorithm](#srs-algorithm)
+  - [Interval Growth by Importance Level](#interval-growth-by-importance-level)
 - [Quick Installation](#quick-installation)
+- [Usage](#usage)
 - [Architecture](#architecture)
 
 
@@ -67,34 +74,60 @@ graph LR
 
 
 ### Problem Management
-- **Search & Filtering**: Powerful search capabilities with multiple filter options
-- **Trie-based prefix matching** for fast text search
-- **History Tracking**: Complete audit trail of all changes with undo functionality
+- **Trie-Based Search & Filtering**: Search and filter problems by keywords, familiarity, importance, review count, and due status
+- **Summary View**: Display a concise summary of total problems, due problems, and upcoming problems
+- **Pagination Control**: Efficient handling of large problem sets
+- **Add/Update Problems**: Add or update a problem with URL and notes
+- **Remove Problems**: Remove a problem by ID and URL
+- **History Tracking & Undo Capability**: Track all changes and allow undoing from recent actions
 
+```mermaid
+graph TD
+    A[User Command] --> B{Command Type}
+    B -->|Search/List| D[Apply Filters & Search]
+    B -->|Remove| E[Remove Data & Index]
+    B -->|Add/Update| C[Add Data & Index]
+    B -->|Undo| L[Restore from History]
 
+    C --> F[Schedule by SRS Algorithm]
+    D --> G[Trie-Based Search]
+    G --> J[Paginated Results]
+    L --> M[Revert Changes]
 
+    I[Record Change] --> K[Enable Undo]
+    F --> I
+    E --> I
+```
 
-
-### DSA Learning Benefits
-- **Custom Implementations**: Every data structure and algorithm is implemented from scratch
-- **Performance Optimization**: Fine-tuned implementations that often outperform theoretical complexity
-- **Educational Value**: Perfect for understanding how algorithms work in practice
-- **No Black Boxes**: Full visibility into every algorithm's implementation
-
-
-- **Add/Update Problems**: Easy problem entry with URL and notes
-
-- **Due Date Management**: Automatic calculation of next review dates
-- **Smart Scheduling**: Adaptive intervals based on performance and importance
 
 ### CLI Interface
-- **Interactive Mode**: Full-featured interactive CLI with command history
+- **Interactive Mode**: Full-featured interactive CLI
 - **Batch Mode**: Execute commands directly from command line arguments
-- **Alias Support**: Multiple command aliases for convenience
-- **Pagination**: Efficient handling of large problem sets
-- **Clear Output**: Well-formatted, readable command output
-- **Graceful Shutdown**: Signal handling with safe cleanup on exit
-- **Command History**: Persistent command history across sessions
+- **Alias Support**: Multiple command aliases for convenience (e.g., `ls`, `rm`, `cfg`)
+- **Clear Output**: Well-formatted, readable command output with proper pagination
+
+
+## SRS Algorithm
+
+LeetSolv implements a customized SM-2 spaced repetition algorithm that adapts review intervals based on problem importance, familiarity, and memory usage. The algorithm ensures that critical problems are reviewed more frequently while allowing easier problems to have longer intervals.
+
+### Interval Growth by Importance Level
+
+The following graphs demonstrate how review intervals grow over time for different importance levels, showing the adaptive nature of the scheduling system:
+
+![SM2 Critical](document/image/SM2_CRITICAL.png)
+**Critical Problems**: Shortest intervals with frequent reviews to ensure mastery of the most important concepts.
+
+![SM2 High](document/image/SM2_HIGH.png)
+**High Importance**: Moderate intervals balancing frequency with efficiency for important problems.
+
+![SM2 Medium](document/image/SM2_MEDIUM.png)
+**Medium Importance**: Standard intervals following classic SM-2 progression for regular practice.
+
+![SM2 Low](document/image/SM2_LOW.png)
+**Low Importance**: Longer intervals for problems that require less frequent review.
+
+> Algorithm parameters can be adjusted in the configuration file in future versions.
 
 
 ## Quick Installation
@@ -126,7 +159,97 @@ leetsolv help
 > **📖 For detailed installation and configuration instructions, see [INSTALL.md](document/INSTALL.md)**
 
 
-## 🏗️ Architecture
+
+## Usage
+
+### Interactive Mode
+```bash
+# Start interactive session
+./leetsolv
+
+# You'll see the prompt:
+leetsolv ❯
+```
+
+### Command Line Mode
+```bash
+# List all questions
+./leetsolv list
+
+# Search for problems
+./leetsolv search "binary tree"
+
+# Search with filters
+./leetsolv search "tree" --familiarity=3 --importance=2 --due-only
+
+# Get problem details
+./leetsolv get 123
+
+# Check status
+./leetsolv status
+
+# Add new problem
+./leetsolv add https://leetcode.com/problems/example
+```
+
+### Available Commands
+
+| Command   | Aliases               | Description                                |
+| --------- | --------------------- | ------------------------------------------ |
+| `list`    | `ls`                  | List all questions with pagination         |
+| `search`  | `s`                   | Search questions by keywords               |
+| `get`     | `detail`              | Get detailed information about a question  |
+| `status`  | `stat`                | Show summary of due and upcoming questions |
+| `upsert`  | `add`                 | Add or update a question                   |
+| `remove`  | `rm`, `delete`, `del` | Delete a question                          |
+| `undo`    | `back`                | Undo the last action                       |
+| `history` | `hist`, `log`         | Show action history                        |
+| `setting` | `config`, `cfg`       | View and modify application settings       |
+| `version` | `ver`, `v`            | Show application version information       |
+| `help`    | `h`                   | Show help information                      |
+| `clear`   | `cls`                 | Clear the screen                           |
+| `quit`    | `q`, `exit`           | Exit the application                       |
+
+## Configuration
+
+### Environment Variables
+
+| Variable                  | Default               | Description         |
+| ------------------------- | --------------------- | ------------------- |
+| `LEETSOLV_QUESTIONS_FILE` | `questions.test.json` | Questions data file |
+| `LEETSOLV_DELTAS_FILE`    | `deltas.test.json`    | Change history file |
+| `LEETSOLV_INFO_LOG_FILE`  | `info.test.log`       | Info log file       |
+| `LEETSOLV_ERROR_LOG_FILE` | `error.test.log`      | Error log file      |
+
+### SRS Algorithm Settings
+
+| Variable                      | Default | Description                                    |
+| ----------------------------- | ------- | ---------------------------------------------- |
+| `LEETSOLV_RANDOMIZE_INTERVAL` | `true`  | Enable/disable interval randomization          |
+| `LEETSOLV_OVERDUE_PENALTY`    | `false` | Enable/disable overdue penalty system          |
+| `LEETSOLV_OVERDUE_LIMIT`      | `7`     | Days after which overdue questions get penalty |
+
+### Scoring Weights
+
+| Variable                         | Default | Description                   |
+| -------------------------------- | ------- | ----------------------------- |
+| `LEETSOLV_IMPORTANCE_WEIGHT`     | `1.5`   | Weight for problem importance |
+| `LEETSOLV_OVERDUE_WEIGHT`        | `0.5`   | Weight for overdue problems   |
+| `LEETSOLV_FAMILIARITY_WEIGHT`    | `3.0`   | Weight for difficulty level   |
+| `LEETSOLV_REVIEW_PENALTY_WEIGHT` | `-1.5`  | Penalty for high review count |
+| `LEETSOLV_EASE_PENALTY_WEIGHT`   | `-1.0`  | Penalty for easy problems     |
+
+### Other Settings
+
+| Variable                  | Default | Description                    |
+| ------------------------- | ------- | ------------------------------ |
+| `LEETSOLV_PAGE_SIZE`      | `5`     | Questions per page             |
+| `LEETSOLV_MAX_DELTA`      | `50`    | Maximum history entries        |
+| `LEETSOLV_TOP_K_DUE`      | `10`    | Top due questions to show      |
+| `LEETSOLV_TOP_K_UPCOMING` | `10`    | Top upcoming questions to show |
+
+
+## Architecture
 
 ### Zero Dependencies Philosophy
 **🚀 Pure Go Implementation**: LeetSolv is built entirely in Go without any external dependencies. This approach offers several advantages:
@@ -191,20 +314,6 @@ graph TD
     L["Cache Hit"] --> M["Return Cached Data"] & N["Load from File"]
     N --> O["Update **Cache**"]
     O --> M
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style L fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style M fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style N fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style O fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
 ```
 
 #### Command System (`command/`)
@@ -227,366 +336,22 @@ graph TD
 
     J[Command Aliases] --> B
     K[New Commands] --> B
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style D fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style E fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style F fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style G fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style H fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style I fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style J fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style K fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
 ```
 
 
-## 📖 Usage
+## Upcoming Features
 
-### Interactive Mode
-```bash
-# Start interactive session
-./leetsolv
+1. SRS Algorithm Customization
+2. Enhanced Problem Management
+    - Non-LeetCode Problem Support
+    - Fuzzy Search
+    - Tag System
+    - Export Functionality
 
-# You'll see the prompt:
-leetsolv ❯
-```
 
-### Command Line Mode
-```bash
-# List all questions
-./leetsolv list
 
-# Search for problems
-./leetsolv search "binary tree"
 
-# Search with filters
-./leetsolv search "tree" --familiarity=3 --importance=2 --due-only
-
-# Get problem details
-./leetsolv get 123
-
-# Check status
-./leetsolv status
-
-# Add new problem
-./leetsolv add "https://leetcode.com/problems/example"
-```
-
-### Available Commands
-
-| Command   | Aliases               | Description                                |
-| --------- | --------------------- | ------------------------------------------ |
-| `list`    | `ls`                  | List all questions with pagination         |
-| `search`  | `s`                   | Search questions by keywords               |
-| `get`     | `detail`              | Get detailed information about a question  |
-| `status`  | `stat`                | Show summary of due and upcoming questions |
-| `add`     | `upsert`              | Add or update a question                   |
-| `remove`  | `rm`, `delete`, `del` | Delete a question                          |
-| `undo`    | `back`                | Undo the last action                       |
-| `history` | `hist`, `log`         | Show action history                        |
-| `setting` | `config`              | View and modify application settings       |
-| `version` | `ver`, `v`            | Show application version information       |
-| `help`    | `h`                   | Show help information                      |
-| `clear`   | `cls`                 | Clear the screen                           |
-| `quit`    | `q`, `exit`           | Exit the application                       |
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable                  | Default               | Description         |
-| ------------------------- | --------------------- | ------------------- |
-| `LEETSOLV_QUESTIONS_FILE` | `questions.test.json` | Questions data file |
-| `LEETSOLV_DELTAS_FILE`    | `deltas.test.json`    | Change history file |
-| `LEETSOLV_INFO_LOG_FILE`  | `info.test.log`       | Info log file       |
-| `LEETSOLV_ERROR_LOG_FILE` | `error.test.log`      | Error log file      |
-
-### Scoring Weights
-
-| Variable                         | Default | Description                   |
-| -------------------------------- | ------- | ----------------------------- |
-| `LEETSOLV_IMPORTANCE_WEIGHT`     | `1.5`   | Weight for problem importance |
-| `LEETSOLV_OVERDUE_WEIGHT`        | `0.5`   | Weight for overdue problems   |
-| `LEETSOLV_FAMILIARITY_WEIGHT`    | `3.0`   | Weight for difficulty level   |
-| `LEETSOLV_REVIEW_PENALTY_WEIGHT` | `-1.5`  | Penalty for high review count |
-| `LEETSOLV_EASE_PENALTY_WEIGHT`   | `-1.0`  | Penalty for easy problems     |
-
-### Other Settings
-
-| Variable                  | Default | Description                    |
-| ------------------------- | ------- | ------------------------------ |
-| `LEETSOLV_PAGE_SIZE`      | `5`     | Questions per page             |
-| `LEETSOLV_MAX_DELTA`      | `50`    | Maximum history entries        |
-| `LEETSOLV_TOP_K_DUE`      | `10`    | Top due questions to show      |
-| `LEETSOLV_TOP_K_UPCOMING` | `10`    | Top upcoming questions to show |
-
-### SRS Algorithm Settings
-
-| Variable                      | Default | Description                                    |
-| ----------------------------- | ------- | ---------------------------------------------- |
-| `LEETSOLV_RANDOMIZE_INTERVAL` | `true`  | Enable/disable interval randomization          |
-| `LEETSOLV_OVERDUE_PENALTY`    | `false` | Enable/disable overdue penalty system          |
-| `LEETSOLV_OVERDUE_LIMIT`      | `7`     | Days after which overdue questions get penalty |
-
-## 🔧 Development
-
-### Quick Development Setup
-```bash
-# Clone and setup
-git clone https://github.com/eannchen/leetsolv.git
-cd leetsolv
-go mod download
-
-# Run tests
-make test
-
-# Build locally
-make build
-```
-
-> **📖 For complete development workflow, CI/CD setup, and contribution guidelines, see [DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**
-
-## 📊 Data Model
-
-### Question Structure
-```go
-type Question struct {
-    ID           int         // Unique identifier
-    URL          string      // LeetCode problem URL
-    Note         string      // Personal notes
-    Familiarity  Familiarity // Difficulty level (VeryHard → VeryEasy)
-    Importance   Importance  // Priority level (Low → Critical)
-    LastReviewed time.Time   // Last review timestamp
-    NextReview   time.Time   // Next scheduled review
-    ReviewCount  int         // Number of reviews completed
-    EaseFactor   float64     // SM-2 ease factor
-    UpdatedAt    time.Time   // Last modification time
-    CreatedAt    time.Time   // Creation timestamp
-}
-
-type MemoryUse int
-const (
-    MemoryReasoned MemoryUse = iota // Solved with reasoning
-    MemoryPartial                    // Partially remembered
-    MemoryFull                       // Fully remembered
-)
-```
-
-### Scheduling Algorithm
-The SM-2 scheduler adapts the standard spaced repetition algorithm:
-
-1. **Base Intervals**: Different starting intervals based on importance
-2. **Memory Multipliers**: Adjust intervals based on memory performance
-3. **Familiarity Adjustments**: Early difficulty signals affect scheduling
-4. **Ease Factor Management**: Dynamic adjustment of review intervals
-5. **Maximum Limits**: Prevents excessively long intervals
-6. **Interval Randomization**: Prevents over-fitting to specific dates
-7. **Overdue Penalties**: Automatic difficulty adjustment for neglected problems
-8. **Stability Bonuses**: Rewards consistent performance over time
-
-```mermaid
-flowchart TD
-    A[New Question] --> B[Set Base Interval by Importance]
-    B --> C[Calculate Initial Ease Factor]
-    C --> D[Schedule First Review]
-
-    E[Review Question] --> F[Assess Memory Performance]
-    F --> G{Memory Assessment}
-    G -->|Reasoned| H[Increase Interval × Ease Factor]
-    G -->|Partial| I[Smaller Increase]
-    G -->|Full| J[Larger Increase]
-
-    H --> K[Adjust Ease Factor]
-    I --> K
-    J --> K
-
-    K --> L[Apply Familiarity Penalties]
-    L --> M[Apply Importance Bonuses]
-    M --> N[Randomize Interval ±1 day]
-    N --> O[Schedule Next Review]
-    O --> E
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style L fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style M fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style N fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style O fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-```
-
-## 🚀 Advanced Features
-
-### Memory Assessment System
-- **Three-Level Memory Tracking**: Reasoned, Partial, and Full recall assessment
-- **Interactive Assessment Flow**: Guided prompts for familiarity and memory evaluation
-- **Adaptive Scheduling**: Intervals adjust based on memory performance
-- **Performance Analytics**: Track improvement over time with detailed metrics
-
-```mermaid
-flowchart TD
-    A[Review Question] --> B[Assess Familiarity]
-    B --> C{How difficult was it?}
-
-    C -->|1. Struggled| D[VeryHard]
-    C -->|2. Clumsy| E[Hard]
-    C -->|3. Decent| F[Medium]
-    C -->|4. Smooth| G[Easy]
-    C -->|5. Fluent| H[VeryEasy]
-
-    I{Was it from memory?} --> J[Memory Assessment]
-
-    J -->|1. Reasoned| K[Pure reasoning]
-    J -->|2. Partial| L[Some memory + reasoning]
-    J -->|3. Full| M[Mainly from memory]
-
-    D --> N[Calculate New Interval]
-    E --> N
-    F --> N
-    G --> N
-    H --> N
-
-    K --> O[Adjust Ease Factor]
-    L --> O
-    M --> O
-
-    N --> P[Schedule Next Review]
-    O --> P
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style D fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style E fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style F fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style G fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style J fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style K fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style L fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style M fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style N fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style O fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style P fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-```
-
-### Advanced Search Engine
-- **Trie-Based Indexing**: Fast prefix matching for URLs and notes
-- **Multi-Field Filtering**: Filter by familiarity, importance, review count, and due status
-- **Fuzzy Matching**: Flexible search with partial text matching
-
-```mermaid
-graph TD
-    A[Search Query] --> B[Parse Query & Filters]
-    B --> C[Text Search via Trie]
-    B --> D[Filter by Familiarity]
-    B --> E[Filter by Importance]
-    B --> F[Filter by Review Count]
-    B --> G[Filter by Due Status]
-
-    C --> H[Prefix Matching]
-    D --> I[Familiarity Filter]
-    E --> J[Importance Filter]
-    F --> K[Review Count Filter]
-    G --> L[Due Status Filter]
-
-    H --> M[Intersect Results]
-    I --> M
-    J --> M
-    K --> M
-    L --> M
-
-    M --> N[Ranked Results]
-    N --> O[Pagination Display]
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style L fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style M fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style N fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style O fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-```
-
-## 🔮 Upcoming Features
-
-### Enhanced Problem Organization
-- **Tag System**: Categorize problems by topics, difficulty, or custom tags
-- **Export Functionality**: Export your problem data in various formats (JSON, CSV, etc.)
-
-### Advanced SRS Customization
-- **Growth Curve Editor**: Interactive command to tweak SRS algorithm parameters
-- **Custom Scheduling Rules**: Fine-tune the spaced repetition algorithm to match your learning style
-- **Algorithm Visualization**: See how your changes affect the review schedule
-
-```mermaid
-graph TD
-    A[Upcoming Features] --> B[Tag System]
-    A --> C[Export Functionality]
-    A --> D[SRS Customization]
-
-    B --> E[Topic Tags]
-    B --> F[Difficulty Tags]
-    B --> G[Custom Tags]
-
-    C --> H[JSON Export]
-    C --> I[CSV Export]
-    C --> J[Progress Reports]
-
-    D --> K[Growth Curve Editor]
-    D --> L[Custom Scheduling Rules]
-    D --> M[Algorithm Visualization]
-
-    E --> N[Better Organization]
-    F --> N
-    G --> N
-
-    H --> O[Data Portability]
-    I --> O
-    J --> O
-
-    K --> P[Personalized Learning]
-    L --> P
-    M --> P
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style H fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style I fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style J fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style K fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style L fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style M fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style N fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style O fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style P fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-```
-
-## 🚀 Performance Features
+## Performance Features
 
 ### Custom Data Structure Implementations
 - **Priority Heaps**: Custom heap implementation with optimized O(log n) operations (avoiding O(log n) + O(log n) overhead)
@@ -600,7 +365,7 @@ graph TD
 - **Pagination**: Efficient display of large question sets
 - **Delta Compression**: Efficient storage of change history
 
-## 🔒 Data Safety
+## Data Safety
 
 ### File Operations
 - **Atomic Writes**: Safe file updates with temporary files
@@ -612,7 +377,7 @@ graph TD
 - **Undo Capability**: Rollback any action
 - **Delta Storage**: Efficient change tracking
 
-## 🤝 Contributing
+## Contributing
 
 ### Why Zero Dependencies?
 **🚀 Educational & Customizable**: Every algorithm is implemented from scratch for learning and customization.
@@ -625,18 +390,18 @@ graph TD
 
 > **📖 For detailed development workflow, architecture principles, and coding standards, see [DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**
 
-## 📝 License
+## License
 
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
-## 🆘 Support & Documentation
+## Support & Documentation
 
-### 📚 Documentation
+### Documentation
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
 - **This README**: Project overview and quick start
 
-### 🔗 Links
+### Links
 - **Issues**: [GitHub Issues](https://github.com/eannchen/leetsolv/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
 - **Releases**: [GitHub Releases](https://github.com/eannchen/leetsolv/releases)
