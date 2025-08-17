@@ -1,43 +1,79 @@
 # LeetSolv
 
-A sophisticated spaced repetition system for LeetCode problem management, built in Go with an intelligent scheduling algorithm and comprehensive CLI interface.
+A sophisticated spaced repetition command-line tool using SM-2 algorithm with custom adaptations for mastering algorithms and data structures problems.
 
-## 🎯 Overview
+**🚀 Zero Dependencies**: Built entirely in pure Go, without any third-party libraries, APIs, or applications, this project aligns with the spirit of learning data structures and algorithms. Even some built-in Go packages for data structure implementations are not used for granular control.
 
-LeetSolv is a command-line tool designed to help developers systematically review and master LeetCode problems using spaced repetition principles. It implements the SM-2 algorithm with custom adaptations for coding interview preparation, featuring intelligent prioritization based on problem difficulty, importance, and review history.
+[🏗️ TODO: Put the app demo here]()
 
-**🚀 Zero Dependencies**: Built entirely in pure Go without any third-party libraries, making it perfect for learning data structures and algorithms while building a practical tool.
+## Table of Contents
+- [Features](#features)
+- [Quick Installation](#quick-installation)
+- [Architecture](#architecture)
+
+
+## Features
+
+### Enhanced Spaced Repetition
+
+After adding a problem, LeetSolv will employ the SM-2 algorithm, with custom adaptations for familiarity, importance, and reasoning scale, to determine the next review date.
+
+- **Importance Scale**: Prioritize problems based on their importance using a 4-tier importance scale: Low, Medium, High, and Critical.
+- **Familiarity Scale**: Rate your familiarity with a problem using a 5-level familiarity scale: VeryHard, VeryEasy, Hard, Medium, and Easy.
+- **Reasoning Scale**: Apply a penalty if their reasoning is not strong enough using a 3-level reasoning scale: Reasoned, Partial, and Full recall. This aligns with the core spirit of learning algorithms and data structures.
+- **Due Penalty (Optional)**: Apply a penalty if the problem is overdue for review.
+- **Interval Randomization (Optional)**: Apply random scheduling to prevent over-fitting to specific dates.
+
 
 ```mermaid
 graph TD
-    A[LeetCode Problem] --> B[Add to LeetSolv]
-    B --> C[Set Familiarity, Importance, and Reasoning Scale]
-    C --> D[SRS Algorithm Calculates Next Review]
-    D --> E[Apply Due Penalty, optional]
-    E --> F[Apply Interval Randomization, optional]
-    F --> G[Algorithm Adjusts Schedule]
-    G --> D
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style G fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
+    A[Add a DSA Problem to LeetSolv]
+    A --> B[Set Familiarity, Importance, and Reasoning Scale]
+    B --> C[SRS Algorithm Calculates Next Review]
+    C --> D[Apply Due Penalty, optional]
+    D --> E[Apply Interval Randomization, optional]
+    E --> F[Algorithm Adjusts Schedule]
+    F --> C
 ```
 
-## ✨ Features
+### Due Priority Scheduling
+Accumulating a significant number of pending issues for review is inevitable for a SRS system, as individuals have their own unique circumstances and schedules. To address this challenge, LeetSolv introduces a due priority scheduling feature that enables users to prioritize pending issues based on a priority score.
 
-### Core Functionality
-- **Spaced Repetition**: SM-2 algorithm implementation with custom intervals based on problem importance
-- **Intelligent Scheduling**: Dynamic review scheduling considering familiarity, importance, and memory retention
-- **Priority Scoring**: Advanced scoring system that prioritizes questions based on multiple factors
+- **Multi-Factor Scoring**: Combines importance, familiarity, overdue days, review count, and ease factor
+
+
+```mermaid
+graph LR
+    A[Question] --> B[Priority Score Calculation]
+    B --> C[Importance Weight]
+    B --> D[Overdue Weight]
+    B --> E[Familiarity Weight]
+    B --> F[Review Count]
+    B --> G[Ease Factor]
+
+    C --> H[Final Priority Score]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I[Sort by Score]
+    I --> J[Top-K Due Questions]
+    I --> K[Top-K Upcoming Questions]
+```
+
+> *By default, the priority score is calculated using the following formula: (1.5×Importance)+(0.5×Overdue Days)+(3.0×Difficulty)+(-1.5×Review Count)+(-1.0×Ease Factor)*
+
+
+
+### Problem Management
 - **Search & Filtering**: Powerful search capabilities with multiple filter options
 - **Trie-based prefix matching** for fast text search
-- **Multi-field filtering** by familiarity, importance, and review count
-- **Due-only filtering** to focus on overdue problems
 - **History Tracking**: Complete audit trail of all changes with undo functionality
+
+
+
+
 
 ### DSA Learning Benefits
 - **Custom Implementations**: Every data structure and algorithm is implemented from scratch
@@ -45,11 +81,9 @@ graph TD
 - **Educational Value**: Perfect for understanding how algorithms work in practice
 - **No Black Boxes**: Full visibility into every algorithm's implementation
 
-### Problem Management
+
 - **Add/Update Problems**: Easy problem entry with URL and notes
-- **Importance Levels**: 4-tier importance system (Low, Medium, High, Critical)
-- **Familiarity Tracking**: 5-level familiarity scale (VeryHard → VeryEasy)
-- **Memory Assessment**: 3-level memory tracking (Reasoned, Partial, Full recall)
+
 - **Due Date Management**: Automatic calculation of next review dates
 - **Smart Scheduling**: Adaptive intervals based on performance and importance
 
@@ -61,6 +95,36 @@ graph TD
 - **Clear Output**: Well-formatted, readable command output
 - **Graceful Shutdown**: Signal handling with safe cleanup on exit
 - **Command History**: Persistent command history across sessions
+
+
+## Quick Installation
+
+### Automated Install (Linux/macOS)
+```bash
+# Download and run the installation script
+curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
+
+# Or download first, then run
+wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+### Manual Download (All Platforms)
+1. Go to [Releases](https://github.com/eannchen/leetsolv/releases)
+2. Download the binary for your platform:
+   - **Linux**: `leetsolv-linux-amd64` or `leetsolv-linux-arm64`
+   - **macOS**: `leetsolv-darwin-amd64` or `leetsolv-darwin-arm64`
+   - **Windows**: `leetsolv-windows-amd64.exe` or `leetsolv-windows-arm64.exe`
+
+### Verify Installation
+```bash
+leetsolv version
+leetsolv help
+```
+
+> **📖 For detailed installation and configuration instructions, see [INSTALL.md](document/INSTALL.md)**
+
 
 ## 🏗️ Architecture
 
@@ -125,7 +189,7 @@ graph TD
 
 
     L["Cache Hit"] --> M["Return Cached Data"] & N["Load from File"]
-    N --> O["Update Cache"]
+    N --> O["Update **Cache**"]
     O --> M
 
     style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
@@ -177,24 +241,6 @@ graph TD
     style K fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
 ```
 
-## 🚀 Quick Installation
-
-### One-Command Install
-```bash
-# Linux/macOS
-curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
-
-# Windows (PowerShell)
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eannchen/leetsolv/main/install.ps1' -OutFile 'install.ps1'; .\install.ps1
-```
-
-### Verify Installation
-```bash
-leetsolv version
-leetsolv help
-```
-
-> **📖 For detailed installation options, troubleshooting, and platform-specific instructions, see [INSTALL.md](document/INSTALL.md)**
 
 ## 📖 Usage
 
@@ -433,43 +479,6 @@ flowchart TD
     style N fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
     style O fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
     style P fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-```
-
-### Intelligent Prioritization
-- **Multi-Factor Scoring**: Combines importance, familiarity, overdue status, and review count
-- **Dynamic Weighting**: Configurable weights for different priority factors
-- **Anti-Leeching**: Prevents easy problems from dominating review sessions
-
-```mermaid
-graph LR
-    A[Question] --> B[Priority Score Calculation]
-    B --> C[Importance Weight × 1.5]
-    B --> D[Overdue Weight × 0.5]
-    B --> E[Familiarity Weight × 3.0]
-    B --> F[Review Penalty × -1.5]
-    B --> G[Ease Penalty × -1.0]
-
-    C --> H[Final Priority Score]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-
-    H --> I[Sort by Score]
-    I --> J[Top-K Due Questions]
-    I --> K[Top-K Upcoming Questions]
-
-    style A fill:#2196F3,fill-opacity:0,stroke:#1976D2,stroke-width:2px,color:#ffffff
-    style B fill:#9C27B0,fill-opacity:0,stroke:#7B1FA2,stroke-width:2px,color:#ffffff
-    style C fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style D fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
-    style E fill:#E91E63,fill-opacity:0,stroke:#C2185B,stroke-width:2px,color:#ffffff
-    style F fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style G fill:#F44336,fill-opacity:0,stroke:#D32F2F,stroke-width:2px,color:#ffffff
-    style H fill:#8BC34A,fill-opacity:0,stroke:#689F38,stroke-width:2px,color:#ffffff
-    style I fill:#00BCD4,fill-opacity:0,stroke:#0097A7,stroke-width:2px,color:#ffffff
-    style J fill:#4CAF50,fill-opacity:0,stroke:#388E3C,stroke-width:2px,color:#ffffff
-    style K fill:#FF9800,fill-opacity:0,stroke:#F57C00,stroke-width:2px,color:#ffffff
 ```
 
 ### Advanced Search Engine
