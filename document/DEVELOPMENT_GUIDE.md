@@ -2,7 +2,7 @@
 
 This comprehensive guide covers the CI/CD pipeline, installation system, and GitHub Flow workflow for LeetSolv development.
 
-## 🚀 Quick Start for Developers
+## Quick Start for Developers
 
 ### 1. Install Go
 
@@ -31,7 +31,7 @@ make test
 make build
 ```
 
-## 📁 File Structure
+## File Structure
 
 ```
 leetsolv/
@@ -48,7 +48,7 @@ leetsolv/
 └── README.md                         # Project overview
 ```
 
-## 🌿 GitHub Flow Workflow
+## GitHub Flow Workflow
 
 ### Branch Structure
 
@@ -72,7 +72,7 @@ leetsolv/
 - **Target**: Merge back to `main` via Pull Request
 - **Lifetime**: Very short-lived, delete after merge
 
-## 🔄 Complete Development Workflow
+## Complete Development Workflow
 
 ### 1. Initial Setup
 
@@ -151,7 +151,7 @@ git push origin v0.1.0-beta
 The tag style follows [Semantic Versioning](https://semver.org/).
 
 
-## 🔄 CI/CD Pipeline
+## CI/CD Pipeline
 
 ### GitHub Actions Workflow (`.github/workflows/ci.yml`)
 
@@ -197,7 +197,7 @@ The tag style follows [Semantic Versioning](https://semver.org/).
 - **Release**: Automatically creates GitHub release
 - **Artifacts**: Binaries uploaded to release
 
-## 🛠️ Build System
+## Build System
 
 ### Makefile
 ```bash
@@ -234,7 +234,7 @@ The CI pipeline automatically injects version information:
 - `BuildTime`: Build timestamp
 - `GitCommit`: Git commit hash
 
-## 🏷️ Tagging Strategy
+## Tagging Strategy
 
 ### Semantic Versioning
 
@@ -287,7 +287,7 @@ git tag -a v0.1.0-alpha -m "Alpha release - development version
 - Test search with various query types"
 ```
 
-## 📋 Branch Protection Rules
+## Branch Protection Rules
 
 ### GitHub Repository Settings
 
@@ -298,7 +298,7 @@ git tag -a v0.1.0-alpha -m "Alpha release - development version
 - ✅ Restrict pushes that create files larger than 100 MB
 - ✅ Include administrators in these restrictions
 
-## 📚 Best Practices
+## Best Practices
 
 ### 1. Commit Messages
 - Use conventional commit format: `type(scope): description`
@@ -331,14 +331,14 @@ git tag -a v0.1.0-alpha -m "Alpha release - development version
 - Update documentation with new features
 - Keep CHANGELOG.md updated
 
-## 📈 Future Enhancements
+## Future Enhancements
 
 ### Potential Improvements
 1. **Package managers** (Homebrew, Chocolatey, apt)
 2. **Auto-updater** functionality
 3. **CI/CD matrix** expansion (more Go versions)
 
-## 🆘 Support
+## Support
 
 ### Getting Help
 1. **Installation**: See [INSTALL.md](INSTALL.md)
@@ -352,5 +352,3 @@ git tag -a v0.1.0-alpha -m "Alpha release - development version
 2. Create a feature branch from `main`
 3. Make changes and test locally
 4. Submit a pull request to `main`
-
----

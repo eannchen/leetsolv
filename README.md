@@ -154,13 +154,13 @@ The following graphs demonstrate how review intervals grow over time for differe
 ## Problem Management
 
 ### Management & Navigation
-- **Summary View**: Overview of total problems, due problems, and upcoming problems with [priority scoring](#due-priority-scoring)
-- **Trie-Based Search & Filtering**: Fast search and filtering by keywords, familiarity, importance, review count, and due status
-- **Pagination**: Efficient navigation for large problem sets
-- **Get Problem Details**: Retrieve detailed information about a specific problem
-- **Add/Update Problems**: Create or modify problems with URL and notes
-- **Remove Problems**: Delete problems by ID and URL
-- **History & Undo**: Track changes and revert recent actions
+- **Summary View**: Overview of total problems, due problems, and upcoming problems with [priority scoring](#due-priority-scoring).
+- **Trie-Based Search & Filtering**: Fast search and filtering by keywords, familiarity, importance, review count, and due status.
+- **Pagination**: Efficient navigation for large problem sets.
+- **Get Problem Details**: Retrieve detailed information about a specific problem.
+- **Add/Update Problems**: Create or modify problems with URL and notes.
+- **Remove Problems**: Delete problems by ID and URL.
+- **History & Undo**: Track changes and revert recent actions.
 
 ```mermaid
 graph TD
