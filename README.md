@@ -1,14 +1,14 @@
 # LeetSolv
 
-A sophisticated spaced repetition command-line tool using SM-2 algorithm with custom adaptations for mastering algorithms and data structures problems.
+A sophisticated spaced repetition CLI app, utilizing the [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm **with custom adaptations**, is designed to help users master data structures and algorithms by **emphasizing reasoning**.
 
-**🚀 Zero Dependencies Philosophy**: Built entirely in pure Go, without any third-party libraries, APIs, or applications, this project aligns with the spirit of learning data structures and algorithms. Even some built-in Go packages for data structure implementations are not used for granular control.
+**0️⃣ Zero Dependencies Philosophy**: Built entirely in pure Go, without any third-party libraries, APIs, or applications, this project aligns with the spirit of learning data structures and algorithms. Even some built-in Go packages for data structure implementations are not used for granular control.
 
 [🏗️ TODO: Put the app demo here]()
 
 ## Table of Contents
 - [Features](#features)
-  - [Enhanced Spaced Repetition](#enhanced-spaced-repetition)
+  - [Enhanced SM-2 Algorithm](#enhanced-sm-2-algorithm)
   - [Due Priority Scheduling](#due-priority-scheduling)
   - [Problem Management](#problem-management)
   - [CLI Interface](#cli-interface)
@@ -21,32 +21,42 @@ A sophisticated spaced repetition command-line tool using SM-2 algorithm with cu
 
 ## Features
 
-### Enhanced Spaced Repetition
+### Enhanced SM-2 Algorithm
 
-After adding a problem, LeetSolv will employ the SM-2 algorithm, with custom adaptations for familiarity, importance, and reasoning scale, to determine the next review date.
+After adding a problem, LeetSolv will employ the SM-2 algorithm, with custom adaptations for familiarity, importance, and reasoning scale, to determine the next review date with ease factor.
 
-- **Importance Scale**: Prioritize problems based on their importance using a 4-tier importance scale: Low, Medium, High, and Critical.
-- **Familiarity Scale**: Rate your familiarity with a problem using a 5-level familiarity scale: VeryHard, VeryEasy, Hard, Medium, and Easy.
-- **Reasoning Scale**: Apply a penalty if their reasoning is not strong enough using a 3-level reasoning scale: Reasoned, Partial, and Full recall. This aligns with the core spirit of learning algorithms and data structures.
-- **Due Penalty (Optional)**: Apply a penalty if the problem is overdue for review.
-- **Interval Randomization (Optional)**: Apply random scheduling to prevent over-fitting to specific dates.
+- **Ease Factor**: Classic SM-2 algorithm determinant for calculating next review intervals.
+- **Familiarity Scale**: 5-level difficulty assessment (VeryHard, Hard, Medium, Easy, VeryEasy) for personal rating.
+- **Importance Scale**: 4-tier priority system (Low, Medium, High, Critical) for problem prioritization.
+- **Reasoning Scale**: 3-level memory assessment (Reasoned, Partial, Full recall) with penalties for weak reasoning. This aligns with the core spirit of learning data structures and algorithms.
+- **Due Penalty (Optional)**: Automatic penalty system for overdue review problems.
+- **Randomization (Optional)**: Random scheduling variation to prevent date over-fitting.
 
 
 ```mermaid
 graph TD
-    A[Add a DSA Problem to LeetSolv]
-    A --> B[Set Familiarity, Importance, and Reasoning Scale]
-    B --> C[SRS Algorithm Calculates Next Review]
-    C --> D[Apply Due Penalty, optional]
-    D --> E[Apply Interval Randomization, optional]
-    E --> F[Algorithm Adjusts Schedule]
-    F --> C
+    A[Add a DSA Problem to LeetSolv] --> B[Algorithm Applies Adaptations]
+    B --> C[Familiarity Scale]
+    B --> D[Importance Scale]
+    B --> E[Reasoning Scale]
+    B --> F[Due Penalty, optional]
+    B --> G[Randomization, optional]
+
+
+    H[Algorithm Calculates with SM-2 Ease Factor]
+    C --> H
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I[Determine Next Review]
 ```
 
-### Due Priority Scheduling
-Accumulating a significant number of pending issues for review is inevitable for a SRS system, as individuals have their own unique circumstances and schedules. To address this challenge, LeetSolv introduces a due priority scheduling feature that enables users to prioritize pending issues based on a priority score.
+### Due Priority Scoring
+Using the SM-2 algorithm, it’s inevitable to accumulate a significant number of due reviews because individuals have their own unique circumstances and schedules. To address this challenge, LeetSolv introduces a due priority scoring feature that allows users to prioritize due questions based on a priority score.
 
-- **Multi-Factor Scoring**: Combines importance, familiarity, overdue days, review count, and ease factor
+- **Multi-Factor Scoring**: A combination of importance, familiarity, overdue days, review count, and ease factor determines due priority.
 
 
 ```mermaid
@@ -74,37 +84,32 @@ graph LR
 
 
 ### Problem Management
-- **Trie-Based Search & Filtering**: Search and filter problems by keywords, familiarity, importance, review count, and due status
-- **Summary View**: Display a concise summary of total problems, due problems, and upcoming problems
-- **Pagination Control**: Efficient handling of large problem sets
-- **Add/Update Problems**: Add or update a problem with URL and notes
-- **Remove Problems**: Remove a problem by ID and URL
-- **History Tracking & Undo Capability**: Track all changes and allow undoing from recent actions
+- **Trie-Based Search & Filtering**: Fast search and filtering by keywords, familiarity, importance, review count, and due status
+- **Summary View**: Overview of total problems, due problems, and upcoming problems
+- **Pagination**: Efficient navigation for large problem sets
+- **Add/Update Problems**: Create or modify problems with URL and notes
+- **Remove Problems**: Delete problems by ID and URL
+- **History & Undo**: Track changes and revert recent actions
 
 ```mermaid
 graph TD
     A[User Command] --> B{Command Type}
-    B -->|Search/List| D[Apply Filters & Search]
-    B -->|Remove| E[Remove Data & Index]
-    B -->|Add/Update| C[Add Data & Index]
-    B -->|Undo| L[Restore from History]
+    B -->|Search/List| C[Apply Filters & Search] --> D[Trie-Based Search] --> E[Paginate Results]
+    B -->|Add/Update| F[Schedule Review by SM-2 Algorithm] --> I[Upsert Data & Index]
+    B -->|Remove| G[Remove Data & Index]
+    B -->|Undo| H[Restore Data & Index from History]
 
-    C --> F[Schedule by SRS Algorithm]
-    D --> G[Trie-Based Search]
-    G --> J[Paginated Results]
-    L --> M[Revert Changes]
-
-    I[Record Change] --> K[Enable Undo]
-    F --> I
-    E --> I
+    J[Add to History]
+    I --> J
+    G --> J
 ```
 
 
 ### CLI Interface
-- **Interactive Mode**: Full-featured interactive CLI
-- **Batch Mode**: Execute commands directly from command line arguments
-- **Alias Support**: Multiple command aliases for convenience (e.g., `ls`, `rm`, `cfg`)
-- **Clear Output**: Well-formatted, readable command output with proper pagination
+- **Interactive Mode**: A turn-based dialogue between the user and the program.
+- **Batch Mode**: Execute commands directly from the command line
+- **Alias Support**: Intuitive shortcuts for convenience (e.g., `ls`, `rm`, `cfg`)
+- **Clear Output**: Clean, color-coded output with proper pagination
 
 
 ## SRS Algorithm
