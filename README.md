@@ -1,6 +1,6 @@
 # LeetSolv
 
-LeetSolv is a spaced repetition CLI revision tool that builds on the [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm **with custom adaptations**, designed to help users master data structures and algorithms **through reasoning**.
+LeetSolv is a CLI revision tool powered by a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm, built for mastering algorithms through practice—**not rote memorization**.
 
 **0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals.
 
@@ -310,4 +310,4 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 
 ---
 
-**LeetSolv** - A spaced repetition CLI revision tool with custom SM-2 adaptations, built for mastering data structures and algorithms through reasoning.
+**LeetSolv** - A CLI revision tool powered by a custom-adapted SM-2 algorithm, built for mastering algorithms through practice—not rote memorization.
