@@ -32,8 +32,8 @@ func (h *TopKMinHeap) Push(item HeapItem) {
 		return
 	}
 
-	// If the item is smaller than the smallest item in the heap, it cannot be in the top-K
-	if item.Score < h.Items[0].Score {
+	// If the item is smaller than or equal to the smallest item in the heap, it cannot be in the top-K
+	if item.Score <= h.Items[0].Score {
 		return
 	}
 

@@ -487,11 +487,7 @@ func (u *QuestionUseCaseImpl) GetHistory() ([]core.Delta, error) {
 	// Reverse the order to show most recent first
 	L, R := 0, len(deltas)-1
 	for L <= R {
-		if L == R {
-			reversedDeltas[L] = deltas[L]
-		} else {
-			reversedDeltas[L], reversedDeltas[R] = deltas[R], deltas[L]
-		}
+		reversedDeltas[L], reversedDeltas[R] = deltas[R], deltas[L]
 		L++
 		R--
 	}

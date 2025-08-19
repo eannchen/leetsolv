@@ -471,7 +471,7 @@ func (h *HandlerImpl) HandleHistory() {
 	formatWithStrId := "%-6s %-9s %-60s %-22s %s"
 	formatWithIntId := "%-6d %-9s %-60s %-22s %s"
 
-	h.IO.PrintlnColored(ColorHeader, "─────────────────────────────────────────────── Action History ────────────────────────────────────────────────")
+	h.IO.PrintlnColored(ColorHeader, "─────────────────────────────────────── Action History (Order by time desc) ────────────────────────────────────────")
 	h.IO.PrintfColored(ColorHeader, formatWithStrId, "# ID", "Action", "Question", "Changes", "When")
 	h.IO.Printf("\n")
 	for _, delta := range deltas {
