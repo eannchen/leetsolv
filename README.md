@@ -2,7 +2,7 @@
 
 LeetSolv is a CLI revision tool powered by a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm, built for mastering algorithms through practice—**not rote memorization**.
 
-**0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals.
+**0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. *For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
 [🏗️ DEMO GIF HERE]()
 
