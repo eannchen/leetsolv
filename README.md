@@ -203,7 +203,7 @@ graph LR
 ### Interactive Mode
 ```bash
 # Start interactive session
-./leetsolv
+leetsolv
 
 # You'll see the prompt:
 leetsolv ❯
@@ -212,19 +212,19 @@ leetsolv ❯
 ### Command Line Mode
 ```bash
 # List all questions
-./leetsolv list
+leetsolv list
 
 # Search for problems with filters
-./leetsolv search tree --familiarity=3 --importance=2 --due-only
+leetsolv search tree --familiarity=3 --importance=2 --due-only
 
 # Get problem details
-./leetsolv get 123
+leetsolv detail 123
 
 # Check status
-./leetsolv status
+leetsolv status
 
 # Add new problem
-./leetsolv add https://leetcode.com/problems/example
+leetsolv add https://leetcode.com/problems/example
 ```
 
 ### Available Commands
@@ -233,7 +233,7 @@ leetsolv ❯
 | --------- | --------------------- | ------------------------------------------ |
 | `list`    | `ls`                  | List all questions with pagination         |
 | `search`  | `s`                   | Search questions by keywords               |
-| `get`     | `detail`              | Get detailed information about a question  |
+| `detail`  | `get`                 | Get detailed information about a question  |
 | `status`  | `stat`                | Show summary of due and upcoming questions |
 | `upsert`  | `add`                 | Add or update a question                   |
 | `remove`  | `rm`, `delete`, `del` | Delete a question                          |
