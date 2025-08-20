@@ -194,7 +194,7 @@ graph LR
 - **Batch Mode**: Execute commands directly from the command line.
 - **Alias Support**: Intuitive shortcuts for convenience (e.g., `ls`, `rm`, `cfg`).
 - **Pagination**: Efficient navigation for large problem sets.
-- **Clear Output**: Structured, color-coded CLI output with pagination for readability.
+- **Clear Output**: Structured, color-coded CLI output.
 
 ![Demo](document/image/DEMO_pagination.gif)
 
@@ -304,6 +304,7 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 ### Documentation
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
+- **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
 - **This README**: Project overview and quick start
 
 ### Links
@@ -313,4 +314,4 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 
 ---
 
-**LeetSolv** - A CLI revision tool powered by a custom-adapted SM-2 algorithm, built for mastering algorithms through practice—not rote memorization.
+**LeetSolv** - A CLI revision tool utilizing a custom-adapted SM-2 algorithm, built for mastering algorithms through practice—not rote memorization.
