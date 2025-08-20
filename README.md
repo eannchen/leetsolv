@@ -4,7 +4,7 @@ LeetSolv is a CLI revision tool powered by a custom-adapted [SuperMemo 2](https:
 
 **0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. *For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
-[🏗️ DEMO GIF HERE]()
+![Demo](document/image/DEMO_header.gif)
 
 ## Table of Contents
 - [LeetSolv](#leetsolv)
@@ -18,7 +18,7 @@ LeetSolv is a CLI revision tool powered by a custom-adapted [SuperMemo 2](https:
     - [Due Priority Scoring](#due-priority-scoring)
     - [Interval Growth Strategy](#interval-growth-strategy)
   - [Problem Management](#problem-management)
-    - [Management \& Navigation](#management--navigation)
+    - [CRUD + undo](#crud--undo)
     - [Data Privacy \& Safety](#data-privacy--safety)
     - [CLI Interface](#cli-interface)
   - [Usage](#usage)
@@ -107,6 +107,7 @@ With SM-2, due reviews can easily accumulate since users have varying schedules 
 
 - **Multi-Factor Scoring**: A combination of importance, familiarity, overdue days, review count, and ease factor determines due priority.
 
+![Demo](document/image/DEMO_due_scoring.gif)
 
 ```mermaid
 graph LR
@@ -153,14 +154,15 @@ The following graphs demonstrate how review intervals grow over time for differe
 
 ## Problem Management
 
-### Management & Navigation
+### CRUD + undo
 - **Summary View**: Overview of total problems, due problems, and upcoming problems with [priority scoring](#due-priority-scoring).
 - **Trie-Based Search & Filtering**: Fast search and filtering by keywords, familiarity, importance, review count, and due status.
-- **Pagination**: Efficient navigation for large problem sets.
 - **Get Problem Details**: Retrieve detailed information about a specific problem.
 - **Add/Update Problems**: Create or modify problems with URL and notes.
 - **Remove Problems**: Delete problems by ID and URL.
 - **History & Undo**: Track changes and revert recent actions.
+
+![Demo](document/image/DEMO_mgmt.gif)
 
 ```mermaid
 graph TD
@@ -191,9 +193,10 @@ graph LR
 - **Interactive Mode**: A turn-based dialogue between the user and the program.
 - **Batch Mode**: Execute commands directly from the command line.
 - **Alias Support**: Intuitive shortcuts for convenience (e.g., `ls`, `rm`, `cfg`).
+- **Pagination**: Efficient navigation for large problem sets.
 - **Clear Output**: Structured, color-coded CLI output with pagination for readability.
 
-
+![Demo](document/image/DEMO_pagination.gif)
 
 ## Usage
 

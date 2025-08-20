@@ -1,5 +1,7 @@
 # Motivation & Design Notes
 
+*(Updated by: Ian Chen, Date: 2025-08-20)*
+
 This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project. In the AI era, I want to show that this project is intentional and serious, not just AI-generated code.
 
 - [Motivation \& Design Notes](#motivation--design-notes)
@@ -17,7 +19,7 @@ This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, a
   - [Closing Note](#closing-note)
 
 
-[🏗️ EXPLANATION VIDEO HERE]()
+*<span style="color: #888">[🏗️ AN EXPLANATION VIDEO FOR THIS DOC WILL BE EMBEDED AT HERE LATER]</span>*
 
 ## Motivation
 
@@ -38,7 +40,6 @@ Since I am practicing problem-solving, why don't I challenge myself to apply wha
 
 It’s a rare chance, because in real jobs developers usually rely on libraries for speed and reliability.
 
----
 
 ## Why SM-2 Algorithm
 
@@ -55,14 +56,13 @@ I adjusted SM-2 so it works better for DSA instead of vocabulary.
 The key customizations are:
 
 - **Importance factor:** NeetCode 150 problems are essential building blocks, while NeetCode 250 includes duplicates for extra practice. They shouldn’t be scheduled equally.
-- **Memory usage factor:** Some problems inevitably feel familiar once we’ve seen their patterns. These should be spaced out more aggressively to prevent rote memorization, by giving them a lower SM-2 score.
+- **Memory usage factor:** Some problems inevitably feel familiar once we’ve seen their patterns. These should be spaced out more aggressively to prevent rote memorization, by lowering their retention score.
 - **Randomization:** Many SM-2 apps bunch reviews into heavy days — a common pitfall I wanted to avoid.
 
 Together, these changes shift SM-2 from “memorize facts” toward “practice reasoning.”
 
 See my implementation in [scheduler.go](../core/scheduler.go).
 
----
 
 ## Data Structures
 
@@ -72,7 +72,7 @@ Interestingly, 2025’s AI often suggested workable but inefficient solutions (e
 
 ### Indexing for Lookup
 
-Users should be able to search problems by both ID and URL. Originally, AI suggested arrays with linear scans, but I replaced them with a hash-based approach, it provides `O(1)` lookup in both cases. Even binary search wasn’t needed.
+Users should be able to search problems by both ID and URL. Originally, AI suggested arrays with linear scans, but I replaced them with a hash-based approach, it provides `amortized O(1)` lookup in both cases. Even binary search wasn’t needed.
 
 ```json
 {
@@ -109,7 +109,7 @@ func main() {
 }
 ```
 
-By implementing a trie, I can mitigate the time complexity to `O(n)`, with only `O(k)` space taken, where `k` is the number of unique characters in the dataset. See my implementation in [trie.go](../internal/search/trie.go).
+By implementing a trie, I can mitigate the time complexity to `O(n)`, with only `O(k)` extra space, where k is the number of unique characters across all entries. See my implementation in [trie.go](../internal/search/trie.go).
 
 ```json
 "url_trie": {
@@ -127,8 +127,8 @@ By implementing a trie, I can mitigate the time complexity to `O(n)`, with only 
                   "IsWord": true
                 }
               },
-              ...
-              ...
+              // ...
+              // ...
     "MinPrefixLength": 3
   }
 ```
@@ -203,25 +203,27 @@ See my implementation in [priority_heap.go](../internal/heap/priority_heap.go).
 ### Stack for Undo
 
 
----
 
 ## Data Safety & Caching
 
 In interactive mode, the app caches data in memory instead of reloading the storage file on every operation.
 
+TODO
+
 See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
 
 I applied **write-through** and **cache-aside** strategies. This way, performance improves while data safety is still guaranteed.
 
+TODO
+
 See my implementation in [storage.go](../storage/file.go).
 
----
+
 
 ## Design Patterns
 
 TODO
 
----
 
 ## Closing Note
 
