@@ -199,11 +199,11 @@ type Config struct {
 	// Dependency injection
 	file fileutil.FileUtil
 	// Default data files
-	QuestionsFile string
-	DeltasFile    string
-	InfoLogFile   string
-	ErrorLogFile  string
-	SettingsFile  string
+	QuestionsFile string `json:"questionsFile"`
+	DeltasFile    string `json:"deltasFile"`
+	InfoLogFile   string `json:"infoLogFile"`
+	ErrorLogFile  string `json:"errorLogFile"`
+	SettingsFile  string `json:"settingsFile"`
 	// Pagination settings
 	Paginator
 	// Delta settings
