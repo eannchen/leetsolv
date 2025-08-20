@@ -1,6 +1,6 @@
 # LeetSolv
 
-LeetSolv is a CLI revision tool powered by a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm, built for mastering algorithms through practice—**not rote memorization**.
+LeetSolv is a command-line revision tool that utilizes a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm. This algorithm incorporates variables for familiarity, importance, reasoning, and additional factors, designed to facilitate the mastery of algorithms through practice—**not rote memorization**.
 
 **0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. *For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
@@ -69,7 +69,7 @@ leetsolv help
 
 ### Adaptive SM-2 Algorithm
 
-When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—familiarity, importance, and reasoning—to calculate the next review date using the ease factor.
+When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—familiarity, importance, and reasoning to calculate the next review date using the ease factor.
 
 - **Ease Factor**: Classic SM-2 algorithm determinant for calculating next review intervals.
 - **Familiarity Scale**: 5-level familiarity assessment (`VeryHard`, `Hard`, `Medium`, `Easy`, `VeryEasy`) for personal rating.
@@ -107,8 +107,6 @@ With SM-2, due reviews can easily accumulate since users have varying schedules 
 
 - **Multi-Factor Scoring**: A combination of importance, familiarity, overdue days, review count, and ease factor determines due priority.
 
-![Demo](document/image/DEMO_due_scoring.gif)
-
 ```mermaid
 graph LR
     A[Question] --> B[Priority Score Calculation]
@@ -130,6 +128,8 @@ graph LR
 ```
 
 > *By default, the priority score is calculated using the following formula: (1.5×Importance)+(0.5×Overdue Days)+(3.0×Familiarity)+(-1.5×Review Count)+(-1.0×Ease Factor)*
+
+![Demo](document/image/DEMO_due_scoring.gif)
 
 ### Interval Growth Strategy
 
@@ -162,8 +162,6 @@ The following graphs demonstrate how review intervals grow over time for differe
 - **Remove Problems**: Delete problems by ID and URL.
 - **History & Undo**: Track changes and revert recent actions.
 
-![Demo](document/image/DEMO_mgmt.gif)
-
 ```mermaid
 graph TD
     A[User Command] --> B{Command Type}
@@ -176,6 +174,8 @@ graph TD
     I --> J
     G --> J
 ```
+
+![Demo](document/image/DEMO_mgmt.gif)
 
 ### Data Privacy & Safety
 
