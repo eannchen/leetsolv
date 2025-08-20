@@ -576,13 +576,8 @@ func (h *HandlerImpl) HandleUnknown(command string) {
 }
 
 func (h *HandlerImpl) HandleHelp() {
-	h.IO.PrintlnColored(ColorLogo, "╭───────────────────────────────────────────────────╮")
-	h.IO.PrintlnColored(ColorLogo, "│                                                   │")
-	h.IO.PrintlnColored(ColorLogo, "│                                                   │")
-	h.IO.PrintlnColored(ColorLogo, "│    ░▒▓   LeetSolv — CLI SRS for LeetCode   ▓▒░    │")
-	h.IO.PrintlnColored(ColorLogo, "│                                                   │")
-	h.IO.PrintlnColored(ColorLogo, "│                                                   │")
-	h.IO.PrintlnColored(ColorLogo, "╰───────────────────────────────────────────────────╯")
+	h.IO.Printf("\n")
+	h.IO.PrintlnColored(ColorLogo, "░▒▓   LeetSolv — CLI SRS for DSA   ▓▒░")
 	h.IO.PrintfColored(ColorHeader, "\nAvailable Commands:\n")
 	h.IO.Println("  status/stat                   - Show question status (total, due, upcoming)")
 	h.IO.Println("  list/ls                       - List all questions with pagination")

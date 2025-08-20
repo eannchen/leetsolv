@@ -210,7 +210,7 @@ show_post_install() {
 main() {
     echo -e "${BLUE}╭───────────────────────────────────────────────────╮${NC}"
     echo -e "${BLUE}│                                                   │${NC}"
-    echo -e "${BLUE}│    ░▒▓   LeetSolv — CLI SRS for LeetCode   ▓▒░    │${NC}"
+    echo -e "${BLUE}│      ░▒▓   LeetSolv — CLI SRS for DSA   ▓▒░       │${NC}"
     echo -e "${BLUE}│                                                   │${NC}"
     echo -e "${BLUE}│                Installation Script                │${NC}"
     echo -e "${BLUE}│                                                   │${NC}"
