@@ -1,8 +1,8 @@
 # LeetSolv
 
-LeetSolv is a command-line revision tool that utilizes a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm. This algorithm incorporates variables for familiarity, importance, reasoning, and additional factors, designed to facilitate the mastery of algorithms through practice—**not rote memorization**.
+**LeetSolv** is a command-line revision tool that utilizes a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm. This algorithm incorporates variables for **familiarity**, **importance**, **reasoning**, and additional factors, designed to facilitate the mastery of algorithms through practice—**not rote memorization**.
 
-**0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. *For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
+***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
 ![Demo](document/image/DEMO_header.gif)
 
@@ -13,10 +13,10 @@ LeetSolv is a command-line revision tool that utilizes a custom-adapted [SuperMe
     - [Automated Install (Linux/macOS)](#automated-install-linuxmacos)
     - [Manual Download (All Platforms)](#manual-download-all-platforms)
     - [Verify Installation](#verify-installation)
-  - [Review Scheduling Engine](#review-scheduling-engine)
+  - [Review Scheduling System](#review-scheduling-system)
     - [Adaptive SM-2 Algorithm](#adaptive-sm-2-algorithm)
     - [Due Priority Scoring](#due-priority-scoring)
-    - [Interval Growth Strategy](#interval-growth-strategy)
+    - [Interval Growing Curve](#interval-growing-curve)
   - [Problem Management](#problem-management)
     - [CRUD + undo](#crud--undo)
     - [Data Privacy \& Safety](#data-privacy--safety)
@@ -25,14 +25,17 @@ LeetSolv is a command-line revision tool that utilizes a custom-adapted [SuperMe
     - [Interactive Mode](#interactive-mode)
     - [Command Line Mode](#command-line-mode)
     - [Available Commands](#available-commands)
+    - [Search Command Filters](#search-command-filters)
   - [Configuration](#configuration)
     - [File Paths](#file-paths)
     - [SM-2 Algorithm Settings](#sm-2-algorithm-settings)
-    - [Due Priority Scoring](#due-priority-scoring-1)
+    - [Due Priority Scoring Settings](#due-priority-scoring-settings)
     - [Other Settings](#other-settings)
+    - [Example: Environment Variables](#example-environment-variables)
+    - [Example: JSON Settings File](#example-json-settings-file)
   - [Roadmap](#roadmap)
   - [License](#license)
-  - [Support \& Documentation](#support--documentation)
+  - [Support](#support)
     - [Documentation](#documentation)
     - [Links](#links)
 
@@ -65,11 +68,11 @@ leetsolv help
 > *For detailed installation and configuration instructions, see [INSTALL.md](document/INSTALL.md)*
 
 
-## Review Scheduling Engine
+## Review Scheduling System
 
 ### Adaptive SM-2 Algorithm
 
-When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—familiarity, importance, and reasoning to calculate the next review date using the ease factor.
+When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—**familiarity**, **importance**, and **reasoning** to calculate the next review date using the ease factor.
 
 - **Ease Factor**: Classic SM-2 algorithm determinant for calculating next review intervals.
 - **Familiarity Scale**: 5-level familiarity assessment (`VeryHard`, `Hard`, `Medium`, `Easy`, `VeryEasy`) for personal rating.
@@ -129,11 +132,12 @@ graph LR
 
 > *By default, the priority score is calculated using the following formula: (1.5×Importance)+(0.5×Overdue Days)+(3.0×Familiarity)+(-1.5×Review Count)+(-1.0×Ease Factor)*
 
+**Due priority scoring demo:**
 ![Demo](document/image/DEMO_due_scoring.gif)
 
-### Interval Growth Strategy
+### Interval Growing Curve
 
-LeetSolv adapts SM-2 intervals based on importance, familiarity, and reasoning. Critical problems are reviewed more often, while easier ones gradually get longer intervals.
+LeetSolv adapts SM-2 intervals based on importance, familiarity, and reasoning. **Critical problems are reviewed more often, while easier ones gradually get longer intervals.**
 
 The following graphs demonstrate how review intervals grow over time for different importance levels, showing the default growth pattern:
 
@@ -175,6 +179,7 @@ graph TD
     G --> J
 ```
 
+**Search, History, Delete, Undo functionality demo:**
 ![Demo](document/image/DEMO_mgmt.gif)
 
 ### Data Privacy & Safety
@@ -196,6 +201,7 @@ graph LR
 - **Pagination**: Efficient navigation for large problem sets.
 - **Clear Output**: Structured, color-coded CLI output.
 
+**Pagination demo:**
 ![Demo](document/image/DEMO_pagination.gif)
 
 ## Usage
@@ -229,77 +235,132 @@ leetsolv add https://leetcode.com/problems/example
 
 ### Available Commands
 
-| Command   | Aliases               | Description                                |
-| --------- | --------------------- | ------------------------------------------ |
-| `list`    | `ls`                  | List all questions with pagination         |
-| `search`  | `s`                   | Search questions by keywords               |
-| `detail`  | `get`                 | Get detailed information about a question  |
-| `status`  | `stat`                | Show summary of due and upcoming questions |
-| `upsert`  | `add`                 | Add or update a question                   |
-| `remove`  | `rm`, `delete`, `del` | Delete a question                          |
-| `undo`    | `back`                | Undo the last action                       |
-| `history` | `hist`, `log`         | Show action history                        |
-| `setting` | `config`, `cfg`       | View and modify application settings       |
-| `version` | `ver`, `v`            | Show application version information       |
-| `help`    | `h`                   | Show help information                      |
-| `clear`   | `cls`                 | Clear the screen                           |
-| `quit`    | `q`, `exit`           | Exit the application                       |
+| Command   | Aliases               | Description                                     |
+| --------- | --------------------- | ----------------------------------------------- |
+| `list`    | `ls`                  | List all questions with pagination              |
+| `search`  | `s`                   | Search questions by keywords (supports filters) |
+| `detail`  | `get`                 | Get detailed information about a question       |
+| `status`  | `stat`                | Show summary of due and upcoming questions      |
+| `upsert`  | `add`                 | Add or update a question                        |
+| `remove`  | `rm`, `delete`, `del` | Delete a question                               |
+| `undo`    | `back`                | Undo the last action                            |
+| `history` | `hist`, `log`         | Show action history                             |
+| `setting` | `config`, `cfg`       | View and modify application settings            |
+| `version` | `ver`, `v`            | Show application version information            |
+| `help`    | `h`                   | Show help information                           |
+| `clear`   | `cls`                 | Clear the screen                                |
+| `quit`    | `q`, `exit`           | Exit the application                            |
+
+
+### Search Command Filters
+
+The `search` command lets you search by keywords (in **URL** or **note**) and refine results using filters.
+
+**Syntax:**
+```bash
+search [keywords...] [filters...]
+```
+
+**Filters:**
+
+| Filter             | Description                       |
+| ------------------ | --------------------------------- |
+| `--familiarity=N`  | Filter by familiarity level (1-5) |
+| `--importance=N`   | Filter by importance level (1-4)  |
+| `--review-count=N` | Filter by review count            |
+| `--due-only`       | Only show due questions           |
+
 
 ## Configuration
 
+You can configure **LeetSolv** in two ways:
+
+1. **Environment variables** – convenient for temporary or deployment-level overrides.
+2. **JSON settings file** (`$HOME/.leetsolv/settings.json`) – persistent configuration you can edit manually.
+
+Both methods map to the same internal configuration.
+- Environment variables follow `UPPERCASE_SNAKE_CASE` naming.
+- JSON fields follow `camelCase` naming.
+
+For example:
+- Env var: `LEETSOLV_RANDOMIZE_INTERVAL=true`
+- JSON: `"randomizeInterval": true`
+
+If both are provided, the **JSON settings file takes priority** over environment variables.
+
 ### File Paths
 
-| Variable                  | Default                          | Description         |
-| ------------------------- | -------------------------------- | ------------------- |
-| `LEETSOLV_QUESTIONS_FILE` | `$HOME/.leetsolv/questions.json` | Questions data file |
-| `LEETSOLV_DELTAS_FILE`    | `$HOME/.leetsolv/deltas.json`    | Change history file |
-| `LEETSOLV_INFO_LOG_FILE`  | `$HOME/.leetsolv/info.log`       | Info log file       |
-| `LEETSOLV_ERROR_LOG_FILE` | `$HOME/.leetsolv/error.log`      | Error log file      |
+| Env Variable              | JSON field      | Default                          | Description         |
+| ------------------------- | --------------- | -------------------------------- | ------------------- |
+| `LEETSOLV_QUESTIONS_FILE` | `questionsFile` | `$HOME/.leetsolv/questions.json` | Questions data file |
+| `LEETSOLV_DELTAS_FILE`    | `deltasFile`    | `$HOME/.leetsolv/deltas.json`    | Change history file |
+| `LEETSOLV_INFO_LOG_FILE`  | `infoLogFile`   | `$HOME/.leetsolv/info.log`       | Info log file       |
+| `LEETSOLV_ERROR_LOG_FILE` | `errorLogFile`  | `$HOME/.leetsolv/error.log`      | Error log file      |
+| `LEETSOLV_SETTINGS_FILE`  | `settingsFile`  | `$HOME/.leetsolv/settings.json`  | Config JSON file    |
+
 
 ### SM-2 Algorithm Settings
 
-| Variable                      | Default | Description                                    |
-| ----------------------------- | ------- | ---------------------------------------------- |
-| `LEETSOLV_RANDOMIZE_INTERVAL` | `true`  | Enable/disable interval randomization          |
-| `LEETSOLV_OVERDUE_PENALTY`    | `false` | Enable/disable overdue penalty system          |
-| `LEETSOLV_OVERDUE_LIMIT`      | `7`     | Days after which overdue questions get penalty |
+| Env Variable                  | JSON field          | Default | Description                                    |
+| ----------------------------- | ------------------- | ------- | ---------------------------------------------- |
+| `LEETSOLV_RANDOMIZE_INTERVAL` | `randomizeInterval` | `true`  | Enable/disable interval randomization          |
+| `LEETSOLV_OVERDUE_PENALTY`    | `overduePenalty`    | `false` | Enable/disable overdue penalty system          |
+| `LEETSOLV_OVERDUE_LIMIT`      | `overdueLimit`      | `7`     | Days after which overdue questions get penalty |
 
-### Due Priority Scoring
 
-| Variable                         | Default | Description                    |
-| -------------------------------- | ------- | ------------------------------ |
-| `LEETSOLV_TOP_K_DUE`             | `10`    | Top due questions to show      |
-| `LEETSOLV_TOP_K_UPCOMING`        | `10`    | Top upcoming questions to show |
-| `LEETSOLV_IMPORTANCE_WEIGHT`     | `1.5`   | Weight for problem importance  |
-| `LEETSOLV_OVERDUE_WEIGHT`        | `0.5`   | Weight for overdue problems    |
-| `LEETSOLV_FAMILIARITY_WEIGHT`    | `3.0`   | Weight for familiarity level   |
-| `LEETSOLV_REVIEW_PENALTY_WEIGHT` | `-1.5`  | Penalty for high review count  |
-| `LEETSOLV_EASE_PENALTY_WEIGHT`   | `-1.0`  | Penalty for easy problems      |
+### Due Priority Scoring Settings
+
+| Env Variable                     | JSON field            | Default | Description                    |
+| -------------------------------- | --------------------- | ------- | ------------------------------ |
+| `LEETSOLV_TOP_K_DUE`             | `topKDue`             | `10`    | Top due questions to show      |
+| `LEETSOLV_TOP_K_UPCOMING`        | `topKUpcoming`        | `10`    | Top upcoming questions to show |
+| `LEETSOLV_IMPORTANCE_WEIGHT`     | `importanceWeight`    | `1.5`   | Weight for problem importance  |
+| `LEETSOLV_OVERDUE_WEIGHT`        | `overdueWeight`       | `0.5`   | Weight for overdue problems    |
+| `LEETSOLV_FAMILIARITY_WEIGHT`    | `familiarityWeight`   | `3.0`   | Weight for familiarity level   |
+| `LEETSOLV_REVIEW_PENALTY_WEIGHT` | `reviewPenaltyWeight` | `-1.5`  | Penalty for high review count  |
+| `LEETSOLV_EASE_PENALTY_WEIGHT`   | `easePenaltyWeight`   | `-1.0`  | Penalty for easy problems      |
+
 
 ### Other Settings
 
-| Variable             | Default | Description             |
-| -------------------- | ------- | ----------------------- |
-| `LEETSOLV_PAGE_SIZE` | `5`     | Questions per page      |
-| `LEETSOLV_MAX_DELTA` | `50`    | Maximum history entries |
+| Env Variable         | JSON field | Default | Description             |
+| -------------------- | ---------- | ------- | ----------------------- |
+| `LEETSOLV_PAGE_SIZE` | `pageSize` | `5`     | Questions per page      |
+| `LEETSOLV_MAX_DELTA` | `maxDelta` | `50`    | Maximum history entries |
+
+### Example: Environment Variables
+
+```bash
+export LEETSOLV_RANDOMIZE_INTERVAL=false
+export LEETSOLV_PAGE_SIZE=20
+```
+
+### Example: JSON Settings File
+
+```json
+{
+    "randomizeInterval": false,
+    "pageSize": 20
+}
+```
 
 
 
 ## Roadmap
 
-- Add support for DSA problems from other platforms
-- Implement fuzzy search functionality
-- Make SM-2 algorithm user-customizable
-- Introduce tagging system
+- Provide tagging functionality
 - Provide export functionality
+- Add support for DSA problems from other platforms
 - Add Windows installation script
+- Make SM-2 algorithm user-customizable
+- Implement fuzzy search functionality
 - Write multi-language documentation
 
 ## License
 
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
-## Support & Documentation
+## Support
 
 ### Documentation
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
