@@ -113,7 +113,7 @@ func linearSearch(dataset []string, pattern string) []string {
 }
 ```
 
-By implementing a trie, search time drops to `O(L)`, where `L` is just the length of the search query itself. The key win here is that search performance is now **completely independent of the dataset size**. Whether I have 100 problems or 10,000, the search takes the same amount of time. See my implementation in [trie.go](../internal/search/trie.go).
+By implementing a trie, search time drops to `O(L)`, where `L` is just the length of the search query itself. The key win here is that search performance is now **completely independent of the dataset size**. Whether I have 100 problems or 10,000, the search takes the same amount of time.
 
 ```json
 "url_trie": {
@@ -136,6 +136,42 @@ By implementing a trie, search time drops to `O(L)`, where `L` is just the lengt
     "MinPrefixLength": 3
   }
 ```
+
+```go
+func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	if prefix == "" {
+		idsCopy := make(map[int]struct{}, len(t.Root.IDs))
+		for id := range t.Root.IDs {
+			idsCopy[id] = struct{}{}
+		}
+		return idsCopy
+	}
+
+	if len([]rune(prefix)) < t.MinPrefixLength {
+		return make(map[int]struct{})
+	}
+
+	node := t.Root
+	for _, ch := range prefix {
+		if _, ok := node.Children[ch]; !ok {
+			return make(map[int]struct{})
+		}
+		node = node.Children[ch]
+	}
+
+	idsCopy := make(map[int]struct{}, len(node.IDs))
+	for id := range node.IDs {
+		idsCopy[id] = struct{}{}
+	}
+	return idsCopy
+}
+```
+> *The app is single-threaded, so a race condition is impossible. But I kept the mutex around for ever features like a background process are added.*
+
+See my implementation in [trie.go](../internal/search/trie.go).
 
 There’s a trade-off: a trie only supports prefix search, not fuzzy search. But I chose it because I fully understand it and wanted to avoid external libraries.
 
