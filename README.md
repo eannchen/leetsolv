@@ -132,7 +132,7 @@ graph LR
 
 > *By default, the priority score is calculated using the following formula: (1.5×Importance)+(0.5×Overdue Days)+(3.0×Familiarity)+(-1.5×Review Count)+(-1.0×Ease Factor)*
 
-**Due priority scoring demo:**
+**Due priority list demo:**
 ![Demo](document/image/DEMO_due_scoring.gif)
 
 ### Interval Growing Curve
@@ -160,6 +160,7 @@ The following graphs demonstrate how review intervals grow over time for differe
 
 ### CRUD + undo
 - **Summary View**: Overview of total problems, due problems, and upcoming problems with [priority scoring](#due-priority-scoring).
+- **List View**: List all problems with pagination.
 - **Trie-Based Search & Filtering**: Fast search and filtering by keywords, familiarity, importance, review count, and due status.
 - **Get Problem Details**: Retrieve detailed information about a specific problem.
 - **Add/Update Problems**: Create or modify problems with URL and notes.
