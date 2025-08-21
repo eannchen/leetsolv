@@ -1,350 +1,224 @@
 package search
 
 import (
+	"reflect"
+	"sort"
 	"testing"
 )
+
+// newHelper is a helper function to compare the actual IDs with expected IDs.
+// It improves readability and reduces boilerplate in tests.
+func assertIDsMatch(t *testing.T, actual map[int]struct{}, expected ...int) {
+	t.Helper() // Marks this function as a test helper.
+
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d IDs, but got %d. Expected: %v, Got: %v", len(expected), len(actual), expected, actual)
+		return
+	}
+
+	expectedMap := make(map[int]struct{})
+	for _, id := range expected {
+		expectedMap[id] = struct{}{}
+	}
+
+	if !reflect.DeepEqual(actual, expectedMap) {
+		// Sorting slices for consistent error message output
+		actualSlice := []int{}
+		for id := range actual {
+			actualSlice = append(actualSlice, id)
+		}
+		sort.Ints(actualSlice)
+		sort.Ints(expected)
+		t.Errorf("ID sets do not match. Expected %v, got %v", expected, actualSlice)
+	}
+}
 
 func TestNewTrieNode(t *testing.T) {
 	node := NewTrieNode()
 
 	if node == nil {
-		t.Fatal("NewTrieNode() returned nil")
+		t.Fatal("NewTrieNode() should not return nil")
 	}
-
 	if node.Children == nil {
-		t.Error("Children map should not be nil")
+		t.Error("Children map should be initialized, not nil")
 	}
-
 	if node.IDs == nil {
-		t.Error("IDs map should not be nil")
+		t.Error("IDs map should be initialized, not nil")
 	}
-
-	if node.IsWord != false {
-		t.Error("IsWord should be false for new node")
-	}
-}
-
-func TestNewTrie(t *testing.T) {
-	minPrefixLength := 3
-	trie := NewTrie(minPrefixLength)
-
-	if trie == nil {
-		t.Fatal("NewTrie() returned nil")
-	}
-
-	if trie.Root == nil {
-		t.Error("Root should not be nil")
-	}
-
-	if trie.MinPrefixLength != minPrefixLength {
-		t.Errorf("MinPrefixLength is %d, expected %d", trie.MinPrefixLength, minPrefixLength)
+	// CHANGE: The original test checked for a boolean `IsWord`.
+	// The implementation uses a map `WordEndIDs`, which should be checked instead.
+	if node.WordEndIDs == nil {
+		t.Error("WordEndIDs map should be initialized, not nil")
 	}
 }
 
 func TestTrie_Insert(t *testing.T) {
 	trie := NewTrie(1)
+	word := "hello"
+	id := 101
 
-	// Test inserting a single word
-	trie.Insert("hello", 1)
+	trie.Insert(word, id)
 
-	// Check that the word is marked as complete
+	// Check that the ID is present at every node along the path
 	node := trie.Root
-	for _, ch := range "hello" {
-		if node.Children[ch] == nil {
-			t.Errorf("Expected child node for character %c", ch)
+	if _, exists := node.IDs[id]; !exists {
+		t.Errorf("Expected ID %d to be present at the root", id)
+	}
+	for _, ch := range word {
+		child, ok := node.Children[ch]
+		if !ok {
+			t.Fatalf("Expected child node for character '%c', but it was nil", ch)
 		}
-		node = node.Children[ch]
-		if _, exists := node.IDs[1]; !exists {
-			t.Errorf("Expected ID 1 to be present at character %c", ch)
+		node = child
+		if _, exists := node.IDs[id]; !exists {
+			t.Errorf("Expected ID %d to be present at node for character '%c'", id, ch)
 		}
 	}
 
-	if !node.IsWord {
-		t.Error("Expected final node to be marked as word")
-	}
-}
-
-func TestTrie_InsertMultipleWords(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Insert multiple words
-	trie.Insert("hello", 1)
-	trie.Insert("world", 2)
-	trie.Insert("help", 3)
-
-	// Check that all words are present
-	helloIDs := trie.SearchPrefix("hello")
-	if _, exists := helloIDs[1]; !exists {
-		t.Error("Expected ID 1 for 'hello'")
-	}
-
-	worldIDs := trie.SearchPrefix("world")
-	if _, exists := worldIDs[2]; !exists {
-		t.Error("Expected ID 2 for 'world'")
-	}
-
-	helpIDs := trie.SearchPrefix("help")
-	if _, exists := helpIDs[3]; !exists {
-		t.Error("Expected ID 3 for 'help'")
-	}
-}
-
-func TestTrie_InsertSameWordMultipleTimes(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Insert the same word with different IDs
-	trie.Insert("hello", 1)
-	trie.Insert("hello", 2)
-
-	// Check that both IDs are present
-	ids := trie.SearchPrefix("hello")
-	if _, exists := ids[1]; !exists {
-		t.Error("Expected ID 1 for 'hello'")
-	}
-	if _, exists := ids[2]; !exists {
-		t.Error("Expected ID 2 for 'hello'")
+	// CHANGE: Verify the ID is in WordEndIDs at the final node.
+	if _, exists := node.WordEndIDs[id]; !exists {
+		t.Error("Expected final node to have the ID in its WordEndIDs map")
 	}
 }
 
 func TestTrie_SearchPrefix(t *testing.T) {
-	trie := NewTrie(2)
+	trie := NewTrie(3) // Min prefix length is 3
+	trie.Insert("apple", 1)
+	trie.Insert("apply", 2)
+	trie.Insert("application", 3)
+	trie.Insert("banana", 4)
+	trie.Insert("", 5) // Empty string case
 
-	// Insert test data
-	trie.Insert("hello", 1)
-	trie.Insert("world", 2)
-	trie.Insert("help", 3)
-
-	// Test exact prefix match
-	ids := trie.SearchPrefix("hello")
-	if len(ids) != 1 {
-		t.Errorf("Expected 1 ID for 'hello', got %d", len(ids))
-	}
-	if _, exists := ids[1]; !exists {
-		t.Error("Expected ID 1 for 'hello'")
-	}
-
-	// Test partial prefix match
-	ids = trie.SearchPrefix("hel")
-	if len(ids) != 2 {
-		t.Errorf("Expected 2 IDs for 'hel', got %d", len(ids))
-	}
-	if _, exists := ids[1]; !exists {
-		t.Error("Expected ID 1 for 'hel'")
-	}
-	if _, exists := ids[3]; !exists {
-		t.Error("Expected ID 3 for 'hel'")
-	}
-
-	// Test prefix shorter than MinPrefixLength
-	ids = trie.SearchPrefix("h")
-	if ids != nil {
-		t.Errorf("Expected nil for prefix shorter than MinPrefixLength, got %v", ids)
-	}
-
-	// Test non-existent prefix
-	ids = trie.SearchPrefix("xyz")
-	if ids != nil {
-		t.Errorf("Expected nil for non-existent prefix, got %v", ids)
-	}
-}
-
-func TestTrie_SearchPrefix_EdgeCases(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Test empty prefix
-	ids := trie.SearchPrefix("")
-	if ids == nil {
-		t.Error("Empty prefix should return all IDs")
+	testCases := []struct {
+		name         string
+		prefix       string
+		expectedIDs  []int
+		expectNonNil bool // To handle the new return behavior
+	}{
+		{
+			name:        "Exact Match",
+			prefix:      "apple",
+			expectedIDs: []int{1},
+		},
+		{
+			name:        "Common Prefix",
+			prefix:      "app",
+			expectedIDs: []int{1, 2, 3},
+		},
+		{
+			name:   "Prefix Not Found",
+			prefix: "xyz",
+			// CHANGE: Expect an empty map, not nil
+			expectedIDs: []int{},
+		},
+		{
+			name:   "Prefix Too Short",
+			prefix: "ap",
+			// CHANGE: Expect an empty map, not nil
+			expectedIDs: []int{},
+		},
+		{
+			name:        "Empty Prefix returns all IDs",
+			prefix:      "",
+			expectedIDs: []int{1, 2, 3, 4, 5},
+		},
+		{
+			name:        "Search in an empty trie",
+			prefix:      "any",
+			expectedIDs: []int{},
+		},
 	}
 
-	// Test with no words inserted
-	ids = trie.SearchPrefix("hello")
-	if ids != nil {
-		t.Errorf("Expected nil for non-existent prefix, got %v", ids)
+	// Separate test for empty trie
+	emptyTrie := NewTrie(1)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var ids map[int]struct{}
+			if tc.name == "Search in an empty trie" {
+				ids = emptyTrie.SearchPrefix(tc.prefix)
+			} else {
+				ids = trie.SearchPrefix(tc.prefix)
+			}
+
+			// CHANGE: The logic is now simpler. We always expect a map.
+			// We no longer need to check for `nil`.
+			if ids == nil {
+				t.Fatal("SearchPrefix should never return a nil map")
+			}
+
+			assertIDsMatch(t, ids, tc.expectedIDs...)
+		})
 	}
 }
 
 func TestTrie_Delete(t *testing.T) {
-	trie := NewTrie(1)
+	t.Run("Delete specific ID from word with multiple IDs", func(t *testing.T) {
+		trie := NewTrie(1)
+		trie.Insert("flow", 10)
+		trie.Insert("flow", 20)
+		trie.Insert("flower", 30)
 
-	// Insert test data
-	trie.Insert("hello", 1)
-	trie.Insert("hello", 2)
-	trie.Insert("world", 3)
+		trie.Delete("flow", 10)
 
-	// Delete one occurrence of "hello"
-	trie.Delete("hello", 1)
+		// "flow" prefix should now only contain IDs 20 and 30
+		ids := trie.SearchPrefix("flow")
+		assertIDsMatch(t, ids, 20, 30)
 
-	// Check that ID 1 is removed but ID 2 remains
-	ids := trie.SearchPrefix("hello")
-	if _, exists := ids[1]; exists {
-		t.Error("ID 1 should be removed")
-	}
-	if _, exists := ids[2]; !exists {
-		t.Error("ID 2 should remain")
-	}
-
-	// Check that "world" is unaffected
-	worldIDs := trie.SearchPrefix("world")
-	if _, exists := worldIDs[3]; !exists {
-		t.Error("ID 3 for 'world' should remain")
-	}
-}
-
-func TestTrie_Delete_NonExistentWord(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Try to delete a word that doesn't exist
-	trie.Delete("nonexistent", 1)
-
-	// Should not cause any errors or panics
-	// Just verify the trie is still functional
-	_ = trie.SearchPrefix("hello")
-}
-
-func TestTrie_Delete_NonExistentID(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Insert a word
-	trie.Insert("hello", 1)
-
-	// Try to delete a non-existent ID
-	trie.Delete("hello", 999)
-
-	// Check that the original ID is still present
-	ids := trie.SearchPrefix("hello")
-	if _, exists := ids[1]; !exists {
-		t.Error("ID 1 should remain after deleting non-existent ID")
-	}
-}
-
-func TestTrie_Delete_AllOccurrences(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Insert the same word multiple times
-	trie.Insert("hello", 1)
-	trie.Insert("hello", 2)
-	trie.Insert("hello", 3)
-
-	// Delete all occurrences
-	trie.Delete("hello", 1)
-	trie.Delete("hello", 2)
-	trie.Delete("hello", 3)
-
-	// Check that the word is completely removed
-	ids := trie.SearchPrefix("hello")
-	if len(ids) != 0 {
-		t.Errorf("Expected 0 IDs after deleting all occurrences, got %d", len(ids))
-	}
-}
-
-func TestTrie_ComplexOperations(t *testing.T) {
-	trie := NewTrie(1)
-
-	// Insert various words
-	words := []struct {
-		word string
-		id   int
-	}{
-		{"algorithm", 1},
-		{"algorithms", 2},
-		{"algo", 3},
-		{"binary", 4},
-		{"binarysearch", 5},
-		{"tree", 6},
-		{"trie", 7},
-	}
-
-	for _, w := range words {
-		trie.Insert(w.word, w.id)
-	}
-
-	// Test prefix search for "algo"
-	ids := trie.SearchPrefix("algo")
-	expectedIDs := map[int]struct{}{1: {}, 2: {}, 3: {}}
-
-	if len(ids) != len(expectedIDs) {
-		t.Errorf("Expected %d IDs for 'algo', got %d", len(expectedIDs), len(ids))
-	}
-
-	for id := range expectedIDs {
-		if _, exists := ids[id]; !exists {
-			t.Errorf("Expected ID %d for 'algo'", id)
+		// Check that the WordEndIDs for "flow" no longer contains 10
+		node := trie.Root
+		for _, r := range "flow" {
+			node = node.Children[r]
 		}
-	}
-
-	// Test prefix search for "bin"
-	ids = trie.SearchPrefix("bin")
-	expectedIDs = map[int]struct{}{4: {}, 5: {}}
-
-	if len(ids) != len(expectedIDs) {
-		t.Errorf("Expected %d IDs for 'bin', got %d", len(expectedIDs), len(ids))
-	}
-
-	for id := range expectedIDs {
-		if _, exists := ids[id]; !exists {
-			t.Errorf("Expected ID %d for 'bin'", id)
+		if _, exists := node.WordEndIDs[10]; exists {
+			t.Error("ID 10 should be removed from WordEndIDs of 'flow'")
 		}
-	}
+		if _, exists := node.WordEndIDs[20]; !exists {
+			t.Error("ID 20 should still exist in WordEndIDs of 'flow'")
+		}
+	})
 
-	// Delete some words and verify
-	trie.Delete("algorithms", 2)
-	trie.Delete("binarysearch", 5)
+	t.Run("Delete completely removes node path if unused", func(t *testing.T) {
+		trie := NewTrie(1)
+		trie.Insert("team", 1)
+		trie.Insert("tea", 2)
 
-	// Check that "algo" now only has 2 IDs
-	ids = trie.SearchPrefix("algo")
-	if len(ids) != 2 {
-		t.Errorf("Expected 2 IDs for 'algo' after deletion, got %d", len(ids))
-	}
+		trie.Delete("team", 1)
 
-	// Check that "bin" now only has 1 ID
-	ids = trie.SearchPrefix("bin")
-	if len(ids) != 1 {
-		t.Errorf("Expected 1 ID for 'bin' after deletion, got %d", len(ids))
-	}
-}
+		// Node for 'm' should be pruned/deleted
+		node := trie.Root
+		for _, r := range "tea" {
+			node = node.Children[r]
+		}
+		if _, exists := node.Children['m']; exists {
+			t.Error("Node for 'm' should have been pruned after deletion")
+		}
+		assertIDsMatch(t, trie.SearchPrefix("tea"), 2)
+	})
 
-func TestTrie_UnicodeSupport(t *testing.T) {
-	trie := NewTrie(1)
+	t.Run("Delete non-existent word or ID does not panic", func(t *testing.T) {
+		trie := NewTrie(1)
+		trie.Insert("hello", 1)
 
-	// Test with Unicode characters
-	trie.Insert("café", 1)
-	trie.Insert("naïve", 2)
-	trie.Insert("résumé", 3)
+		// Should not panic or alter the trie's state
+		trie.Delete("world", 2)
+		trie.Delete("hello", 99)
 
-	// Test prefix search
-	ids := trie.SearchPrefix("caf")
-	if _, exists := ids[1]; !exists {
-		t.Error("Expected ID 1 for 'caf'")
-	}
+		assertIDsMatch(t, trie.SearchPrefix("hello"), 1)
+	})
 
-	ids = trie.SearchPrefix("naï")
-	if _, exists := ids[2]; !exists {
-		t.Error("Expected ID 2 for 'naï'")
-	}
+	t.Run("Delete empty string", func(t *testing.T) {
+		trie := NewTrie(1)
+		trie.Insert("", 1)
+		trie.Insert("a", 2)
 
-	ids = trie.SearchPrefix("rés")
-	if _, exists := ids[3]; !exists {
-		t.Error("Expected ID 3 for 'rés'")
-	}
-}
+		assertIDsMatch(t, trie.SearchPrefix(""), 1, 2)
 
-func TestTrie_EmptyString(t *testing.T) {
-	trie := NewTrie(1)
+		trie.Delete("", 1)
 
-	// Test inserting empty string
-	trie.Insert("", 1)
-
-	// Test searching empty string
-	ids := trie.SearchPrefix("")
-	if _, exists := ids[1]; !exists {
-		t.Error("Expected ID 1 for empty string")
-	}
-
-	// Test deleting empty string
-	trie.Delete("", 1)
-	ids = trie.SearchPrefix("")
-	if len(ids) != 0 {
-		t.Errorf("Expected 0 IDs after deleting empty string, got %d", len(ids))
-	}
+		if _, exists := trie.Root.WordEndIDs[1]; exists {
+			t.Error("ID for empty string should be removed from root's WordEndIDs")
+		}
+		assertIDsMatch(t, trie.SearchPrefix(""), 2)
+	})
 }

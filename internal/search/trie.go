@@ -50,21 +50,32 @@ func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
 
 	// Special case: empty prefix should return all IDs
 	if prefix == "" {
-		return t.Root.IDs
+		// Return a copy to prevent external modification.
+		idsCopy := make(map[int]struct{}, len(t.Root.IDs))
+		for id := range t.Root.IDs {
+			idsCopy[id] = struct{}{}
+		}
+		return idsCopy
 	}
 
 	if len([]rune(prefix)) < t.MinPrefixLength {
-		return nil
+		return make(map[int]struct{})
 	}
 
 	node := t.Root
 	for _, ch := range prefix {
 		if _, ok := node.Children[ch]; !ok {
-			return nil
+			return make(map[int]struct{})
 		}
 		node = node.Children[ch]
 	}
-	return node.IDs
+
+	// Return a copy to prevent external modification.
+	idsCopy := make(map[int]struct{}, len(node.IDs))
+	for id := range node.IDs {
+		idsCopy[id] = struct{}{}
+	}
+	return idsCopy
 }
 
 func (t *Trie) Delete(word string, id int) {
@@ -104,7 +115,7 @@ func (t *Trie) Delete(word string, id int) {
 		delete(child.IDs, id)
 
 		// If child is an unused leaf node, delete it
-		if shouldDelete := dfs(child, i+1); shouldDelete {
+		if shouldDeleteChild := dfs(child, i+1); shouldDeleteChild {
 			delete(node.Children, ch)
 		}
 
