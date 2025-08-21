@@ -1,6 +1,6 @@
 # Motivation & Design Notes
 
-*(Updated by: Ian Chen, Date: 2025-08-21)*
+*Author: Ian Chen, Last Update: 2025-08-21*
 
 This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project. In the AI "vibe coding" era, I want to show that this project is intentional and serious, not just toy code.
 
@@ -15,8 +15,8 @@ This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, a
     - [Heap for Top-K Problems](#heap-for-top-k-problems)
     - [Stack for Undo](#stack-for-undo)
   - [Storage](#storage)
-    - [Caching](#caching)
     - [Atomic File Write](#atomic-file-write)
+    - [Caching](#caching)
   - [Design Patterns](#design-patterns)
   - [Closing Note](#closing-note)
 
@@ -204,9 +204,24 @@ See my implementation in [priority_heap.go](../internal/rank/priority_heap.go).
 
 ### Stack for Undo
 
-TODO
+Stack is a natural choice for tracking a history owning to its LIFO behavior. Every change whether it's an `add`, `update`, or `delete` is captured in a `Delta` object. It is clean, efficient, and requires no external libraries.
+
+```go
+type Delta struct {
+    Action     ActionType `json:"action"`
+    QuestionID int        `json:"question_id"`
+    OldState   *Question  `json:"old_state"` // The question's state before the change
+    NewState   *Question  `json:"new_state"` // The question's state after the change
+}
+```
 
 ## Storage
+
+### Atomic File Write
+
+[README](../README.md) has depicted the atomic file write process with a diagram.
+
+See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
 
 ### Caching
 
@@ -258,12 +273,6 @@ func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
 ```
 
 See my implementation in [storage.go](../storage/file.go).
-
-### Atomic File Write
-
-[README](../README.md) has depicted the atomic file write process with a diagram.
-
-See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
 
 ## Design Patterns
 
