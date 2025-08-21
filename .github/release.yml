@@ -1,0 +1,39 @@
+# .github/release.yml
+
+# Configuration for GitHub's automatically generated release notes
+# Reference: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes/configuration-options-for-auto-generated-release-notes
+
+# Exclude these labels from appearing in the release notes
+exclude:
+  labels:
+    - ignore-for-release
+
+# Configure the categories to include in the release notes
+categories:
+  - title: "Features"
+    label: "feature"
+    labels:
+      - "enhancement"
+  - title: "Bug Fixes"
+    label: "bug"
+    labels:
+      - "fix"
+  - title: "Documentation"
+    label: "documentation"
+  - title: "Maintenance"
+    label: "maintenance"
+    labels:
+      - "chore"
+      - "dependencies"
+      - "build"
+      - "ci"
+      - "refactor"
+  - title: "Breaking Changes"
+    label: "breaking-change"
+
+# Template for the release notes
+template: |
+  ## What's Changed
+  $CHANGES
+
+  **Full Changelog**: $PREVIOUS_TAG...$CURRENT_TAG
