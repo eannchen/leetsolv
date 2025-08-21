@@ -331,13 +331,6 @@ git tag -a v0.1.0-alpha -m "Alpha release - development version
 - Update documentation with new features
 - Keep CHANGELOG.md updated
 
-## Future Enhancements
-
-### Potential Improvements
-1. **Package managers** (Homebrew, Chocolatey, apt)
-2. **Auto-updater** functionality
-3. **CI/CD matrix** expansion (more Go versions)
-
 ## Support
 
 ### Getting Help

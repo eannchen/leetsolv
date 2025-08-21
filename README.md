@@ -34,9 +34,12 @@
     - [Example: Environment Variables](#example-environment-variables)
     - [Example: JSON Settings File](#example-json-settings-file)
   - [Roadmap](#roadmap)
+    - [Installation \& Running](#installation--running)
+    - [Features](#features)
+    - [Documentation](#documentation)
   - [License](#license)
   - [Support](#support)
-    - [Documentation](#documentation)
+    - [Documentation](#documentation-1)
     - [Links](#links)
 
 ## Quick Installation
@@ -349,12 +352,23 @@ export LEETSOLV_PAGE_SIZE=20
 
 ## Roadmap
 
+### Installation & Running
+
+- Support installation via package managers (Homebrew, Chocolatey, apt)
+- Support running as a Docker container
+- Add Windows installation script
+
+### Features
+
 - Provide tagging functionality
 - Provide export functionality
 - Add support for DSA problems from other platforms
-- Add Windows installation script
 - Make SM-2 algorithm user-customizable
+- Support auto-updater functionality
 - Implement fuzzy search functionality
+
+### Documentation
+
 - Write multi-language documentation
 
 ## License

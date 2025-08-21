@@ -133,69 +133,7 @@ make install
 
 ## Configuration
 
-LeetSolv will create its configuration directory when you first run the application.
-
-### Configuration Directory
-
-**Default Locations:**
-- **Linux/macOS**: `~/.leetsolv/` (e.g., `/home/username/.leetsolv/`)
-- **Windows**: `%USERPROFILE%\.leetsolv\` (e.g., `C:\Users\username\.leetsolv\`)
-
-### Configuration Files
-
-The following files will be created in the configuration directory:
-- `questions.json` - Database of questions and their review history
-- `deltas.json` - Database for tracking action history and changes
-- `settings.json` - User settings and preferences
-- `info.log` - Informational logs and application events
-- `error.log` - Error logs for troubleshooting
-
-### Configuration Loading Order
-
-LeetSolv loads configuration in this priority order (later sources override earlier ones):
-
-1. **Default values** - Built-in application defaults
-2. **Environment variables** - System environment overrides (see below)
-3. **Settings file** - User settings from `settings.json`
-
-### Environment Variables (Optional Overrides)
-
-You can override file locations using these environment variables:
-
-**File Path Overrides:**
-- `LEETSOLV_QUESTIONS_FILE` - Override questions database path
-- `LEETSOLV_DELTAS_FILE` - Override deltas database path
-- `LEETSOLV_SETTINGS_FILE` - Override settings file path
-- `LEETSOLV_INFO_LOG_FILE` - Override info log file path
-- `LEETSOLV_ERROR_LOG_FILE` - Override error log file path
-
-**Behavior Settings:**
-- `LEETSOLV_RANDOMIZE_INTERVAL` - Enable/disable randomized intervals (true/false)
-- `LEETSOLV_OVERDUE_PENALTY` - Enable/disable overdue penalty (true/false)
-- `LEETSOLV_OVERDUE_LIMIT` - Days after which overdue questions get penalty (number)
-
-**Example Usage:**
-
-Linux/macOS:
-```bash
-export LEETSOLV_QUESTIONS_FILE="/custom/path/my_questions.json"
-export LEETSOLV_RANDOMIZE_INTERVAL=false
-leetsolv
-```
-
-Windows (Command Prompt):
-```cmd
-set LEETSOLV_QUESTIONS_FILE=C:\custom\path\my_questions.json
-set LEETSOLV_RANDOMIZE_INTERVAL=false
-leetsolv.exe
-```
-
-Windows (PowerShell):
-```powershell
-$env:LEETSOLV_QUESTIONS_FILE = "C:\custom\path\my_questions.json"
-$env:LEETSOLV_RANDOMIZE_INTERVAL = "false"
-.\leetsolv.exe
-```
+Read [README.md](../README.md) for more information.
 
 ## Uninstallation
 
