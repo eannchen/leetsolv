@@ -356,6 +356,7 @@ export LEETSOLV_PAGE_SIZE=20
 
 - Support installation via package managers (Homebrew, Chocolatey, apt)
 - Support running as a Docker container
+- Support auto-updater functionality
 - Add Windows installation script
 
 ### Features
@@ -364,7 +365,6 @@ export LEETSOLV_PAGE_SIZE=20
 - Provide export functionality
 - Add support for DSA problems from other platforms
 - Make SM-2 algorithm user-customizable
-- Support auto-updater functionality
 - Implement fuzzy search functionality
 
 ### Documentation
