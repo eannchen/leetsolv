@@ -106,7 +106,7 @@ graph TD
 
 
 ### Due Priority Scoring
-With SM-2, due reviews can easily accumulate since users have varying schedules and study habits. To address this challenge, LeetSolv introduces a due priority scoring feature that allows users to prioritize due questions based on a priority score.
+With SM-2, due reviews can easily accumulate since users have varying schedules and study habits. To address this challenge, LeetSolv introduces a due priority scoring feature that **allows users to prioritize due questions based on a priority score**.
 
 - **Multi-Factor Scoring**: A combination of importance, familiarity, overdue days, review count, and ease factor determines due priority.
 
