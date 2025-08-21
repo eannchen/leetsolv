@@ -102,7 +102,7 @@ graph TD
     H --> I[Determine Next Review]
 ```
 
-> *Check here to learn more about the algorithm: [Interval Growth Strategy](#interval-growth-strategy)*
+> *Check here to learn more about the algorithm: [Interval Growth Curve](#interval-growing-curve)*
 
 
 ### Due Priority Scoring
