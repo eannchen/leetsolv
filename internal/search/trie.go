@@ -58,39 +58,43 @@ func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
 }
 
 func (t *Trie) Delete(word string, id int) {
-	// Special case: empty string
-	if word == "" {
-		delete(t.Root.IDs, id)
+	// Convert string to a slice of runes once to safely handle Unicode.
+	runes := []rune(word)
+
+	// The ID must also be removed from the root's ID set.
+	delete(t.Root.IDs, id)
+
+	if len(runes) == 0 {
 		return
 	}
 
 	// i: next index to check
 	// node: current node
-	// return true if the node is a leaf node
+	// return: returning "true" if the current node should "be deleted by its parent"
 	var dfs func(node *TrieNode, i int) bool
 	dfs = func(node *TrieNode, i int) bool {
-		if i == len(word) {
-			delete(node.IDs, id)
-			// If node is a leaf node, delete it
-			return len(node.Children) == 0 && !node.IsWord
+		if i == len(runes) {
+			// If node is an unused leaf node, delete it
+			return len(node.Children) == 0 && !node.IsWord && len(node.IDs) == 0
 		}
 
-		ch := rune(word[i])
+		ch := runes[i]
 		child, ok := node.Children[ch]
 		if !ok {
 			// If the word is not in the trie, do nothing
 			return false
 		}
+
+		// Remove the ID from the child node as we traverse down the path.
 		delete(child.IDs, id)
 
-		// If child is a leaf node, delete it
-		shouldDelete := dfs(child, i+1)
-		if shouldDelete {
+		// If child is an unused leaf node, delete it
+		if shouldDelete := dfs(child, i+1); shouldDelete {
 			delete(node.Children, ch)
 		}
 
-		// After deleting child, if the node is a leaf node, delete it
-		return len(child.Children) == 0 && !child.IsWord
+		// After deleting child, determine if the CURRENT node is now prunable
+		return len(node.Children) == 0 && !node.IsWord && len(node.IDs) == 0
 	}
 	dfs(t.Root, 0)
 }
