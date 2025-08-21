@@ -1,8 +1,8 @@
 # Motivation & Design Notes
 
-*(Updated by: Ian Chen, Date: 2025-08-20)*
+*(Updated by: Ian Chen, Date: 2025-08-21)*
 
-This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project. In the AI era, I want to show that this project is intentional and serious, not just AI-generated code.
+This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project. In the AI "vibe coding" era, I want to show that this project is intentional and serious, not just toy code.
 
 - [Motivation \& Design Notes](#motivation--design-notes)
   - [Motivation](#motivation)
@@ -14,7 +14,9 @@ This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, a
     - [Trie for Text Search](#trie-for-text-search)
     - [Heap for Top-K Problems](#heap-for-top-k-problems)
     - [Stack for Undo](#stack-for-undo)
-  - [Data Safety \& Caching](#data-safety--caching)
+  - [Storage](#storage)
+    - [Caching](#caching)
+    - [Atomic File Write](#atomic-file-write)
   - [Design Patterns](#design-patterns)
   - [Closing Note](#closing-note)
 
@@ -25,7 +27,7 @@ This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, a
 
 After solving 190+ LeetCode problems, I noticed something missing: my understanding didn’t always stick. I was moving forward but not deepening.
 
-My old method was starring ⭐️ hard problems, but it wasn’t reliable: some stars became trivial with progression, while other tough problems slipped through.
+My old method was starring ⭐️ hard problems, but it wasn’t reliable: some stars became trivial with progression, while other tough problems slipped through. Moreover, "when" to review those problems is also a challenge.
 
 I thought back to my English-learning experience: flashcards and spaced repetition worked well for vocabulary. But DSA isn’t like vocabulary. Memorization isn't the correct way to learn DSA, it requires reasoning, practice, and reviewing concepts in different contexts. I can't just use a software like Anki to review DSA.
 
@@ -36,7 +38,7 @@ So I made LeetSolv to solve my own learning problem: a revision tool that schedu
 
 On LeetCode, it encourages developers to adapt the fundamentals to solve problems, cultivating developers to be tool makers instead of tool users.
 
-Since I am practicing problem-solving, why don't I challenge myself to apply what I’ve learned here? So I gave myself the challenge to build LeetSolv without any dependencies. The tool is not only a revision tool, but also a chance to apply what I’ve learned.
+Since I am practicing problem-solving, why don't I challenge myself to apply what I’ve learned here? So I gave myself the challenge to build LeetSolv without any dependencies. The tool is not only a revision tool, but also a chance to apply what I’ve learned. To achieve this, even some Go built-in libraries for data structures are not used. Given that, I can even control the subtle details for better time efficiency, e.g., [Heap for Top-K Problems](#heap-for-top-k-problems).
 
 It’s a rare chance, because in real jobs developers usually rely on libraries for speed and reliability.
 
@@ -56,7 +58,7 @@ I adjusted SM-2 so it works better for DSA instead of vocabulary.
 The key customizations are:
 
 - **Importance factor:** NeetCode 150 problems are essential building blocks, while NeetCode 250 includes duplicates for extra practice. They shouldn’t be scheduled equally.
-- **Memory usage factor:** Some problems inevitably feel familiar once we’ve seen their patterns. These should be spaced out more aggressively to prevent rote memorization, by lowering their retention score.
+- **Reasoning factor:** If a problem is solved from memory instead of reasoning, the algorithm treats it as a weaker recall signal. These should be spaced out more aggressively to prevent rote memorization and lower their retention score.
 - **Randomization:** Many SM-2 apps bunch reviews into heavy days — a common pitfall I wanted to avoid.
 
 Together, these changes shift SM-2 from “memorize facts” toward “practice reasoning.”
@@ -68,11 +70,11 @@ See my implementation in [scheduler.go](../core/scheduler.go).
 
 LeetSolv is small. Users might only add hundreds of problems, far below where efficiency actually matters. But I treated this project as a chance to apply what I’ve learned — to write efficient structures and think about time complexity in a real project, not just in interview problems.
 
-Interestingly, 2025’s AI often suggested workable but inefficient solutions (e.g. linear scans instead of binary search or hash maps). By pushing back and rethinking, I practiced writing efficiency consciously.
+Interestingly, AI models (in 2025) often suggested workable but inefficient solutions unless I explicitly point to improve efficiency. (e.g. linear scans with `O(n)` or `O(n * m)` time complexity instead of indexing or using more complex data structures). **I confirmed that learning data structures and algorithms is still essential.**
 
 ### Indexing for Lookup
 
-Users should be able to search problems by both ID and URL. Originally, AI suggested arrays with linear scans, but I replaced them with a hash-based approach, it provides `amortized O(1)` lookup in both cases. Even binary search wasn’t needed.
+Users should be able to search problems by both ID and URL. It provides `average O(1)` time operations for both lookups instead of linear scans.
 
 ```json
 {
@@ -91,25 +93,27 @@ Users should be able to search problems by both ID and URL. Originally, AI sugge
 
 ### Trie for Text Search
 
-In linear scans, it takes `O(n * m)` time to search, where `n` is the length of searching string and `m` is the average length of the strings in the dataset.
-
+In linear scans, it takes `O(n * m)` time to search, where `n` is the number of strings in the dataset and `m` is the average length of a string.
 
 ```go
-func main() {
-	text := "This is a sample text for a search."
-	pattern := "sample"
+// search linearly through a dataset.
+// Complexity: O(n * m)
+// - n: number of strings in the dataset
+// - m: average length of a string
+func linearSearch(dataset []string, pattern string) []string {
+	var results []string
 
-	index := strings.Index(text, pattern)
-
-	if index != -1 {
-		fmt.Printf("Pattern found at index: %d\n", index)
-	} else {
-		fmt.Println("Pattern not found.")
+	for _, item := range dataset {
+		if strings.Contains(item, pattern) {
+			results = append(results, item)
+		}
 	}
+
+	return results
 }
 ```
 
-By implementing a trie, I can mitigate the time complexity to `O(n)`, with only `O(k)` extra space, where k is the number of unique characters across all entries. See my implementation in [trie.go](../internal/search/trie.go).
+By implementing a trie, search time drops to `O(L)`, where `L` is just the length of the search query itself. The key win here is that search performance is now **completely independent of the dataset size**. Whether I have 100 problems or 10,000, the search takes the same amount of time. See my implementation in [trie.go](../internal/search/trie.go).
 
 ```json
 "url_trie": {
@@ -153,9 +157,7 @@ sort.Slice(questions, func(i, j int) bool {
 return questions[:k]
 ```
 
-By using a heap, we can improve the efficiency to `O(log k)` time, where `k` is the number of problems to return, which is drastically better than `O(n log n)`.
-
-But when we use the built-in Heap library, we need to spend `O(log k)` time to remove the smallest element and spend another `O(log k)` time to insert the new element, which takes `O(2 log k)` time in total.
+By using a min-heap of size `k`, I can find the top k problems in `O(n log k)` time, which is a major improvement. We iterate through all n problems, maintaining a heap of the k problems with the highest priority scores seen so far.
 
 ```go
 func (h *TopKMinHeap) Push(item HeapItem) {
@@ -174,7 +176,7 @@ func (h *TopKMinHeap) Push(item HeapItem) {
 }
 ```
 
-With a custom heap implementation, I gained more control, avoided unnecessary percolate-up steps, and kept it purely `O(log k)`.
+I also implemented a custom heap to optimize the process further. Instead of using the standard library's `heap.Pop` and `heap.Push` (**two** O`(log k)` operations), my implementation directly replaces the heap's root if a new item has a higher score and performs a **single** `percolateDown` operation.
 
 ```go
 func (h *TopKMinHeap) Push(item HeapItem) {
@@ -197,32 +199,75 @@ func (h *TopKMinHeap) Push(item HeapItem) {
 }
 ```
 
-See my implementation in [priority_heap.go](../internal/heap/priority_heap.go).
+See my implementation in [priority_heap.go](../internal/rank/priority_heap.go).
 
 
 ### Stack for Undo
 
+TODO
 
+## Storage
 
-## Data Safety & Caching
+### Caching
 
 In interactive mode, the app caches data in memory instead of reloading the storage file on every operation.
+I applied **Cache-aside** and **Write-through** strategies. This way, performance is improved.
 
-TODO
+> *The app is single-threaded, so a race condition is impossible. But I kept the mutex around for ever features like a background process are added.*
 
-See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
+```go
+func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
+	// Try to load from cache first
+	fs.deltasCacheMutex.RLock()
+	if fs.deltasCache != nil {
+		fs.deltasCacheMutex.RUnlock()
+		return fs.deltasCache, nil
+	}
+	fs.deltasCacheMutex.RUnlock()
 
-I applied **write-through** and **cache-aside** strategies. This way, performance improves while data safety is still guaranteed.
+	fs.deltasCacheMutex.Lock()
+	defer fs.deltasCacheMutex.Unlock()
 
-TODO
+	// Load deltas from file
+	var deltas []core.Delta
+	err := fs.file.Load(&deltas, fs.deltasFileName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update cache
+	fs.deltasCache = deltas
+
+	return deltas, nil
+}
+
+func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
+	fs.deltasCacheMutex.Lock()
+	defer fs.deltasCacheMutex.Unlock()
+
+	err := fs.file.Save(deltas, fs.deltasFileName)
+	if err != nil {
+		return err
+	}
+
+	// Update cache after successful save
+	fs.deltasCache = deltas
+
+	return nil
+}
+```
 
 See my implementation in [storage.go](../storage/file.go).
 
+### Atomic File Write
 
+[README](../README.md) has depicted the atomic file write process with a diagram.
+
+See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
 
 ## Design Patterns
 
-TODO
+*<span style="color: #888">[🏗️ Work in progress]</span>*
 
 
 ## Closing Note
