@@ -29,6 +29,9 @@ func NewTrie(minPrefixLength int) *Trie {
 // Hydrate ensures that the trie and all its nodes have their maps initialized.
 // This is useful after deserializing a trie from a source that might be incomplete.
 func (t *Trie) Hydrate() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if t.Root == nil {
 		t.Root = NewTrieNode()
 		return
@@ -38,6 +41,11 @@ func (t *Trie) Hydrate() {
 }
 
 func hydrateNode(node *TrieNode) {
+	// A defensive check to make the function more robust.
+	if node == nil {
+		return
+	}
+
 	if node.WordEndIDs == nil {
 		node.WordEndIDs = make(map[int]struct{})
 	}

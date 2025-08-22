@@ -446,6 +446,7 @@ func (u *QuestionUseCaseImpl) Undo() error {
 		} else {
 			// Restore the previous state of the question
 			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
+			store.URLIndex[lastDelta.OldState.URL] = lastDelta.QuestionID
 
 			// Restore the previous state of the question to the trie
 			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
@@ -522,10 +523,10 @@ func (u *QuestionUseCaseImpl) findQuestionByIDOrURL(store *storage.QuestionStore
 		foundQuestion, _ = store.Questions[id]
 	} else {
 		for _, q := range store.Questions {
-			if q.URL == target {
+			if strings.EqualFold(q.URL, target) {
 				foundQuestion = q
+				break
 			}
-			break
 		}
 	}
 
