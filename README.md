@@ -62,6 +62,7 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [FAQ](#faq)
       - [Q: Should I add all my previously solved LeetCode problems at once?](#q-should-i-add-all-my-previously-solved-leetcode-problems-at-once)
       - [Q: What if I want to add an old problem I solved months ago?](#q-what-if-i-want-to-add-an-old-problem-i-solved-months-ago)
+      - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation-1)
     - [Links](#links)
 
@@ -409,6 +410,16 @@ A: **No.** LeetSolv's scheduling algorithm relies on the date you add a problem 
 #### Q: What if I want to add an old problem I solved months ago?
 
 A: The best approach is to re-solve the problem first. Once you've successfully solved it again, add it to LeetSolv on that day using `leetsolv add`. This ensures the system has an accurate "last seen" date to work with.
+
+#### Q: After a period of use, I accumulated too many due problems.
+
+A: This is the nature of the **SM-2 algorithm** — if you skip days or add many problems at once, the due list can grow quickly.
+To make this manageable, LeetSolv introduces **[Due Priority Scoring](#due-priority-scoring)**, which ranks due problems by importance, familiarity, overdue days, review count, and ease factor.
+Instead of clearing everything at once, just focus on the **highest-priority problems** first. The rest can safely wait until later.
+
+👉 Tip: Only add problems you actually want to revisit. LeetSolv works best when you’re selective, not when you bulk-add everything.
+
+
 
 ### Documentation
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
