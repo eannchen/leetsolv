@@ -1,8 +1,11 @@
+[English](./README.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
+
+
 # LeetSolv
 
 **LeetSolv** is a command-line revision tool that utilizes a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm. This algorithm incorporates variables for **familiarity**, **importance**, **reasoning**, and additional factors, designed to facilitate the mastery of algorithms through practice—**not rote memorization**.
 
-***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
+> ***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
 **The LeetSolv Workflow:**
 
