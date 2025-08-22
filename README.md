@@ -4,7 +4,9 @@
 
 ***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
-**Workflow:**
+**The LeetSolv Workflow:**
+
+This diagram illustrates the recommended daily workflow for using LeetSolv effectively.
 
 ```mermaid
 graph LR
