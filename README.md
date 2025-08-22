@@ -4,6 +4,21 @@
 
 ***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
+**Workflow:**
+
+```mermaid
+graph LR
+A{What are you working on?} --> B[A New Problem];
+A --> C[A Due Problem on LeetSolv];
+
+D[Practice the Problem] --> E[Add/Update to LeetSolv];
+
+B --> D
+C --> D
+
+E --> F((SM-2 Algorithm Schedules Review));
+```
+
 ![Demo](document/image/DEMO_header.gif)
 
 ## Table of Contents
@@ -39,6 +54,9 @@
     - [Documentation](#documentation)
   - [License](#license)
   - [Support](#support)
+    - [FAQ](#faq)
+      - [Q: Should I add all my previously solved LeetCode problems at once?](#q-should-i-add-all-my-previously-solved-leetcode-problems-at-once)
+      - [Q: What if I want to add an old problem I solved months ago?](#q-what-if-i-want-to-add-an-old-problem-i-solved-months-ago)
     - [Documentation](#documentation-1)
     - [Links](#links)
 
@@ -376,6 +394,16 @@ export LEETSOLV_PAGE_SIZE=20
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
 ## Support
+
+### FAQ
+
+#### Q: Should I add all my previously solved LeetCode problems at once?
+
+A: **No.** LeetSolv's scheduling algorithm relies on the date you add a problem to calculate future reviews. Adding all your problems on the same day will make the schedule inaccurate and will likely result in a huge, unmanageable pile of reviews a few days later.
+
+#### Q: What if I want to add an old problem I solved months ago?
+
+A: The best approach is to re-solve the problem first. Once you've successfully solved it again, add it to LeetSolv on that day using `leetsolv add`. This ensures the system has an accurate "last seen" date to work with.
 
 ### Documentation
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
