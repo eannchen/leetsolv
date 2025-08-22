@@ -52,6 +52,39 @@ func TestNewTrieNode(t *testing.T) {
 	}
 }
 
+func TestTrie_Hydrate(t *testing.T) {
+	// Manually build a broken trie (simulating bad deserialization)
+	trie := &Trie{Root: &TrieNode{}} // Root node with nil maps
+	trie.Root.Children = map[rune]*TrieNode{
+		'a': {}, // Child node with nil maps
+	}
+
+	trie.Hydrate()
+
+	// Root should have all maps initialized
+	if trie.Root.Children == nil {
+		t.Error("Root.Children should not be nil after Hydrate")
+	}
+	if trie.Root.IDs == nil {
+		t.Error("Root.IDs should be initialized after Hydrate")
+	}
+	if trie.Root.WordEndIDs == nil {
+		t.Error("Root.WordEndIDs should be initialized after Hydrate")
+	}
+
+	// Child 'a' should also have its maps initialized
+	child := trie.Root.Children['a']
+	if child.Children == nil {
+		t.Error("Child.Children should be initialized after Hydrate")
+	}
+	if child.IDs == nil {
+		t.Error("Child.IDs should be initialized after Hydrate")
+	}
+	if child.WordEndIDs == nil {
+		t.Error("Child.WordEndIDs should be initialized after Hydrate")
+	}
+}
+
 func TestTrie_Insert(t *testing.T) {
 	trie := NewTrie(1)
 	word := "hello"

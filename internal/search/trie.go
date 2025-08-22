@@ -26,6 +26,33 @@ func NewTrie(minPrefixLength int) *Trie {
 	return &Trie{Root: NewTrieNode(), MinPrefixLength: minPrefixLength}
 }
 
+// Hydrate ensures that the trie and all its nodes have their maps initialized.
+// This is useful after deserializing a trie from a source that might be incomplete.
+func (t *Trie) Hydrate() {
+	if t.Root == nil {
+		t.Root = NewTrieNode()
+		return
+	}
+	// Start the recursive hydration from the root node.
+	hydrateNode(t.Root)
+}
+
+func hydrateNode(node *TrieNode) {
+	if node.WordEndIDs == nil {
+		node.WordEndIDs = make(map[int]struct{})
+	}
+	if node.IDs == nil {
+		node.IDs = make(map[int]struct{})
+	}
+	if node.Children == nil {
+		node.Children = make(map[rune]*TrieNode)
+	}
+
+	for _, child := range node.Children {
+		hydrateNode(child)
+	}
+}
+
 func (t *Trie) Insert(word string, id int) {
 	t.mu.Lock()
 	defer t.mu.Unlock()

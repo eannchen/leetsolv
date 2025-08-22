@@ -88,6 +88,10 @@ func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 		store.NoteTrie = search.NewTrie(3)
 	}
 
+	// Hydrate the trie nodes
+	store.URLTrie.Hydrate()
+	store.NoteTrie.Hydrate()
+
 	// Update cache
 	fs.questionStoreCache = &store
 
