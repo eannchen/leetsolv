@@ -1,6 +1,6 @@
 # Motivation & Design Notes
 
-*Author: Ian Chen, Last Update: 2025-08-21*
+*Author: Ian Chen, Last Update: 2025-08-24*
 
 This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project. In the AI "vibe coding" era, I want to show that this project is intentional and serious, not just toy code.
 
@@ -20,8 +20,6 @@ This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, a
   - [Design Patterns](#design-patterns)
   - [Closing Note](#closing-note)
 
-
-*<span style="color: #888">[🏗️ AN EXPLANATION VIDEO FOR THIS DOC WILL BE EMBEDED AT HERE LATER]</span>*
 
 ## Motivation
 
@@ -255,7 +253,14 @@ type Delta struct {
 
 ### Atomic File Write
 
-[README](../README.md) has depicted the atomic file write process with a diagram.
+As [README](../README.md) mentions, all updates use temporary files with atomic replacement to guarantee consistency and prevent data loss.
+
+```mermaid
+graph LR
+    A[Write New Data] -->|To| B[Temporary File]
+    B --> C[Rename Temporary File]
+    C -->|Replaces| D[Original File]
+```
 
 See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
 
@@ -279,7 +284,6 @@ func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
 	fs.deltasCacheMutex.Lock()
 	defer fs.deltasCacheMutex.Unlock()
 
-	// Load deltas from file
 	var deltas []core.Delta
 	err := fs.file.Load(&deltas, fs.deltasFileName)
 	if err != nil {
