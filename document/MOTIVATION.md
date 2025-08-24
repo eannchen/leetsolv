@@ -251,6 +251,8 @@ type Delta struct {
 
 ## Storage
 
+The system stores data in files to achieve the project's zero dependencies philosophy.
+
 ### Atomic File Write
 
 As [README](../README.md) mentions, all updates use temporary files with atomic replacement to guarantee consistency and prevent data loss.
