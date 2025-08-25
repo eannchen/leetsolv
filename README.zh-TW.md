@@ -1,6 +1,20 @@
 [English](./README.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
 
 # LeetSolv
+<p>
+    <a href="https://github.com/eannchen/leetsolv/releases">
+        <img alt="Release" src="https://img.shields.io/github/release/eannchen/leetsolv.svg" />
+    </a>
+    <a href="https://goreportcard.com/report/github.com/eannchen/leetsolv">
+        <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/eannchen/leetsolv" />
+    </a>
+    <a href="https://github.com/eannchen/leetsolv/actions/workflows/ci.yml">
+        <img alt="CI/CD" src="https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg" />
+    </a>
+    <a href="https://github.com/eannchen/leetsolv/blob/main/LICENSE">
+        <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" />
+    </a>
+</p>
 
 **LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您 **掌握** 複雜的演算法。
 
@@ -67,11 +81,16 @@ E --> F((SM-2 演算法排定複習));
 ## 快速安裝
 
 ### 自動安裝 (Linux/macOS)
-```bash
-# 下載並執行安裝腳本
-curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 
-# 或先下載，然後執行
+下載並執行安裝腳本
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
+```
+
+或者先下載，然後執行
+
+```bash
 wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
 chmod +x install.sh
 ./install.sh
