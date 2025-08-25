@@ -2,20 +2,10 @@
 
 
 # LeetSolv
-<p>
-    <a href="https://github.com/eannchen/leetsolv/releases">
-        <img alt="Release" src="https://img.shields.io/github/release/eannchen/leetsolv.svg" />
-    </a>
-    <a href="https://goreportcard.com/report/github.com/eannchen/leetsolv">
-        <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/eannchen/leetsolv" />
-    </a>
-    <a href="https://github.com/eannchen/leetsolv/actions/workflows/ci.yml">
-        <img alt="CI/CD" src="https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg" />
-    </a>
-    <a href="https://github.com/eannchen/leetsolv/blob/main/LICENSE">
-        <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" />
-    </a>
-</p>
+[![Release](https://img.shields.io/github/release/eannchen/leetsolv.svg)](https://github.com/eannchen/leetsolv/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
+[![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/eannchen/leetsolv/blob/main/LICENSE)
 
 **LeetSolv** is a command-line tool designed for **Data Structures and Algorithms (DSA)** problem revision. It's powered by a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to **master** complex algorithms through **deliberate practice**.
 

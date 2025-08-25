@@ -1,20 +1,10 @@
 [English](./README.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
 
 # LeetSolv
-<p>
-    <a href="https://github.com/eannchen/leetsolv/releases">
-        <img alt="Release" src="https://img.shields.io/github/release/eannchen/leetsolv.svg" />
-    </a>
-    <a href="https://goreportcard.com/report/github.com/eannchen/leetsolv">
-        <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/eannchen/leetsolv" />
-    </a>
-    <a href="https://github.com/eannchen/leetsolv/actions/workflows/ci.yml">
-        <img alt="CI/CD" src="https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg" />
-    </a>
-    <a href="https://github.com/eannchen/leetsolv/blob/main/LICENSE">
-        <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" />
-    </a>
-</p>
+[![Release](https://img.shields.io/github/release/eannchen/leetsolv.svg)](https://github.com/eannchen/leetsolv/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
+[![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/eannchen/leetsolv/blob/main/LICENSE)
 
 **LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您 **掌握** 複雜的演算法。
 
