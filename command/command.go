@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"strings"
 
-	"leetsolv/handler"
+	"github.com/eannchen/leetsolv/handler"
 )
 
 type Command interface {

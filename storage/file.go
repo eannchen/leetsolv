@@ -3,9 +3,9 @@ package storage
 import (
 	"sync"
 
-	"leetsolv/core"
-	"leetsolv/internal/fileutil"
-	"leetsolv/internal/search"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/internal/fileutil"
+	"github.com/eannchen/leetsolv/internal/search"
 )
 
 type Storage interface {

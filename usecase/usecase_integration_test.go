@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"leetsolv/config"
-	"leetsolv/core"
-	"leetsolv/internal/clock"
-	"leetsolv/internal/logger"
-	"leetsolv/storage"
+	"github.com/eannchen/leetsolv/config"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/internal/clock"
+	"github.com/eannchen/leetsolv/internal/logger"
+	"github.com/eannchen/leetsolv/storage"
 )
 
 // setupIntegrationTest creates a complete test environment with real dependencies

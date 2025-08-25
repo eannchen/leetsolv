@@ -10,15 +10,15 @@ import (
 	"syscall"
 	"time"
 
-	"leetsolv/command"
-	"leetsolv/config"
-	"leetsolv/core"
-	"leetsolv/handler"
-	"leetsolv/internal/clock"
-	"leetsolv/internal/fileutil"
-	"leetsolv/internal/logger"
-	"leetsolv/storage"
-	"leetsolv/usecase"
+	"github.com/eannchen/leetsolv/command"
+	"github.com/eannchen/leetsolv/config"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/handler"
+	"github.com/eannchen/leetsolv/internal/clock"
+	"github.com/eannchen/leetsolv/internal/fileutil"
+	"github.com/eannchen/leetsolv/internal/logger"
+	"github.com/eannchen/leetsolv/storage"
+	"github.com/eannchen/leetsolv/usecase"
 )
 
 // Version information - will be set during build

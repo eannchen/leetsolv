@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"leetsolv/config"
-	"leetsolv/core"
-	"leetsolv/internal/errs"
-	"leetsolv/internal/logger"
-	"leetsolv/internal/tokenizer"
-	"leetsolv/usecase"
+	"github.com/eannchen/leetsolv/config"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/internal/errs"
+	"github.com/eannchen/leetsolv/internal/logger"
+	"github.com/eannchen/leetsolv/internal/tokenizer"
+	"github.com/eannchen/leetsolv/usecase"
 )
 
 type Handler interface {

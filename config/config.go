@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"leetsolv/internal/copy"
-	"leetsolv/internal/fileutil"
+	"github.com/eannchen/leetsolv/internal/copy"
+	"github.com/eannchen/leetsolv/internal/fileutil"
 )
 
 var (

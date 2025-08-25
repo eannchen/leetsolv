@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"leetsolv/config"
+	"github.com/eannchen/leetsolv/config"
 )
 
 // MockClock implements clock.Clock for testing

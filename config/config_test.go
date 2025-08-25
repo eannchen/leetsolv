@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"leetsolv/internal/fileutil"
+	"github.com/eannchen/leetsolv/internal/fileutil"
 )
 
 func TestNewConfig(t *testing.T) {

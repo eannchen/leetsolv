@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"leetsolv/config"
-	"leetsolv/core"
-	"leetsolv/internal/fileutil"
-	"leetsolv/internal/search"
+	"github.com/eannchen/leetsolv/config"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/internal/fileutil"
+	"github.com/eannchen/leetsolv/internal/search"
 )
 
 // setupTestStorage creates a test storage with temporary files

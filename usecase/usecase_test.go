@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"leetsolv/config"
-	"leetsolv/core"
-	"leetsolv/internal/clock"
-	"leetsolv/internal/logger"
-	"leetsolv/internal/search"
-	"leetsolv/storage"
+	"github.com/eannchen/leetsolv/config"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/internal/clock"
+	"github.com/eannchen/leetsolv/internal/logger"
+	"github.com/eannchen/leetsolv/internal/search"
+	"github.com/eannchen/leetsolv/storage"
 )
 
 // setupTestEnvironment creates a test environment with temporary files

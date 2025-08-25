@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"leetsolv/core"
-	"leetsolv/internal/clock"
-	"leetsolv/internal/errs"
+	"github.com/eannchen/leetsolv/core"
+	"github.com/eannchen/leetsolv/internal/clock"
+	"github.com/eannchen/leetsolv/internal/errs"
 )
 
 const (

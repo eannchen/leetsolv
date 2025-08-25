@@ -5,8 +5,8 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"leetsolv/config"
-	"leetsolv/internal/clock"
+	"github.com/eannchen/leetsolv/config"
+	"github.com/eannchen/leetsolv/internal/clock"
 )
 
 type Scheduler interface {
