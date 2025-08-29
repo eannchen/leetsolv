@@ -57,7 +57,6 @@ E --> F((SM-2 算法安排复习));
       - [问：我应该添加所有以前解决过的问题吗？](#问我应该添加所有以前解决过的问题吗)
       - [问：使用一段时间后，我积累了太多到期问题。](#问使用一段时间后我积累了太多到期问题)
     - [文档](#文档-1)
-    - [链接](#链接)
   - [许可证](#许可证)
 
 ## 快速安装
@@ -314,11 +313,6 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**：开发工作流程、CI/CD 和贡献指南
 - **[MOTIVATION.md](document/MOTIVATION.md)**：项目动机和设计说明
 - **此 README**：项目概述和快速入门
-
-### 链接
-- **问题**：[GitHub Issues](https://github.com/eannchen/leetsolv/issues)
-- **讨论**：[GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
-- **发布**：[GitHub Releases](https://github.com/eannchen/leetsolv/releases)
 
 ## 许可证
 

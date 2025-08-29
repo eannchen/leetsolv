@@ -58,7 +58,6 @@ E --> F((SM-2 Algorithm Schedules Review));
       - [Q: Should I add all my previously solved problems?](#q-should-i-add-all-my-previously-solved-problems)
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation-1)
-    - [Links](#links)
   - [License](#license)
 
 ## Quick Installation
@@ -317,11 +316,6 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
 - **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
 - **This README**: Project overview and quick start
-
-### Links
-- **Issues**: [GitHub Issues](https://github.com/eannchen/leetsolv/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
-- **Releases**: [GitHub Releases](https://github.com/eannchen/leetsolv/releases)
 
 ## License
 

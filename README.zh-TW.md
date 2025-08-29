@@ -57,7 +57,6 @@ E --> F((SM-2 演算法排定複習));
       - [問：我應該加入所有之前解決過的問題嗎？](#問我應該加入所有之前解決過的問題嗎)
       - [問：使用一段時間後，我累積了太多到期問題。](#問使用一段時間後我累積了太多到期問題)
     - [文件](#文件-1)
-    - [連結](#連結)
   - [許可證](#許可證)
 
 ## 快速安裝
@@ -313,11 +312,6 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**：開發工作流程、CI/CD 和貢獻指南
 - **[MOTIVATION.md](document/MOTIVATION.md)**：專案動機和設計說明
 - **本 README**：專案概述和快速入門
-
-### 連結
-- **問題**：[GitHub Issues](https://github.com/eannchen/leetsolv/issues)
-- **討論**：[GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
-- **版本**：[GitHub Releases](https://github.com/eannchen/leetsolv/releases)
 
 ## 許可證
 
