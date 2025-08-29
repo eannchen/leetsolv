@@ -225,6 +225,7 @@ graph LR
 - **清晰的输出**：结构化的、颜色编码的 CLI 输出。
 
 **分页演示：**
+
 ![Demo](document/image/DEMO_pagination.gif)
 
 ## 用法
