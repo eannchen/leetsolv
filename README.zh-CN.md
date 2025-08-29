@@ -291,7 +291,7 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 ## 发展规划
 
-我们的发展规划是以使 LeetSolv 成为刻意练习的最佳工具为目标。有什么建议吗？请随时[提出问题](https://github.com/eannchen/leetsolv/issues)！
+我们的发展规划是以使 LeetSolv 成为刻意练习的强大工具为目标。有什么建议吗？请随时[提出问题](https://github.com/eannchen/leetsolv/issues)！
 
 ### 安装 \& 运行
 

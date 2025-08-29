@@ -292,7 +292,7 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 
 ## Roadmap
 
-Our roadmap is guided by our goal to make LeetSolv the best tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
+Our roadmap is guided by our goal to make LeetSolv a powerful tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
 
 ### Installation & Running
 
