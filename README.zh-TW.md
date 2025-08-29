@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您掌握複雜的演算法。
+**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計，带有 **间隔重复 (spaced repetition)** 功能。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您掌握複雜的演算法。
 
 *想知道這與 Anki 之類的工具有何不同嗎？請參閱 [常見問題](#常見問題)。*
 
@@ -315,4 +315,4 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 ---
 
-**LeetSolv** - 一個用於資料結構與演法問題複習的 CLI 工具，由自定義的 SM-2 演算法驅動，幫助您通過刻意練習掌握演算法。
+**LeetSolv** - 一個基於自訂 SM-2 演算法的 DSA 間隔重複 CLI 工具，幫助你透過刻意練習掌握演算法。

@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** is a command-line tool designed for **Data Structures and Algorithms (DSA)** problem revision. It's powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to master complex algorithms through **deliberate practice**.
+**LeetSolv** is a CLI tool for **Data Structures and Algorithms (DSA)** problem revision with **spaced repetition**. It's powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to master complex algorithms through **deliberate practice**.
 
 *Curious how this compares to tools like Anki? See the [FAQ](#faq).*
 
@@ -186,7 +186,7 @@ The following graphs demonstrate how review intervals grow over time for differe
 ### CRUD + undo
 - **Summary View**: Overview of total problems, due problems, and upcoming problems with [priority scoring](#due-priority-scoring).
 - **List View**: List all problems with pagination.
-- **Trie-Based Search & Filtering**: Fast search and filtering by keywords, familiarity, importance, review count, and due status.
+- **Trie-Based Search & Filtering**: Fast search and filtering by keywords, importance, familiarity, review count, and due status.
 - **Get Problem Details**: Retrieve detailed information about a specific problem.
 - **Add/Update Problems**: Create or modify problems with URL and notes.
 - **Remove Problems**: Delete problems by ID and URL.
@@ -317,4 +317,4 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 
 ---
 
-**LeetSolv** - A CLI tool for DSA problem revision, powered by a custom SM-2 algorithm to help you master algorithms through deliberate practice.
+**LeetSolv** - A spaced repetition CLI for DSA, powered by a custom SM-2 algorithm for deliberate practice.

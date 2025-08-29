@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了诸如 **熟悉度**、**重要性** 和 **推理** 等变量。这个方法避免了死记硬背，通过 **刻意练习** 帮助你掌握复杂的算法。
+**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计，带有 **间隔重复 (spaced repetition)** 功能。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了诸如 **熟悉度**、**重要性** 和 **推理** 等变量。这个方法避免了死记硬背，通过 **刻意练习** 帮助你掌握复杂的算法。
 
 *想知道这与 Anki 这样的工具有什么不同吗？请参阅 [支持](#支持)。*
 
@@ -316,4 +316,4 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 ---
 
-**LeetSolv** - 一款用于数据结构与算法问题复习的 CLI 工具，由自定义 SM-2 算法驱动，通过刻意练习帮助你掌握算法。
+**LeetSolv** - 一个基于自定义 SM-2 算法的 DSA 间隔重复 CLI 工具，帮助你通过刻意练习掌握算法。
