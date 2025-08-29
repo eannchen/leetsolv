@@ -48,16 +48,15 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [CLI Interface](#cli-interface)
   - [Usage](#usage)
   - [Configuration](#configuration)
-  - [Roadmap](#roadmap)
-    - [Installation \& Running](#installation--running)
-    - [Features](#features)
-    - [Documentation](#documentation)
   - [Support](#support)
     - [FAQ](#faq)
       - [Q: Why use LeetSolv instead of an Anki deck?](#q-why-use-leetsolv-instead-of-an-anki-deck)
       - [Q: Should I add all my previously solved problems?](#q-should-i-add-all-my-previously-solved-problems)
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
-    - [Documentation](#documentation-1)
+    - [Documentation](#documentation)
+  - [Roadmap](#roadmap)
+    - [Installation \& Running](#installation--running)
+    - [Features](#features)
   - [License](#license)
 
 ## Quick Installation
@@ -257,32 +256,6 @@ For a complete list of all available options, default values, and examples, plea
 
 [View Full Configuration Guide (CONFIGURATION.md)](document/CONFIGURATION.md)
 
-
-## Roadmap
-
-Our roadmap is guided by our goal to make LeetSolv the best tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
-
-### Installation & Running
-
-- Support installation via package managers (Homebrew, Chocolatey, apt)
-- Support running as a Docker container
-- Support auto-updater functionality
-- Add Windows installation script
-
-### Features
-
-- Provide a "hint" field in the question entry
-- Provide daily add limit functionality
-- Provide tagging functionality
-- Provide export functionality
-- Add support for DSA problems from other platforms
-- Make the SM-2 algorithm user-customizable
-- Implement fuzzy search functionality
-
-### Documentation
-
-- Write multi-language documentation
-
 ## Support
 
 ### FAQ
@@ -316,6 +289,27 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
 - **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
 - **This README**: Project overview and quick start
+
+## Roadmap
+
+Our roadmap is guided by our goal to make LeetSolv the best tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
+
+### Installation & Running
+
+- Support installation via package managers (Homebrew, Chocolatey, apt)
+- Support running as a Docker container
+- Support auto-updater functionality
+- Add Windows installation script
+
+### Features
+
+- Provide a "hint" field in the question entry
+- Provide daily add limit functionality
+- Provide tagging functionality
+- Provide export functionality
+- Add support for DSA problems from other platforms
+- Make the SM-2 algorithm user-customizable
+- Implement fuzzy search functionality
 
 ## License
 
