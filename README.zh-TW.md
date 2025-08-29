@@ -45,11 +45,7 @@ E --> F((SM-2 演算法排定複習));
     - [CRUD + 復原](#crud--復原)
     - [資料隱私 \& 安全](#資料隱私--安全)
     - [CLI 介面](#cli-介面)
-  - [用法](#用法)
-    - [互動模式](#互動模式)
-    - [命令列模式](#命令列模式)
-    - [可用命令](#可用命令)
-    - [搜尋命令篩選器](#搜尋命令篩選器)
+  - [使用方法](#使用方法)
   - [配置](#配置)
   - [發展規劃](#發展規劃)
     - [安裝 \& 執行](#安裝--執行)
@@ -233,70 +229,23 @@ graph LR
 **分頁演示：**
 ![Demo](document/image/DEMO_pagination.gif)
 
-## 用法
+## 使用方法
 
-### 互動模式
+LeetSolv 可以互動方式執行，也可以直接從終端機傳遞命令來執行。
+
 ```bash
-# 啟動互動式會話
+# 啟動互動模式
 leetsolv
 
-# 你會看到提示：
-leetsolv ❯
-```
-
-### 命令列模式
-```bash
-# 列出所有問題
-leetsolv list
-
-# 搜尋帶有篩選器的問題
-leetsolv search tree --familiarity=3 --importance=2 --due-only
-
-# 獲取問題詳細資訊
-leetsolv detail 123
-
-# 檢查狀態
+# 或直接執行命令
+leetsolv add https://leetcode.com/problems/two-sum
 leetsolv status
 
-# 新增新問題
-leetsolv add https://leetcode.com/problems/example
+# 取得說明
+leetsolv help
 ```
 
-### 可用命令
-
-| 命令      | 別名                  | 描述                           |
-| --------- | --------------------- | ------------------------------ |
-| `list`    | `ls`                  | 列出所有問題，帶有分頁         |
-| `search`  | `s`                   | 按關鍵字搜尋問題（支援篩選器） |
-| `detail`  | `get`                 | 獲取有關問題的詳細資訊         |
-| `status`  | `stat`                | 顯示到期和即將到來的問題的摘要 |
-| `upsert`  | `add`                 | 新增或更新問題                 |
-| `remove`  | `rm`, `delete`, `del` | 刪除問題                       |
-| `undo`    | `back`                | 復原上次操作                   |
-| `history` | `hist`, `log`         | 顯示操作歷史記錄               |
-| `setting` | `config`, `cfg`       | 查看和修改應用程式設定         |
-| `version` | `ver`, `v`            | 顯示應用程式版本資訊           |
-| `help`    | `h`                   | 顯示說明資訊                   |
-| `clear`   | `cls`                 | 清除螢幕                       |
-| `quit`    | `q`, `exit`           | 退出應用程式                   |
-
-### 搜尋命令篩選器
-
-`search` 命令允許您按關鍵字（在 **URL** 或 **註釋** 中）搜尋，並使用篩選器優化結果。
-
-**語法：**
-```bash
-search [keywords...] [filters...]
-```
-
-**篩選器：**
-
-| 篩選器             | 描述                   |
-| ------------------ | ---------------------- |
-| `--familiarity=N`  | 按熟悉度級別篩選 (1-5) |
-| `--importance=N`   | 按重要性級別篩選 (1-4) |
-| `--review-count=N` | 按複習次數篩選         |
-| `--due-only`       | 僅顯示到期問題         |
+[檢視完整使用指南 (USAGE.md)](document/USAGE.md)
 
 ## 配置
 
@@ -350,7 +299,7 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 #### 問：使用一段時間後，我累積了太多到期問題。
 
-答：這是 **SM-2 演算法** 的本質 —— 如果你跳過幾天或一次加入許多問題，到期列表可能會迅速增長。
+答：這是SM-2 演算法的**本質** —— 如果你跳過幾天或一次加入許多問題，到期列表可能會迅速增長。
 為了使其易於管理，LeetSolv 引入了 **[到期優先級評分](#到期優先級評分)**，它按重要性、熟悉度、逾期天數、複習次數和容易程度對到期問題進行排名。
 不要一次清除所有內容，只需專注於 **最高優先級的問題** 即可。其餘的可以安全地等到以後。
 
@@ -359,6 +308,8 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 ### 文件
 - **[INSTALL.md](document/INSTALL.md)**：完整的安裝指南，包含疑難排解
+- **[USAGE.md](document/USAGE.md)**：命令行使用指南
+- **[CONFIGURATION.md](document/CONFIGURATION.md)**：配置選項和環境變數
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**：開發工作流程、CI/CD 和貢獻指南
 - **[MOTIVATION.md](document/MOTIVATION.md)**：專案動機和設計說明
 - **本 README**：專案概述和快速入門

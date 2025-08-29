@@ -46,10 +46,6 @@ E --> F((SM-2 算法安排复习));
     - [数据隐私 \& 安全](#数据隐私--安全)
     - [CLI 界面](#cli-界面)
   - [用法](#用法)
-    - [交互模式](#交互模式)
-    - [命令行模式](#命令行模式)
-    - [可用命令](#可用命令)
-    - [搜索命令过滤器](#搜索命令过滤器)
   - [配置](#配置)
   - [发展规划](#发展规划)
     - [安装 \& 运行](#安装--运行)
@@ -235,68 +231,22 @@ graph LR
 
 ## 用法
 
-### 交互模式
+LeetSolv 可以交互式运行，也可以直接从终端传递命令来运行。
+
 ```bash
-# 启动交互式会话
+# 启动交互模式
 leetsolv
 
-# 你会看到提示：
-leetsolv ❯
-```
-
-### 命令行模式
-```bash
-# 列出所有问题
-leetsolv list
-
-# 使用过滤器搜索问题
-leetsolv search tree --familiarity=3 --importance=2 --due-only
-
-# 获取问题详细信息
-leetsolv detail 123
-
-# 检查状态
+# 或者直接运行命令
+leetsolv add https://leetcode.com/problems/two-sum
 leetsolv status
 
-# 添加新问题
-leetsolv add https://leetcode.com/problems/example
+# 获取帮助
+leetsolv help
 ```
 
-### 可用命令
+[查看完整使用指南 (USAGE.md)](document/USAGE.md)
 
-| 命令      | 别名                  | 描述                           |
-| --------- | --------------------- | ------------------------------ |
-| `list`    | `ls`                  | 列出所有问题，带有分页         |
-| `search`  | `s`                   | 按关键字搜索问题（支持过滤器） |
-| `detail`  | `get`                 | 获取有关问题的详细信息         |
-| `status`  | `stat`                | 显示到期和即将到来的问题的摘要 |
-| `upsert`  | `add`                 | 添加或更新问题                 |
-| `remove`  | `rm`, `delete`, `del` | 删除问题                       |
-| `undo`    | `back`                | 撤销上次操作                   |
-| `history` | `hist`, `log`         | 显示操作历史记录               |
-| `setting` | `config`, `cfg`       | 查看和修改应用程序设置         |
-| `version` | `ver`, `v`            | 显示应用程序版本信息           |
-| `help`    | `h`                   | 显示帮助信息                   |
-| `clear`   | `cls`                 | 清除屏幕                       |
-| `quit`    | `q`, `exit`           | 退出应用程序                   |
-
-### 搜索命令过滤器
-
-`search` 命令允许您按关键字（在 **URL** 或 **注释** 中）搜索，并使用过滤器优化结果。
-
-**语法：**
-```bash
-search [keywords...] [filters...]
-```
-
-**过滤器：**
-
-| 过滤器             | 描述                   |
-| ------------------ | ---------------------- |
-| `--familiarity=N`  | 按熟悉度等级过滤 (1-5) |
-| `--importance=N`   | 按重要性等级过滤 (1-4) |
-| `--review-count=N` | 按复习次数过滤         |
-| `--due-only`       | 仅显示到期问题         |
 
 ## 配置
 
@@ -350,7 +300,7 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 #### 问：使用一段时间后，我积累了太多到期问题。
 
-答：这是 **SM-2 算法** 的本质——如果你跳过几天或一次添加许多问题，到期列表可能会迅速增长。
+答：这是SM-2 算法的**本质**——如果你跳过几天或一次添加许多问题，到期列表可能会迅速增长。
 为了使其易于管理，LeetSolv 引入了 **[到期优先级评分](#到期优先级评分)**，它按重要性、熟悉度、逾期天数、复习次数和容易程度对到期问题进行排名。
 不要一次性清除所有内容，只需专注于**最高优先级的问题**。其余的可以安全地等到以后。
 
@@ -359,6 +309,8 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 ### 文档
 - **[INSTALL.md](document/INSTALL.md)**：完整的安装指南，包含故障排除
+- **[USAGE.md](document/USAGE.md)**：命令行使用指南
+- **[CONFIGURATION.md](document/CONFIGURATION.md)**：配置选项和环境变量
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**：开发工作流程、CI/CD 和贡献指南
 - **[MOTIVATION.md](document/MOTIVATION.md)**：项目动机和设计说明
 - **此 README**：项目概述和快速入门

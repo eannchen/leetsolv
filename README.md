@@ -47,10 +47,6 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [Data Privacy \& Safety](#data-privacy--safety)
     - [CLI Interface](#cli-interface)
   - [Usage](#usage)
-    - [Interactive Mode](#interactive-mode)
-    - [Command Line Mode](#command-line-mode)
-    - [Available Commands](#available-commands)
-    - [Search Command Filters](#search-command-filters)
   - [Configuration](#configuration)
   - [Roadmap](#roadmap)
     - [Installation \& Running](#installation--running)
@@ -238,70 +234,21 @@ graph LR
 
 ## Usage
 
-### Interactive Mode
+LeetSolv can be run interactively or by passing commands directly from your terminal.
+
 ```bash
-# Start interactive session
+# Start interactive mode
 leetsolv
 
-# You'll see the prompt:
-leetsolv ❯
-```
-
-### Command Line Mode
-```bash
-# List all questions
-leetsolv list
-
-# Search for problems with filters
-leetsolv search tree --familiarity=3 --importance=2 --due-only
-
-# Get problem details
-leetsolv detail 123
-
-# Check status
+# Or run commands directly
+leetsolv add https://leetcode.com/problems/two-sum
 leetsolv status
 
-# Add new problem
-leetsolv add https://leetcode.com/problems/example
+# Get help
+leetsolv help
 ```
 
-### Available Commands
-
-| Command   | Aliases               | Description                                     |
-| --------- | --------------------- | ----------------------------------------------- |
-| `list`    | `ls`                  | List all questions with pagination              |
-| `search`  | `s`                   | Search questions by keywords (supports filters) |
-| `detail`  | `get`                 | Get detailed information about a question       |
-| `status`  | `stat`                | Show summary of due and upcoming questions      |
-| `upsert`  | `add`                 | Add or update a question                        |
-| `remove`  | `rm`, `delete`, `del` | Delete a question                               |
-| `undo`    | `back`                | Undo the last action                            |
-| `history` | `hist`, `log`         | Show action history                             |
-| `setting` | `config`, `cfg`       | View and modify application settings            |
-| `version` | `ver`, `v`            | Show application version information            |
-| `help`    | `h`                   | Show help information                           |
-| `clear`   | `cls`                 | Clear the screen                                |
-| `quit`    | `q`, `exit`           | Exit the application                            |
-
-
-### Search Command Filters
-
-The `search` command lets you search by keywords (in **URL** or **note**) and refine results using filters.
-
-**Syntax:**
-```bash
-search [keywords...] [filters...]
-```
-
-**Filters:**
-
-| Filter             | Description                       |
-| ------------------ | --------------------------------- |
-| `--familiarity=N`  | Filter by familiarity level (1-5) |
-| `--importance=N`   | Filter by importance level (1-4)  |
-| `--review-count=N` | Filter by review count            |
-| `--due-only`       | Only show due questions           |
-
+[View Full Usage Guide (USAGE.md)](document/USAGE.md)
 
 ## Configuration
 
@@ -310,7 +257,6 @@ LeetSolv can be customized using environment variables or a JSON settings file. 
 For a complete list of all available options, default values, and examples, please see the detailed configuration guide:
 
 [View Full Configuration Guide (CONFIGURATION.md)](document/CONFIGURATION.md)
-
 
 
 ## Roadmap
@@ -366,6 +312,8 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 
 ### Documentation
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
+- **[USAGE.md](document/USAGE.md)**: Command-line usage guide
+- **[CONFIGURATION.md](document/CONFIGURATION.md)**: Configuration options and environment variables
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
 - **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
 - **This README**: Project overview and quick start
