@@ -346,7 +346,7 @@ Our roadmap is guided by our goal to make LeetSolv the best tool for deliberate 
 
 A: Anki is excellent for **memorizing facts** that take seconds, **but for DSA, it can be counterproductive**. LeetSolv's custom SM-2 algorithm **spaces out** the review interval and uses your input on **reasoning**, **familiarity**, and a problem's **importance** to create a schedule that deepens your problem-solving ability—not just check if you memorized the answer.
 
-👉 In short: Anki schedules your next **memorization check**. LeetSolv schedules your next **genuine problem-solving session**.
+👉 Tip: Use Anki for memorizing facts, but use LeetSolv to schedule deep, deliberate problem-solving sessions.
 
 #### Q: Should I add all my previously solved problems?
 
