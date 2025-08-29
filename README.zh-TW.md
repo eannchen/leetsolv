@@ -7,6 +7,8 @@
 
 **LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您 **掌握** 複雜的演算法。
 
+*想知道這與 Anki 之類的工具有何不同嗎？請參閱 [常見問題](#常見問題)。*
+
 > ***0️⃣ 零依賴哲學**: 完全用純 Go 語言實現，沒有第三方庫、API 或外部工具。甚至避免使用一些標準套件，以便完全控制底層實現——突顯了該專案對基礎知識的關注。有關更多詳細資訊，請參閱 [MOTIVATION.md](document/MOTIVATION.md)*。
 
 **LeetSolv 的工作流程：**
@@ -49,12 +51,6 @@ E --> F((SM-2 演算法排定複習));
     - [可用命令](#可用命令)
     - [搜尋命令篩選器](#搜尋命令篩選器)
   - [配置](#配置)
-    - [檔案路徑](#檔案路徑)
-    - [SM-2 演算法設定](#sm-2-演算法設定)
-    - [到期優先級評分設定](#到期優先級評分設定)
-    - [其他設定](#其他設定)
-    - [範例：環境變數](#範例環境變數)
-    - [範例：JSON 設定檔](#範例json-設定檔)
   - [發展規劃](#發展規劃)
     - [安裝 \& 執行](#安裝--執行)
     - [功能](#功能)
@@ -62,6 +58,7 @@ E --> F((SM-2 演算法排定複習));
   - [許可證](#許可證)
   - [支援](#支援)
     - [常見問題](#常見問題)
+      - [問：為什麼要使用 LeetSolv 而不是 Anki 卡片？](#問為什麼要使用-leetsolv-而不是-anki-卡片)
       - [問：我應該加入所有之前解決過的問題嗎？](#問我應該加入所有之前解決過的問題嗎)
       - [問：使用一段時間後，我累積了太多到期問題。](#問使用一段時間後我累積了太多到期問題)
     - [文件](#文件-1)
@@ -84,6 +81,8 @@ wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
 chmod +x install.sh
 ./install.sh
 ```
+
+> *對於 Windows，請使用下面的 [手動下載](#手動下載-所有平台) 方法。未來計劃支援 Windows。*
 
 ### 手動下載 (所有平台)
 1. 前往 [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -301,75 +300,15 @@ search [keywords...] [filters...]
 
 ## 配置
 
-您可以通過兩種方式配置 **LeetSolv**：
+LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您更改檔案路徑、演算法參數和評分權重。
 
-1. **環境變數** – 方便用於臨時或部署級別的覆蓋。
-2. **JSON 設定檔** (`$HOME/.leetsolv/settings.json`) – 您可以手動編輯的持久配置。
+如需所有可用選項、預設值和範例的完整清單，請參閱詳細的設定指南：
 
-這兩種方法都映射到相同的內部配置。
-- 環境變數遵循 `UPPERCASE_SNAKE_CASE` 命名。
-- JSON 欄位遵循 `camelCase` 命名。
-
-例如：
-- 環境變數：`LEETSOLV_RANDOMIZE_INTERVAL=true`
-- JSON：`"randomizeInterval": true`
-
-如果同時提供這兩種方法，則 **JSON 設定檔優先**於環境變數。
-
-### 檔案路徑
-
-| 環境變數                  | JSON 欄位       | 預設值                           | 描述             |
-| ------------------------- | --------------- | -------------------------------- | ---------------- |
-| `LEETSOLV_QUESTIONS_FILE` | `questionsFile` | `$HOME/.leetsolv/questions.json` | 問題資料檔案     |
-| `LEETSOLV_DELTAS_FILE`    | `deltasFile`    | `$HOME/.leetsolv/deltas.json`    | 變更歷史記錄檔案 |
-| `LEETSOLV_INFO_LOG_FILE`  | `infoLogFile`   | `$HOME/.leetsolv/info.log`       | 資訊日誌檔案     |
-| `LEETSOLV_ERROR_LOG_FILE` | `errorLogFile`  | `$HOME/.leetsolv/error.log`      | 錯誤日誌檔案     |
-| `LEETSOLV_SETTINGS_FILE`  | `settingsFile`  | `$HOME/.leetsolv/settings.json`  | 配置 JSON 檔案   |
-
-### SM-2 演算法設定
-
-| 環境變數                      | JSON 欄位           | 預設值  | 描述                   |
-| ----------------------------- | ------------------- | ------- | ---------------------- |
-| `LEETSOLV_RANDOMIZE_INTERVAL` | `randomizeInterval` | `true`  | 啟用/停用間隔隨機化    |
-| `LEETSOLV_OVERDUE_PENALTY`    | `overduePenalty`    | `false` | 啟用/停用到期懲罰系統  |
-| `LEETSOLV_OVERDUE_LIMIT`      | `overdueLimit`      | `7`     | 過期問題受到懲罰的天數 |
-
-### 到期優先級評分設定
-
-| 環境變數                         | JSON 欄位             | 預設值 | 描述                          |
-| -------------------------------- | --------------------- | ------ | ----------------------------- |
-| `LEETSOLV_TOP_K_DUE`             | `topKDue`             | `10`   | 要顯示的前 K 個到期問題       |
-| `LEETSOLV_TOP_K_UPCOMING`        | `topKUpcoming`        | `10`   | 要顯示的前 K 個即將到來的問題 |
-| `LEETSOLV_IMPORTANCE_WEIGHT`     | `importanceWeight`    | `1.5`  | 問題重要性的權重              |
-| `LEETSOLV_OVERDUE_WEIGHT`        | `overdueWeight`       | `0.5`  | 過期問題的權重                |
-| `LEETSOLV_FAMILIARITY_WEIGHT`    | `familiarityWeight`   | `3.0`  | 熟悉度級別的權重              |
-| `LEETSOLV_REVIEW_PENALTY_WEIGHT` | `reviewPenaltyWeight` | `-1.5` | 高複習次數的懲罰              |
-| `LEETSOLV_EASE_PENALTY_WEIGHT`   | `easePenaltyWeight`   | `-1.0` | 容易問題的懲罰                |
-
-### 其他設定
-
-| 環境變數             | JSON 欄位  | 預設值 | 描述               |
-| -------------------- | ---------- | ------ | ------------------ |
-| `LEETSOLV_PAGE_SIZE` | `pageSize` | `5`    | 每頁問題數         |
-| `LEETSOLV_MAX_DELTA` | `maxDelta` | `50`   | 最大歷史記錄條目數 |
-
-### 範例：環境變數
-
-```bash
-export LEETSOLV_RANDOMIZE_INTERVAL=false
-export LEETSOLV_PAGE_SIZE=20
-```
-
-### 範例：JSON 設定檔
-
-```json
-{
-    "randomizeInterval": false,
-    "pageSize": 20
-}
-```
+[檢視完整設定指南 (CONFIGURATION.md)](document/CONFIGURATION.md)
 
 ## 發展規劃
+
+我們的發展規劃是以使 LeetSolv 成為刻意練習的最佳工具為目標。有建議嗎？隨時 [開啟 issue](https://github.com/eannchen/leetsolv/issues)！
 
 ### 安裝 \& 執行
 
@@ -380,6 +319,8 @@ export LEETSOLV_PAGE_SIZE=20
 
 ### 功能
 
+- 在問題條目中提供「提示」欄位
+- 提供每日新增限制功能
 - 提供標記功能
 - 提供匯出功能
 - 新增對來自其他平台的 DSA 問題的支援
@@ -397,6 +338,12 @@ export LEETSOLV_PAGE_SIZE=20
 ## 支援
 
 ### 常見問題
+
+#### 問：為什麼要使用 LeetSolv 而不是 Anki 卡片？
+
+答：Anki 非常適合**記憶幾秒鐘就能完成的事實**，**但對於 DSA 來說，它可能會適得其反**。LeetSolv 的自訂 SM-2 演算法**延長**間隔複習時間，並使用您對**推理**、**熟悉度**和問題**重要性**的輸入來建立一個加深您解決問題能力的排程，而不是僅僅檢查您是否記住了答案。
+
+👉 簡而言之：Anki 會安排您下一次的**記憶檢查**。LeetSolv 會安排您下一次的**真正的問題解決環節**。
 
 #### 問：我應該加入所有之前解決過的問題嗎？
 
