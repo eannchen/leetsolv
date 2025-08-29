@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了诸如 **熟悉度**、**重要性** 和 **推理** 等变量。这个方法避免了死记硬背，通过 **刻意练习** 帮助你 **掌握** 复杂的算法。
+**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了诸如 **熟悉度**、**重要性** 和 **推理** 等变量。这个方法避免了死记硬背，通过 **刻意练习** 帮助你掌握复杂的算法。
 
 *想知道这与 Anki 这样的工具有什么不同吗？请参阅 [支持](#支持)。*
 
@@ -55,7 +55,6 @@ E --> F((SM-2 算法安排复习));
     - [安装 \& 运行](#安装--运行)
     - [功能](#功能)
     - [文档](#文档)
-  - [许可证](#许可证)
   - [支持](#支持)
     - [常见问题解答](#常见问题解答)
       - [问：为什么要使用 LeetSolv 而不是 Anki 卡片？](#问为什么要使用-leetsolv-而不是-anki-卡片)
@@ -63,6 +62,7 @@ E --> F((SM-2 算法安排复习));
       - [问：使用一段时间后，我积累了太多到期问题。](#问使用一段时间后我积累了太多到期问题)
     - [文档](#文档-1)
     - [链接](#链接)
+  - [许可证](#许可证)
 
 ## 快速安装
 
@@ -331,17 +331,13 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 - 编写多语言文档
 
-## 许可证
-
-本项目根据 [LICENSE](LICENSE) 文件中指定的条款获得许可。
-
 ## 支持
 
 ### 常见问题解答
 
 #### 问：为什么要使用 LeetSolv 而不是 Anki 卡片？
 
-答：Anki 非常适合**记忆几秒钟就能完成的事实**，**但对于 DSA 来说，它可能会适得其反**。LeetSolv 的自定义 SM-2 算法**延长**间隔复习时间，并使用您对**推理**、**熟悉度**和问题**重要性**的输入来创建一个时间表，从而加深您解决问题的能力，而不仅仅是检查您是否记住了答案。
+答：Anki 非常适合**记忆几秒钟就能完成的事实**，**但对于 DSA 来说，它可能会适得其反**。LeetSolv 的自定义 SM-2 算法 **延长** 间隔复习时间，并使用您对**推理**、**熟悉度**和问题**重要性**的输入来创建一个时间表，从而加深您解决问题的能力，而不仅仅是检查您是否记住了答案。
 
 👉 简而言之：Anki 安排您的下一次**记忆检查**。LeetSolv 安排您的下一次**真正的解决问题会话**。
 
@@ -371,6 +367,10 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 - **问题**：[GitHub Issues](https://github.com/eannchen/leetsolv/issues)
 - **讨论**：[GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
 - **发布**：[GitHub Releases](https://github.com/eannchen/leetsolv/releases)
+
+## 许可证
+
+本项目根据 [LICENSE](LICENSE) 文件中指定的条款获得许可。
 
 ---
 

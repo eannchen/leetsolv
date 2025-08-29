@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您 **掌握** 複雜的演算法。
+**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您掌握複雜的演算法。
 
 *想知道這與 Anki 之類的工具有何不同嗎？請參閱 [常見問題](#常見問題)。*
 
@@ -55,7 +55,6 @@ E --> F((SM-2 演算法排定複習));
     - [安裝 \& 執行](#安裝--執行)
     - [功能](#功能)
     - [文件](#文件)
-  - [許可證](#許可證)
   - [支援](#支援)
     - [常見問題](#常見問題)
       - [問：為什麼要使用 LeetSolv 而不是 Anki 卡片？](#問為什麼要使用-leetsolv-而不是-anki-卡片)
@@ -63,6 +62,7 @@ E --> F((SM-2 演算法排定複習));
       - [問：使用一段時間後，我累積了太多到期問題。](#問使用一段時間後我累積了太多到期問題)
     - [文件](#文件-1)
     - [連結](#連結)
+  - [許可證](#許可證)
 
 ## 快速安裝
 
@@ -331,17 +331,13 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 - 編寫多語言文件
 
-## 許可證
-
-本專案已根據 [LICENSE](LICENSE) 檔案中指定的條款獲得許可。
-
 ## 支援
 
 ### 常見問題
 
 #### 問：為什麼要使用 LeetSolv 而不是 Anki 卡片？
 
-答：Anki 非常適合**記憶幾秒鐘就能完成的事實**，**但對於 DSA 來說，它可能會適得其反**。LeetSolv 的自訂 SM-2 演算法**延長**間隔複習時間，並使用您對**推理**、**熟悉度**和問題**重要性**的輸入來建立一個加深您解決問題能力的排程，而不是僅僅檢查您是否記住了答案。
+答：Anki 非常適合**記憶幾秒鐘就能完成的事實**，**但對於 DSA 來說，它可能會適得其反**。LeetSolv 的自訂 SM-2 演算法 **延長** 間隔複習時間，並使用您對**推理**、**熟悉度**和問題**重要性**的輸入來建立一個加深您解決問題能力的排程，而不是僅僅檢查您是否記住了答案。
 
 👉 簡而言之：Anki 會安排您下一次的**記憶檢查**。LeetSolv 會安排您下一次的**真正的問題解決環節**。
 
@@ -371,6 +367,10 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 - **問題**：[GitHub Issues](https://github.com/eannchen/leetsolv/issues)
 - **討論**：[GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
 - **版本**：[GitHub Releases](https://github.com/eannchen/leetsolv/releases)
+
+## 許可證
+
+本專案已根據 [LICENSE](LICENSE) 檔案中指定的條款獲得許可。
 
 ---
 

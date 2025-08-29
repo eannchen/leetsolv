@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** is a command-line tool designed for **Data Structures and Algorithms (DSA)** problem revision. It's powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to **master** complex algorithms through **deliberate practice**.
+**LeetSolv** is a command-line tool designed for **Data Structures and Algorithms (DSA)** problem revision. It's powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to master complex algorithms through **deliberate practice**.
 
 *Curious how this compares to tools like Anki? See the [FAQ](#faq).*
 
@@ -56,7 +56,6 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [Installation \& Running](#installation--running)
     - [Features](#features)
     - [Documentation](#documentation)
-  - [License](#license)
   - [Support](#support)
     - [FAQ](#faq)
       - [Q: Why use LeetSolv instead of an Anki deck?](#q-why-use-leetsolv-instead-of-an-anki-deck)
@@ -64,6 +63,7 @@ E --> F((SM-2 Algorithm Schedules Review));
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation-1)
     - [Links](#links)
+  - [License](#license)
 
 ## Quick Installation
 
@@ -338,17 +338,13 @@ Our roadmap is guided by our goal to make LeetSolv the best tool for deliberate 
 
 - Write multi-language documentation
 
-## License
-
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
-
 ## Support
 
 ### FAQ
 
 #### Q: Why use LeetSolv instead of an Anki deck?
 
-A: Anki is excellent for **memorizing facts** that take seconds, **but for DSA, it can be counterproductive**. LeetSolv's custom SM-2 algorithm **spaces out the review interval** and uses your input on **reasoning**, **familiarity**, and a problem's **importance** to create a schedule that deepens your problem-solving ability—not just check if you memorized the answer.
+A: Anki is excellent for **memorizing facts** that take seconds, **but for DSA, it can be counterproductive**. LeetSolv's custom SM-2 algorithm **spaces out** the review interval and uses your input on **reasoning**, **familiarity**, and a problem's **importance** to create a schedule that deepens your problem-solving ability—not just check if you memorized the answer.
 
 👉 In short: Anki schedules your next **memorization check**. LeetSolv schedules your next **genuine problem-solving session**.
 
@@ -378,6 +374,10 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 - **Issues**: [GitHub Issues](https://github.com/eannchen/leetsolv/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)
 - **Releases**: [GitHub Releases](https://github.com/eannchen/leetsolv/releases)
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
 ---
 
