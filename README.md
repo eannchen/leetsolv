@@ -6,7 +6,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** is a command-line tool designed for **Data Structures and Algorithms (DSA)** problem revision. It's powered by a custom-adapted [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to **master** complex algorithms through **deliberate practice**.
+**LeetSolv** is a command-line tool designed for **Data Structures and Algorithms (DSA)** problem revision. It's powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to **master** complex algorithms through **deliberate practice**.
+
+*Curious how this compares to tools like Anki? See the [FAQ](#faq).*
 
 > ***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
 
@@ -50,12 +52,6 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [Available Commands](#available-commands)
     - [Search Command Filters](#search-command-filters)
   - [Configuration](#configuration)
-    - [File Paths](#file-paths)
-    - [SM-2 Algorithm Settings](#sm-2-algorithm-settings)
-    - [Due Priority Scoring Settings](#due-priority-scoring-settings)
-    - [Other Settings](#other-settings)
-    - [Example: Environment Variables](#example-environment-variables)
-    - [Example: JSON Settings File](#example-json-settings-file)
   - [Roadmap](#roadmap)
     - [Installation \& Running](#installation--running)
     - [Features](#features)
@@ -63,6 +59,7 @@ E --> F((SM-2 Algorithm Schedules Review));
   - [License](#license)
   - [Support](#support)
     - [FAQ](#faq)
+      - [Q: Why use LeetSolv instead of an Anki deck?](#q-why-use-leetsolv-instead-of-an-anki-deck)
       - [Q: Should I add all my previously solved problems?](#q-should-i-add-all-my-previously-solved-problems)
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation-1)
@@ -83,6 +80,8 @@ wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
 chmod +x install.sh
 ./install.sh
 ```
+
+> *For Windows, please use the [Manual Download](#manual-download-all-platforms) method below. Future Windows support is planned.*
 
 ### Manual Download (All Platforms)
 1. Go to [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -306,80 +305,17 @@ search [keywords...] [filters...]
 
 ## Configuration
 
-You can configure **LeetSolv** in two ways:
+LeetSolv can be customized using environment variables or a JSON settings file. This allows you to change file paths, algorithm parameters, and scoring weights.
 
-1. **Environment variables** – convenient for temporary or deployment-level overrides.
-2. **JSON settings file** (`$HOME/.leetsolv/settings.json`) – persistent configuration you can edit manually.
+For a complete list of all available options, default values, and examples, please see the detailed configuration guide:
 
-Both methods map to the same internal configuration.
-- Environment variables follow `UPPERCASE_SNAKE_CASE` naming.
-- JSON fields follow `camelCase` naming.
-
-For example:
-- Env var: `LEETSOLV_RANDOMIZE_INTERVAL=true`
-- JSON: `"randomizeInterval": true`
-
-If both are provided, the **JSON settings file takes priority** over environment variables.
-
-### File Paths
-
-| Env Variable              | JSON field      | Default                          | Description         |
-| ------------------------- | --------------- | -------------------------------- | ------------------- |
-| `LEETSOLV_QUESTIONS_FILE` | `questionsFile` | `$HOME/.leetsolv/questions.json` | Questions data file |
-| `LEETSOLV_DELTAS_FILE`    | `deltasFile`    | `$HOME/.leetsolv/deltas.json`    | Change history file |
-| `LEETSOLV_INFO_LOG_FILE`  | `infoLogFile`   | `$HOME/.leetsolv/info.log`       | Info log file       |
-| `LEETSOLV_ERROR_LOG_FILE` | `errorLogFile`  | `$HOME/.leetsolv/error.log`      | Error log file      |
-| `LEETSOLV_SETTINGS_FILE`  | `settingsFile`  | `$HOME/.leetsolv/settings.json`  | Config JSON file    |
-
-
-### SM-2 Algorithm Settings
-
-| Env Variable                  | JSON field          | Default | Description                                    |
-| ----------------------------- | ------------------- | ------- | ---------------------------------------------- |
-| `LEETSOLV_RANDOMIZE_INTERVAL` | `randomizeInterval` | `true`  | Enable/disable interval randomization          |
-| `LEETSOLV_OVERDUE_PENALTY`    | `overduePenalty`    | `false` | Enable/disable overdue penalty system          |
-| `LEETSOLV_OVERDUE_LIMIT`      | `overdueLimit`      | `7`     | Days after which overdue questions get penalty |
-
-
-### Due Priority Scoring Settings
-
-| Env Variable                     | JSON field            | Default | Description                    |
-| -------------------------------- | --------------------- | ------- | ------------------------------ |
-| `LEETSOLV_TOP_K_DUE`             | `topKDue`             | `10`    | Top due questions to show      |
-| `LEETSOLV_TOP_K_UPCOMING`        | `topKUpcoming`        | `10`    | Top upcoming questions to show |
-| `LEETSOLV_IMPORTANCE_WEIGHT`     | `importanceWeight`    | `1.5`   | Weight for problem importance  |
-| `LEETSOLV_OVERDUE_WEIGHT`        | `overdueWeight`       | `0.5`   | Weight for overdue problems    |
-| `LEETSOLV_FAMILIARITY_WEIGHT`    | `familiarityWeight`   | `3.0`   | Weight for familiarity level   |
-| `LEETSOLV_REVIEW_PENALTY_WEIGHT` | `reviewPenaltyWeight` | `-1.5`  | Penalty for high review count  |
-| `LEETSOLV_EASE_PENALTY_WEIGHT`   | `easePenaltyWeight`   | `-1.0`  | Penalty for easy problems      |
-
-
-### Other Settings
-
-| Env Variable         | JSON field | Default | Description             |
-| -------------------- | ---------- | ------- | ----------------------- |
-| `LEETSOLV_PAGE_SIZE` | `pageSize` | `5`     | Questions per page      |
-| `LEETSOLV_MAX_DELTA` | `maxDelta` | `50`    | Maximum history entries |
-
-### Example: Environment Variables
-
-```bash
-export LEETSOLV_RANDOMIZE_INTERVAL=false
-export LEETSOLV_PAGE_SIZE=20
-```
-
-### Example: JSON Settings File
-
-```json
-{
-    "randomizeInterval": false,
-    "pageSize": 20
-}
-```
+[View Full Configuration Guide (CONFIGURATION.md)](document/CONFIGURATION.md)
 
 
 
 ## Roadmap
+
+Our roadmap is guided by our goal to make LeetSolv the best tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
 
 ### Installation & Running
 
@@ -390,10 +326,12 @@ export LEETSOLV_PAGE_SIZE=20
 
 ### Features
 
+- Provide a "hint" field in the question entry
+- Provide daily add limit functionality
 - Provide tagging functionality
 - Provide export functionality
 - Add support for DSA problems from other platforms
-- Make SM-2 algorithm user-customizable
+- Make the SM-2 algorithm user-customizable
 - Implement fuzzy search functionality
 
 ### Documentation
@@ -408,6 +346,12 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 
 ### FAQ
 
+#### Q: Why use LeetSolv instead of an Anki deck?
+
+A: Anki is excellent for **memorizing facts** that take seconds, **but for DSA, it can be counterproductive**. LeetSolv's custom SM-2 algorithm **spaces out the review interval** and uses your input on **reasoning**, **familiarity**, and a problem's **importance** to create a schedule that deepens your problem-solving ability—not just check if you memorized the answer.
+
+👉 In short: Anki schedules your next **memorization check**. LeetSolv schedules your next **genuine problem-solving session**.
+
 #### Q: Should I add all my previously solved problems?
 
 A: **No.** LeetSolv is not a solved-problem database — it’s a spaced repetition scheduler.
@@ -417,7 +361,7 @@ Only add problems you actually want to revisit. The scheduling algorithm relies 
 
 #### Q: After a period of use, I accumulated too many due problems.
 
-A: This is the nature of the **SM-2 algorithm** — if you skip days or add many problems at once, the due list can grow quickly.
+A: This is the **nature** of the SM-2 algorithm — if you skip days or add many problems at once, the due list can grow quickly.
 To make this manageable, LeetSolv introduces **[Due Priority Scoring](#due-priority-scoring)**, which ranks due problems by importance, familiarity, overdue days, review count, and ease factor.
 Instead of clearing everything at once, just focus on the **highest-priority problems** first. The rest can safely wait until later.
 
