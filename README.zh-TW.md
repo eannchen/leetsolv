@@ -295,7 +295,8 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 ### 自適應 SM-2 演算法
 
-- 分離 `熟悉度` 為 `推理熟悉度` 和 `編碼熟悉度`。 *閱讀 [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) 了解更多細節。*
+- 分離 `熟悉度` 為 `推理熟悉度` 和 `編碼熟悉度`
+  - 閱讀 [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) 了解更多細節
 - 使 SM-2 演算法可由用戶自定義
 
 ### 安裝 \& 執行

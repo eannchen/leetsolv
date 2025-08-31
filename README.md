@@ -297,7 +297,8 @@ Our roadmap is guided by our goal to make LeetSolv a powerful tool for deliberat
 
 ### Adaptive SM-2 Algorithm
 
-- Separating `familiarity` into `reasoning grade` and `coding grade`.*Read the [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) for more details.*
+- Separating `familiarity` into `reasoning grade` and `coding grade`
+  - See [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) for details
 - Make the SM-2 algorithm user-customizable
 
 ### Installation & Execution
