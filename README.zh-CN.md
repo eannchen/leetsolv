@@ -69,7 +69,7 @@ E --> F((SM-2 算法安排复习));
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-> *未来计划支持 Windows。*
+> *[未来规划](#发展规划)支持 Windows 自动安装。*
 
 ### 手动下载 (所有平台)
 1. 转到 [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -78,13 +78,13 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
    - **macOS**: `leetsolv-darwin-amd64` 或 `leetsolv-darwin-arm64`
    - **Windows**: `leetsolv-windows-amd64.exe` 或 `leetsolv-windows-arm64.exe`
 
+> *有关详细的安装说明，请参阅 [INSTALL.md](document/INSTALL.md)*
+
 ### 验证安装
 ```bash
 leetsolv version
 leetsolv help
 ```
-
-> *有关详细的安装和配置说明，请参阅 [INSTALL.md](document/INSTALL.md)*
 
 ## 复习调度系统
 
@@ -169,7 +169,7 @@ graph LR
 ![SM2 Low](document/image/SM2_LOW.png)
 **低重要性**：较长的间隔，适用于需要较少复习的问题。
 
-> *未来的迭代可能会允许直接在配置文件中修改算法参数。*
+> *[未来的迭代](#发展规划)可能会允许直接在配置文件中修改算法参数。*
 
 ## 问题管理
 

@@ -69,7 +69,7 @@ Download and run the installation script
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-> *Future Windows support is planned.*
+> *Future Windows automated installation support is [planned](#roadmap).*
 
 ### Manual Download (All Platforms)
 1. Go to [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -78,14 +78,13 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
    - **macOS**: `leetsolv-darwin-amd64` or `leetsolv-darwin-arm64`
    - **Windows**: `leetsolv-windows-amd64.exe` or `leetsolv-windows-arm64.exe`
 
+> *For detailed installation instructions, see [INSTALL.md](document/INSTALL.md)*
+
 ### Verify Installation
 ```bash
 leetsolv version
 leetsolv help
 ```
-
-> *For detailed installation and configuration instructions, see [INSTALL.md](document/INSTALL.md)*
-
 
 ## Review Scheduling System
 
@@ -172,7 +171,7 @@ The following graphs demonstrate how review intervals grow over time for differe
 ![SM2 Low](document/image/SM2_LOW.png)
 **Low Importance**: Longer intervals for problems that require less frequent review.
 
-> *Future iterations may enable the modification of algorithm parameters directly within the configuration file.*
+> *[Future iterations](#roadmap) may enable the modification of algorithm parameters directly within the configuration file.*
 
 
 ## Problem Management

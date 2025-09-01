@@ -69,7 +69,7 @@ E --> F((SM-2 演算法排定複習));
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-> *未來計劃支援 Windows。*
+> *[未來規劃](#發展規劃)支持 Windows 自動安裝。*
 
 ### 手動下載 (所有平台)
 1. 前往 [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -78,13 +78,13 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
    - **macOS**: `leetsolv-darwin-amd64` 或 `leetsolv-darwin-arm64`
    - **Windows**: `leetsolv-windows-amd64.exe` 或 `leetsolv-windows-arm64.exe`
 
+> *有關詳細的安裝說明，請參閱 [INSTALL.md](document/INSTALL.md)*
+
 ### 驗證安裝
 ```bash
 leetsolv version
 leetsolv help
 ```
-
-> *有關詳細的安裝和配置說明，請參閱 [INSTALL.md](document/INSTALL.md)*
 
 ## 複習排程系統
 
@@ -170,7 +170,7 @@ graph LR
 ![SM2 Low](document/image/SM2_LOW.png)
 **低重要性**：較長的間隔，適用於不需要頻繁複習的問題。
 
-> *未來的迭代可能會允許直接在配置文件中修改演算法參數。*
+> *[未來的更新](#發展規劃)可能會允許直接在配置文件中修改演算法參數。*
 
 ## 問題管理
 
