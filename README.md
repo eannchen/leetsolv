@@ -154,10 +154,14 @@ graph LR
 
 ### Interval Growing Curve
 
-The **importance** of a question determines the base review interval, which grows exponentially over time by **familiarity** and **reasoning** factors. This design is particularly useful for learners with limited study time. For instance:
+This system helps you prioritize problems and manage your review schedule efficiently, even with limited study time.
 
-- Beginners can prioritize knowledge-building lists like NeetCode Blind 75 or NeetCode 150 to establish a solid foundation, while NeetCode 250 can be used for additional practice.
-- Individuals preparing for specific company interviews can prioritize company-specific lists to enhance their interview preparation.
+Your **review intervals** are automatically set based on a problem's **importance**. This interval then expands over time based on your **familiarity** and **reasoning** level with the problem.
+
+This means you can:
+
+- **Build a strong foundation**: Prioritize *NeetCode Blind 75* or *NeetCode 150* to build a foundation, and use *NeetCode 250* for extra practice.
+- **Target specific goals**: Prioritize problems from company-specific lists for upcoming interviews.
 
 **Critical problems are reviewed more often, while less important ones get longer intervals.**
 
