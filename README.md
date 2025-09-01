@@ -90,7 +90,7 @@ leetsolv help
 
 ### Adaptive SM-2 Algorithm
 
-When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—**familiarity**, **importance**, and **reasoning** to calculate the next review date. This design reinforces the goal of mastering data structures and algorithms **through reasoning rather than rote recall**.
+When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—**familiarity** (5 levels), **importance** (4 levels), and **reasoning** (3 levels) to calculate the next review date. And a **randomization** is applied to avoid bunching reviews into same days. This design reinforces the goal of mastering data structures and algorithms **through reasoning rather than rote recall**.
 
 
 ```mermaid
