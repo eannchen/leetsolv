@@ -163,7 +163,12 @@ graph LR
 
 ### Interval Growing Curve
 
-LeetSolv adapts SM-2 intervals based on importance, familiarity, and reasoning. **Critical problems are reviewed more often, while easier ones gradually get longer intervals.**
+The **importance** of a question determines the base review interval, which grows exponentially over time by **familiarity** and **reasoning** factors. This design is particularly useful for learners with limited study time. For instance:
+
+- Beginners can prioritize knowledge-building lists like NeetCode Blind 75 or NeetCode 150 to establish a solid foundation, while NeetCode 250 can be used for additional practice.
+- Individuals preparing for specific company interviews can prioritize company-specific lists to enhance their interview preparation.
+
+**Critical problems are reviewed more often, while less important ones get longer intervals.**
 
 The following graphs demonstrate how review intervals grow over time for different importance levels, showing the default growth pattern:
 
