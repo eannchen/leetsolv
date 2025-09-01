@@ -304,7 +304,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 
 	h.IO.Println("Familiarity:")
 	h.IO.Println("1. Struggled - Solved, but barely; needed heavy effort or help.")
-	h.IO.Println("2. Clumsy    - Solved with partial understanding or recurring mistakes.")
+	h.IO.Println("2. Clumsy    - Solved with major guidance or recurring mistakes.")
 	h.IO.Println("3. Decent    - Solved mostly right, but with uncertainty or slow spots.")
 	h.IO.Println("4. Smooth    - Solved cleanly with clear reasoning, minor pauses, and no real confusion.")
 	h.IO.Println("5. Fluent    - Solved confidently with no hesitation.")
@@ -318,7 +318,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 	h.IO.Printf("\n")
 
 	memory := core.MemoryReasoned
-	if familiarity >= core.Easy {
+	if familiarity >= core.Medium {
 		h.IO.Println("Memory Use:")
 		h.IO.Println("1. Reasoned - Solved purely from reasoning.")
 		h.IO.Println("2. Partial  - Recalled some solution fragments, but still reasoned through the rest.")

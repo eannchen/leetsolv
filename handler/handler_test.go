@@ -512,7 +512,8 @@ func TestHandler_HandleStatus_Error(t *testing.T) {
 
 func TestHandler_HandleUpsert_Success(t *testing.T) {
 	// Create mock IO with proper input
-	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n3\n2\n")
+	// Input: URL, note, familiarity (3), memory (1), importance (2)
+	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n3\n1\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
 	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
@@ -650,7 +651,8 @@ func TestHandler_HandleUpsert_UseCaseError(t *testing.T) {
 	mockUseCase.errorToReturn = errs.ErrQuestionNotFound
 
 	// Simulate valid input
-	input := "https://leetcode.com/problems/test\nTest question\n3\n2\n"
+	// Input: URL, note, familiarity (3), memory (1), importance (2)
+	input := "https://leetcode.com/problems/test\nTest question\n3\n1\n2\n"
 	scanner := bufio.NewScanner(strings.NewReader(input))
 	handler.HandleUpsert(scanner, "")
 
@@ -664,6 +666,106 @@ func TestHandler_HandleUpsert_UseCaseError(t *testing.T) {
 	}
 	if !found {
 		t.Error("Expected PrintError to be called for use case error")
+	}
+}
+
+func TestHandler_HandleUpsert_NoMemoryPromptForVeryHardFamiliarity(t *testing.T) {
+	// Create mock IO with input for familiarity level 1 (VeryHard)
+	// Input: URL, note, familiarity (1), importance (2) - no memory input needed
+	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n1\n2\n")
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+
+	// Set up successful upsert
+	upsertedQuestion := &core.Question{
+		ID:          1,
+		URL:         "https://leetcode.com/problems/test",
+		Note:        "Test question",
+		Familiarity: core.VeryHard,
+		Importance:  core.MediumImportance,
+	}
+	mockUseCase.upserted = &core.Delta{
+		Action:     core.ActionAdd,
+		QuestionID: upsertedQuestion.ID,
+		OldState:   nil,
+		NewState:   upsertedQuestion,
+		CreatedAt:  time.Now(),
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleUpsert(scanner, "")
+
+	// Verify that success message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintSuccess" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintSuccess to be called for success message")
+	}
+
+	// Verify that the memory reasoning prompt was NOT shown
+	output := mockIO.output.String()
+	if strings.Contains(output, "Reasoning:") {
+		t.Error("Expected memory reasoning prompt to NOT be shown for familiarity level 1 (VeryHard)")
+	}
+	if strings.Contains(output, "1. Reasoned") {
+		t.Error("Expected memory reasoning options to NOT be shown for familiarity level 1 (VeryHard)")
+	}
+}
+
+func TestHandler_HandleUpsert_NoMemoryPromptForHardFamiliarity(t *testing.T) {
+	// Create mock IO with input for familiarity level 2 (Hard)
+	// Input: URL, note, familiarity (2), importance (2) - no memory input needed
+	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n2\n2\n")
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+
+	// Set up successful upsert
+	upsertedQuestion := &core.Question{
+		ID:          1,
+		URL:         "https://leetcode.com/problems/test",
+		Note:        "Test question",
+		Familiarity: core.Hard,
+		Importance:  core.MediumImportance,
+	}
+	mockUseCase.upserted = &core.Delta{
+		Action:     core.ActionAdd,
+		QuestionID: upsertedQuestion.ID,
+		OldState:   nil,
+		NewState:   upsertedQuestion,
+		CreatedAt:  time.Now(),
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleUpsert(scanner, "")
+
+	// Verify that success message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintSuccess" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintSuccess to be called for success message")
+	}
+
+	// Verify that the memory reasoning prompt was NOT shown
+	output := mockIO.output.String()
+	if strings.Contains(output, "Reasoning:") {
+		t.Error("Expected memory reasoning prompt to NOT be shown for familiarity level 2 (Hard)")
+	}
+	if strings.Contains(output, "1. Reasoned") {
+		t.Error("Expected memory reasoning options to NOT be shown for familiarity level 2 (Hard)")
 	}
 }
 
