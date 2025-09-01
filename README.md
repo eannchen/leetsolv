@@ -69,14 +69,7 @@ Download and run the installation script
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-Or download first, then run
-```bash
-wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
-chmod +x install.sh
-./install.sh
-```
-
-> *For Windows, please use the [Manual Download](#manual-download-all-platforms) method below. Future Windows support is planned.*
+> *Future Windows support is planned.*
 
 ### Manual Download (All Platforms)
 1. Go to [Releases](https://github.com/eannchen/leetsolv/releases)

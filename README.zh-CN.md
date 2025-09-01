@@ -69,15 +69,7 @@ E --> F((SM-2 算法安排复习));
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-或者先下载，然后运行
-
-```bash
-wget https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh
-chmod +x install.sh
-./install.sh
-```
-
-> *对于 Windows，请使用下面的[手动下载](#手动下载-所有平台)方法。未来计划支持 Windows。*
+> *未来计划支持 Windows。*
 
 ### 手动下载 (所有平台)
 1. 转到 [Releases](https://github.com/eannchen/leetsolv/releases)
