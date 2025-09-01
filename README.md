@@ -163,10 +163,10 @@ The following graphs demonstrate how review intervals grow over time for differe
 **Critical Problems**: Shortest intervals with frequent reviews to ensure mastery of the most important concepts.
 
 ![SM2 High](document/image/SM2_HIGH.png)
-**High Importance**: Moderate intervals balancing frequency with efficiency for important problems.
+**High Importance**: Moderate intervals balance frequency for important problems.
 
 ![SM2 Medium](document/image/SM2_MEDIUM.png)
-**Medium Importance**: Standard intervals following classic SM-2 progression for regular practice.
+**Medium Importance**: Standard intervals for regular practice.
 
 ![SM2 Low](document/image/SM2_LOW.png)
 **Low Importance**: Longer intervals for problems that require less frequent review.
