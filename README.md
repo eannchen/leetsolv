@@ -43,7 +43,7 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [Due Priority Scoring](#due-priority-scoring)
     - [Interval Growing Curve](#interval-growing-curve)
   - [Problem Management](#problem-management)
-    - [CRUD + undo](#crud--undo)
+    - [Core Functionalities](#core-functionalities)
     - [Data Privacy \& Safety](#data-privacy--safety)
     - [CLI Interface](#cli-interface)
   - [Usage](#usage)
@@ -98,14 +98,7 @@ leetsolv help
 
 ### Adaptive SM-2 Algorithm
 
-When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—**familiarity**, **importance**, and **reasoning** to calculate the next review date using the ease factor.
-
-- **Ease Factor**: Classic SM-2 algorithm determinant for calculating next review intervals.
-- **Familiarity Scale**: 5-level familiarity assessment (`VeryHard`, `Hard`, `Medium`, `Easy`, `VeryEasy`) for personal rating.
-- **Importance Scale**: 4-tier priority system (`Low`, `Medium`, `High`, `Critical`) for problem prioritization.
-- **Reasoning Scale**: 3-level memory assessment (`Reasoned`, `Partial`, `Full recall`) with penalties for weak reasoning. This design reinforces the goal of mastering data structures and algorithms through reasoning rather than rote recall.
-- **Due Penalty (Optional)**: Automatic penalty system for overdue review problems.
-- **Randomization (Optional)**: Random scheduling variation to prevent date over-fitting.
+When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—**familiarity**, **importance**, and **reasoning** to calculate the next review date. This design reinforces the goal of mastering data structures and algorithms **through reasoning rather than rote recall**.
 
 
 ```mermaid
@@ -133,8 +126,6 @@ graph TD
 
 ### Due Priority Scoring
 With SM-2, due reviews can easily accumulate since users have varying schedules and study habits. To address this challenge, LeetSolv introduces a due priority scoring feature that **allows users to prioritize due questions based on a priority score**.
-
-- **Multi-Factor Scoring**: A combination of importance, familiarity, overdue days, review count, and ease factor determines due priority.
 
 ```mermaid
 graph LR
@@ -189,14 +180,11 @@ The following graphs demonstrate how review intervals grow over time for differe
 
 ## Problem Management
 
-### CRUD + undo
-- **Summary View**: Overview of total problems, due problems, and upcoming problems with [priority scoring](#due-priority-scoring).
-- **List View**: List all problems with pagination.
-- **Trie-Based Search & Filtering**: Fast search and filtering by keywords, importance, familiarity, review count, and due status.
-- **Get Problem Details**: Retrieve detailed information about a specific problem.
-- **Add/Update Problems**: Create or modify problems with URL and notes.
-- **Remove Problems**: Delete problems by ID and URL.
-- **History & Undo**: Track changes and revert recent actions.
+### Core Functionalities
+
+- **CRUD + Undo**: Easily **create**, **view**, **update**, and **delete** your problems. You can also **undo** your last action.
+- **Trie-Based Search**: Instantly find problems with **blazing-fast search and filtering** by keyword, importance, familiarity, and more.
+- **Quick Views**: Get a **summary** of all your problems, including those that are due soon, or view a full **paginated list**.
 
 ```mermaid
 graph TD
@@ -217,7 +205,7 @@ graph TD
 ### Data Privacy & Safety
 
 - **No Data Collection**: LeetSolv does not upload user data to the internet.
-- **Atomic Writes**: All updates use temporary files with atomic replacement to guarantee consistency and prevent data loss.
+- **Atomic Writes**: All updates use temporary files with atomic replacement to **guarantee consistency** and **prevent data loss**.
 
 ```mermaid
 graph LR
@@ -227,11 +215,8 @@ graph LR
 ```
 
 ### CLI Interface
-- **Interactive Mode**: A turn-based dialogue between the user and the program.
-- **Batch Mode**: Execute commands directly from the command line.
-- **Alias Support**: Intuitive shortcuts for convenience (e.g., `ls`, `rm`, `cfg`).
-- **Pagination**: Efficient navigation for large problem sets.
-- **Clear Output**: Structured, color-coded CLI output.
+- **Interactive & Batch Modes**: Work in a **turn-based interactive mode** or run **direct commands** for quick actions.
+- **Intuitive Commands**: Use familiar aliases like `ls`, `rm`, and get **color-coded output** for a clear and pleasant experience.
 
 **Pagination demo:**
 ![Demo](document/image/DEMO_pagination.gif)
@@ -294,6 +279,7 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 - **[CONFIGURATION.md](document/CONFIGURATION.md)**: Configuration options and environment variables
 - **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
 - **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
+- **[ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md)**: Algorithm development roadmap
 - **This README**: Project overview and quick start
 
 ## Roadmap
