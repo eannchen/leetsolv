@@ -3,6 +3,7 @@ package fileutil
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 type FileUtil interface {
@@ -46,7 +47,8 @@ func (j *JSONFileUtil) Load(data interface{}, filename string) error {
 }
 
 func (j *JSONFileUtil) Save(data interface{}, filename string) error {
-	tempFile, err := os.CreateTemp("", "temp_*.json")
+	dir := filepath.Dir(filename)
+	tempFile, err := os.CreateTemp(dir, "temp_*.json")
 	if err != nil {
 		return err
 	}
