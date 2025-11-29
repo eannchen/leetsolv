@@ -402,61 +402,13 @@ func (u *QuestionUseCaseImpl) Undo() error {
 	lastDelta := deltas[len(deltas)-1]
 
 	var deltaError error
-
 	switch lastDelta.Action {
 	case core.ActionAdd:
-		// Remove the last added question
-		if lastDelta.NewState == nil {
-			deltaError = errors.New("cannot undo add action with no new state")
-		} else {
-			delete(store.Questions, lastDelta.NewState.ID)
-			delete(store.URLIndex, lastDelta.NewState.URL)
-			for _, word := range tokenizer.Tokenize(lastDelta.NewState.URL) {
-				store.URLTrie.Delete(word, lastDelta.NewState.ID)
-			}
-			for _, word := range tokenizer.Tokenize(lastDelta.NewState.Note) {
-				store.NoteTrie.Delete(word, lastDelta.NewState.ID)
-			}
-		}
+		deltaError = u.undoAdd(store, lastDelta)
 	case core.ActionUpdate:
-		if lastDelta.OldState == nil {
-			deltaError = errors.New("cannot undo update action with no old state")
-		} else {
-			// Restore the previous state of the question
-			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
-
-			// Delete the current state of the question from the trie
-			for _, word := range tokenizer.Tokenize(lastDelta.NewState.URL) {
-				store.URLTrie.Delete(word, lastDelta.NewState.ID)
-			}
-			for _, word := range tokenizer.Tokenize(lastDelta.NewState.Note) {
-				store.NoteTrie.Delete(word, lastDelta.NewState.ID)
-			}
-			// Restore the previous state of the question to the trie
-			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
-				store.URLTrie.Insert(word, lastDelta.OldState.ID)
-			}
-			for _, word := range tokenizer.Tokenize(lastDelta.OldState.Note) {
-				store.NoteTrie.Insert(word, lastDelta.OldState.ID)
-			}
-		}
+		deltaError = u.undoUpdate(store, lastDelta)
 	case core.ActionDelete:
-		// Restore the previous state of the question
-		if lastDelta.OldState == nil {
-			deltaError = errors.New("cannot undo delete action with no old state")
-		} else {
-			// Restore the previous state of the question
-			store.Questions[lastDelta.QuestionID] = lastDelta.OldState
-			store.URLIndex[lastDelta.OldState.URL] = lastDelta.QuestionID
-
-			// Restore the previous state of the question to the trie
-			for _, word := range tokenizer.Tokenize(lastDelta.OldState.URL) {
-				store.URLTrie.Insert(word, lastDelta.OldState.ID)
-			}
-			for _, word := range tokenizer.Tokenize(lastDelta.OldState.Note) {
-				store.NoteTrie.Insert(word, lastDelta.OldState.ID)
-			}
-		}
+		deltaError = u.undoDelete(store, lastDelta)
 	}
 
 	if deltaError != nil {
@@ -474,6 +426,66 @@ func (u *QuestionUseCaseImpl) Undo() error {
 		u.logger.Error.Printf("Failed to save deltas: %v", err)
 	}
 
+	return nil
+}
+
+func (u *QuestionUseCaseImpl) undoAdd(store *storage.QuestionStore, delta core.Delta) error {
+	if delta.NewState == nil {
+		return errors.New("cannot undo add action with no new state")
+	}
+
+	delete(store.Questions, delta.NewState.ID)
+	delete(store.URLIndex, delta.NewState.URL)
+	for _, word := range tokenizer.Tokenize(delta.NewState.URL) {
+		store.URLTrie.Delete(word, delta.NewState.ID)
+	}
+	for _, word := range tokenizer.Tokenize(delta.NewState.Note) {
+		store.NoteTrie.Delete(word, delta.NewState.ID)
+	}
+	return nil
+}
+
+func (u *QuestionUseCaseImpl) undoUpdate(store *storage.QuestionStore, delta core.Delta) error {
+	if delta.OldState == nil {
+		return errors.New("cannot undo update action with no old state")
+	}
+
+	// Restore the previous state of the question
+	store.Questions[delta.QuestionID] = delta.OldState
+
+	// Delete the current state of the question from the trie
+	for _, word := range tokenizer.Tokenize(delta.NewState.URL) {
+		store.URLTrie.Delete(word, delta.NewState.ID)
+	}
+	for _, word := range tokenizer.Tokenize(delta.NewState.Note) {
+		store.NoteTrie.Delete(word, delta.NewState.ID)
+	}
+	// Restore the previous state of the question to the trie
+	for _, word := range tokenizer.Tokenize(delta.OldState.URL) {
+		store.URLTrie.Insert(word, delta.OldState.ID)
+	}
+	for _, word := range tokenizer.Tokenize(delta.OldState.Note) {
+		store.NoteTrie.Insert(word, delta.OldState.ID)
+	}
+	return nil
+}
+
+func (u *QuestionUseCaseImpl) undoDelete(store *storage.QuestionStore, delta core.Delta) error {
+	if delta.OldState == nil {
+		return errors.New("cannot undo delete action with no old state")
+	}
+
+	// Restore the previous state of the question
+	store.Questions[delta.QuestionID] = delta.OldState
+	store.URLIndex[delta.OldState.URL] = delta.QuestionID
+
+	// Restore the previous state of the question to the trie
+	for _, word := range tokenizer.Tokenize(delta.OldState.URL) {
+		store.URLTrie.Insert(word, delta.OldState.ID)
+	}
+	for _, word := range tokenizer.Tokenize(delta.OldState.Note) {
+		store.NoteTrie.Insert(word, delta.OldState.ID)
+	}
 	return nil
 }
 
