@@ -446,8 +446,8 @@ func (u *QuestionUseCaseImpl) undoAdd(store *storage.QuestionStore, delta core.D
 }
 
 func (u *QuestionUseCaseImpl) undoUpdate(store *storage.QuestionStore, delta core.Delta) error {
-	if delta.OldState == nil {
-		return errors.New("cannot undo update action with no old state")
+	if delta.OldState == nil && delta.NewState == nil {
+		return errors.New("cannot undo update action with no old or new state")
 	}
 
 	// Restore the previous state of the question
