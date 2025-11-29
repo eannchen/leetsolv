@@ -1,3 +1,4 @@
+// Package fileutil implements the file utility for the leetsolv application.
 package fileutil
 
 import (
@@ -73,7 +74,6 @@ func (j *JSONFileUtil) Save(data interface{}, filename string) error {
 	}
 
 	// Atomic replace - disable cleanup since we want to keep the file
-	cleanup = func() {} // No-op
 	if err := os.Rename(tempFile.Name(), filename); err != nil {
 		return err
 	}

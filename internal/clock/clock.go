@@ -1,3 +1,4 @@
+// Package clock implements the clock for the leetsolv application.
 package clock
 
 import (

@@ -1345,7 +1345,7 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 	}
 
 	// Test second page
-	results, totalPages, err = handler.getQuestionsPage(moreQuestions, 1)
+	results, _, err = handler.getQuestionsPage(moreQuestions, 1)
 	if err != nil {
 		t.Fatalf("Failed to get second page: %v", err)
 	}

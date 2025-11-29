@@ -1,3 +1,4 @@
+// Package command links between the command line and the handler.
 package command
 
 import (

@@ -1,3 +1,4 @@
+// Package copy implements the copy utility for the leetsolv application.
 package copy
 
 import (

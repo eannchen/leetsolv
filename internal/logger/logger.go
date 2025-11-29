@@ -1,3 +1,4 @@
+// Package logger implements the logger for the leetsolv application.
 package logger
 
 import (

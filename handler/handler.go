@@ -1,3 +1,4 @@
+// Package handler handles the user input and output for the leetsolv application.
 package handler
 
 import (
@@ -468,11 +469,11 @@ func (h *HandlerImpl) HandleHistory() {
 		return
 	}
 
-	formatWithStrId := "%-6s %-9s %-60s %-22s %s"
-	formatWithIntId := "%-6d %-9s %-60s %-22s %s"
+	formatWithStrID := "%-6s %-9s %-60s %-22s %s"
+	formatWithIntID := "%-6d %-9s %-60s %-22s %s"
 
 	h.IO.PrintlnColored(ColorHeader, "─────────────────────────────────────── Action History (Order by time desc) ────────────────────────────────────────")
-	h.IO.PrintfColored(ColorHeader, formatWithStrId, "# ID", "Action", "Question", "Changes", "When")
+	h.IO.PrintfColored(ColorHeader, formatWithStrID, "# ID", "Action", "Question", "Changes", "When")
 	h.IO.Printf("\n")
 	for _, delta := range deltas {
 		// Extract question name from URL
@@ -496,15 +497,15 @@ func (h *HandlerImpl) HandleHistory() {
 
 		// Print entry. If multiple changes, print them on separate aligned lines.
 		if len(changeList) == 0 {
-			entry := fmt.Sprintf(formatWithIntId, delta.QuestionID, delta.Action.String(), questionName, "", timeDesc)
+			entry := fmt.Sprintf(formatWithIntID, delta.QuestionID, delta.Action.String(), questionName, "", timeDesc)
 			h.IO.Println(entry)
 		} else {
 			// First line with the first change and time
-			first := fmt.Sprintf(formatWithIntId, delta.QuestionID, delta.Action.String(), questionName, changeList[0], timeDesc)
+			first := fmt.Sprintf(formatWithIntID, delta.QuestionID, delta.Action.String(), questionName, changeList[0], timeDesc)
 			h.IO.Println(first)
 			// Continuation lines: only the Change column filled
 			for i := 1; i < len(changeList); i++ {
-				cont := fmt.Sprintf(formatWithStrId, "", "", "", changeList[i], "")
+				cont := fmt.Sprintf(formatWithStrID, "", "", "", changeList[i], "")
 				h.IO.Println(cont)
 			}
 		}
@@ -543,7 +544,7 @@ func (h *HandlerImpl) HandleSetting(scanner *bufio.Scanner, args []string) {
 	}
 
 	if len(args) < 2 {
-		h.IO.PrintError(errs.WrapValidationError(errors.New("Usage: setting <setting_name> <value>"), ""))
+		h.IO.PrintError(errs.WrapValidationError(errors.New("invalid usage"), "Usage: setting <setting_name> <value>"))
 		return
 	}
 
