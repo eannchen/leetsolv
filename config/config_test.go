@@ -126,8 +126,8 @@ func TestResetToDefaults(t *testing.T) {
 	if config.PageSize != 5 {
 		t.Errorf("Expected PageSize to be 5, got %d", config.PageSize)
 	}
-	if config.MaxDelta != 50 {
-		t.Errorf("Expected MaxDelta to be 50, got %d", config.MaxDelta)
+	if config.MaxDelta != 25 {
+		t.Errorf("Expected MaxDelta to be 25, got %d", config.MaxDelta)
 	}
 
 	// Restore original values to avoid affecting other tests
