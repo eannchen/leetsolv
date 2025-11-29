@@ -55,10 +55,8 @@ E --> F((SM-2 Algorithm Schedules Review));
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation)
   - [Roadmap](#roadmap)
-    - [Adaptive SM-2 Algorithm](#adaptive-sm-2-algorithm-1)
     - [Installation \& Execution](#installation--execution)
     - [Functionality](#functionality)
-  - [License](#license)
 
 ## Quick Installation
 
@@ -273,40 +271,23 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 - **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
 - **[USAGE.md](document/USAGE.md)**: Command-line usage guide
 - **[CONFIGURATION.md](document/CONFIGURATION.md)**: Configuration options and environment variables
-- **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**: Development workflow, CI/CD, and contribution guide
 - **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
-- **[ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md)**: Algorithm development roadmap
 - **This README**: Project overview and quick start
 
 ## Roadmap
 
 Our roadmap is guided by our goal to make LeetSolv a powerful tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
 
-### Adaptive SM-2 Algorithm
-
-- Separating `familiarity` into `reasoning grade` and `coding grade`
-  - See [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) for details
-- Make the SM-2 algorithm user-customizable
-
 ### Installation & Execution
 
-- Support installation via package managers (Homebrew, Chocolatey, apt)
+- Support installation via package managers
 - Support running as a Docker container
-- Support auto-updater functionality
-- Add Windows installation script
+- Support Windows automated installation
 
 ### Functionality
 
-- Provide a "hint" field in the question entry
-- Provide daily add limit functionality
 - Provide tagging functionality
-- Provide export functionality
-- Add support for DSA problems from other platforms
-- Implement fuzzy search functionality
-
-## License
-
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+- Support other DSA practice platforms
 
 ---
 

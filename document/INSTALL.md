@@ -179,11 +179,3 @@ Remove-Item "C:\Program Files\LeetSolv"
 # Remove configuration directory (optional)
 Remove-Item -Recurse "$env:USERPROFILE\.leetsolv"
 ```
-
-## Support
-
-- **Installation Help**: This guide
-- **Development Guide**: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)
-- **Documentation**: [README.md](../README.md)
-- **Issues**: [GitHub Issues](https://github.com/eannchen/leetsolv/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/eannchen/leetsolv/discussions)

@@ -54,10 +54,8 @@ E --> F((SM-2 演算法排定複習));
       - [問：使用一段時間後，我累積了太多到期問題。](#問使用一段時間後我累積了太多到期問題)
     - [文件](#文件)
   - [發展規劃](#發展規劃)
-    - [自適應 SM-2 演算法](#自適應-sm-2-演算法-1)
     - [安裝 \& 執行](#安裝--執行)
     - [功能](#功能)
-  - [許可證](#許可證)
 
 ## 快速安裝
 
@@ -273,40 +271,23 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 - **[INSTALL.md](document/INSTALL.md)**：完整的安裝指南，包含疑難排解
 - **[USAGE.md](document/USAGE.md)**：命令行使用指南
 - **[CONFIGURATION.md](document/CONFIGURATION.md)**：配置選項和環境變數
-- **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**：開發工作流程、CI/CD 和貢獻指南
 - **[MOTIVATION.md](document/MOTIVATION.md)**：專案動機和設計說明
-- **[ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md)**：算法開發規劃
 - **本 README**：專案概述和快速入門
 
 ## 發展規劃
 
 我們的發展規劃是以使 LeetSolv 成為刻意練習的强大工具為目標。有建議嗎？隨時 [開啟 issue](https://github.com/eannchen/leetsolv/issues)！
 
-### 自適應 SM-2 演算法
-
-- 分離 `熟悉度` 為 `推理熟悉度` 和 `編碼熟悉度`
-  - 閱讀 [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) 了解更多細節
-- 使 SM-2 演算法可由用戶自定義
-
 ### 安裝 \& 執行
 
-- 支援通過套件管理器（Homebrew、Chocolatey、apt）安裝
+- 支援通過套件管理器安裝
 - 支援作為 Docker 容器執行
-- 支援自動更新程式功能
-- 新增 Windows 安裝腳本
+- 支援 Windows 自動安裝
 
 ### 功能
 
-- 在問題條目中提供「提示」欄位
-- 提供每日新增限制功能
 - 提供標記功能
-- 提供匯出功能
 - 新增對來自其他平台的 DSA 問題的支援
-- 實作模糊搜尋功能
-
-## 許可證
-
-本專案已根據 [LICENSE](LICENSE) 檔案中指定的條款獲得許可。
 
 ---
 

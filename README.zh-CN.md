@@ -54,10 +54,8 @@ E --> F((SM-2 算法安排复习));
       - [问：使用一段时间后，我积累了太多到期问题。](#问使用一段时间后我积累了太多到期问题)
     - [文档](#文档)
   - [发展规划](#发展规划)
-    - [自适应 SM-2 算法](#自适应-sm-2-算法-1)
     - [安装 \& 运行](#安装--运行)
     - [功能](#功能)
-  - [许可证](#许可证)
 
 ## 快速安装
 
@@ -273,40 +271,23 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 - **[INSTALL.md](document/INSTALL.md)**：完整的安装指南，包含故障排除
 - **[USAGE.md](document/USAGE.md)**：命令行使用指南
 - **[CONFIGURATION.md](document/CONFIGURATION.md)**：配置选项和环境变量
-- **[DEVELOPMENT_GUIDE.md](document/DEVELOPMENT_GUIDE.md)**：开发工作流程、CI/CD 和贡献指南
 - **[MOTIVATION.md](document/MOTIVATION.md)**：项目动机和设计说明
-- **[ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md)**：算法开发规划
 - **此 README**：项目概述和快速入门
 
 ## 发展规划
 
 我们的发展规划是以使 LeetSolv 成为刻意练习的强大工具为目标。有什么建议吗？请随时[提出问题](https://github.com/eannchen/leetsolv/issues)！
 
-### 自适应 SM-2 算法
-
-- 分离 `熟悉度` 为 `推理熟悉度` 和 `编码熟悉度`
-  - 阅读 [ALGORITHM_ROADMAP.md](document/ALGORITHM_ROADMAP.md) 获取更多细节
-- 使 SM-2 算法用户可自定义
-
 ### 安装 \& 运行
 
-- 支持通过包管理器（Homebrew、Chocolatey、apt）安装
+- 支持通过包管理器安装
 - 支持作为 Docker 容器运行
-- 支持自动更新程序功能
-- 添加 Windows 安装脚本
+- 支持 Windows 自动安装
 
 ### 功能
 
-- 在问题条目中提供「提示」栏位
-- 提供每日新增限制功能
 - 提供标记功能
-- 提供导出功能
-- 添加对来自其他平台的 DSA 问题的支持
-- 实现模糊搜索功能
-
-## 许可证
-
-本项目根据 [LICENSE](LICENSE) 文件中指定的条款获得许可。
+- 支持其他 DSA 练习平台
 
 ---
 
