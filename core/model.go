@@ -1,3 +1,4 @@
+// Package core implements the core models for the leetsolv application.
 package core
 
 import "time"

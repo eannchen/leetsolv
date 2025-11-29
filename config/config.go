@@ -1,3 +1,4 @@
+// Package config implements the configuration for the leetsolv application.
 package config
 
 import (
@@ -133,7 +134,7 @@ func initDefaultConfig() error {
 		},
 		// Delta settings
 		Delta: Delta{
-			MaxDelta: 50,
+			MaxDelta: 25,
 		},
 		// Due Priority List settings
 		DuePriority: DuePriority{
@@ -217,24 +218,24 @@ type Config struct {
 func NewConfig(file fileutil.FileUtil) (*Config, error) {
 	// Initialize default config with proper paths
 	if err := initDefaultConfig(); err != nil {
-		return nil, fmt.Errorf("Failed to initialize default configuration: %v", err)
+		return nil, fmt.Errorf("failed to initialize default configuration: %v", err)
 	}
 
 	config := &Config{file: file}
 
 	// Load default configuration first
 	if err := config.loadFromDefault(); err != nil {
-		return nil, fmt.Errorf("Failed to load default configuration: %v", err)
+		return nil, fmt.Errorf("failed to load default configuration: %v", err)
 	}
 
 	// Load environment variable overrides first
 	if err := config.loadFromEnvironment(); err != nil {
-		return nil, fmt.Errorf("Failed to load environment variables: %v", err)
+		return nil, fmt.Errorf("failed to load environment variables: %v", err)
 	}
 
 	// Then load user settings file (which can override env vars)
 	if err := config.loadFromFile(); err != nil {
-		return nil, fmt.Errorf("Failed to load settings file: %v", err)
+		return nil, fmt.Errorf("failed to load settings file: %w", err)
 	}
 
 	return config, nil
@@ -297,7 +298,7 @@ func (e *Config) GetSettingsRegistry() map[string]SettingDefinition {
 func (e *Config) GetSettingValue(settingName string) (any, error) {
 	setting, exists := settingsRegistry[strings.ToLower(settingName)]
 	if !exists {
-		return nil, fmt.Errorf("Unknown setting: %s", settingName)
+		return nil, fmt.Errorf("unknown setting: %s", settingName)
 	}
 	return setting.Getter(e), nil
 }
@@ -306,7 +307,7 @@ func (e *Config) GetSettingValue(settingName string) (any, error) {
 func (e *Config) SetSettingValue(settingName string, value any) error {
 	setting, exists := settingsRegistry[strings.ToLower(settingName)]
 	if !exists {
-		return fmt.Errorf("Unknown setting: %s", settingName)
+		return fmt.Errorf("unknown setting: %s", settingName)
 	}
 	return setting.Setter(e, value)
 }
@@ -315,7 +316,7 @@ func (e *Config) SetSettingValue(settingName string, value any) error {
 func (e *Config) GetSettingInfo(settingName string) (*SettingDefinition, error) {
 	setting, exists := settingsRegistry[strings.ToLower(settingName)]
 	if !exists {
-		return nil, fmt.Errorf("Unknown setting: %s", settingName)
+		return nil, fmt.Errorf("unknown setting: %s", settingName)
 	}
 	return &setting, nil
 }

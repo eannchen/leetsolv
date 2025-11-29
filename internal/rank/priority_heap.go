@@ -1,3 +1,4 @@
+// Package rank implements the priority heap for the leetsolv application.
 package rank
 
 type HeapItem struct {

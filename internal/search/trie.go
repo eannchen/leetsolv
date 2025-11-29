@@ -1,3 +1,4 @@
+// Package search implements the trie for the leetsolv application.
 package search
 
 import "sync"

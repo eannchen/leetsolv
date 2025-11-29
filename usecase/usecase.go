@@ -1,3 +1,4 @@
+// Package usecase handles the business logic for the leetsolv application.
 package usecase
 
 import (
@@ -156,7 +157,7 @@ func (u *QuestionUseCaseImpl) SearchQuestions(queries []string, filter *core.Sea
 			idSets = append(idSets, store.URLTrie.SearchPrefix(query), store.NoteTrie.SearchPrefix(query))
 		}
 
-		mergedSet := u.mergeIdSets(idSets)
+		mergedSet := u.mergeIDSets(idSets)
 
 		for id := range mergedSet {
 			question, ok := store.Questions[id]
@@ -180,7 +181,7 @@ func (u *QuestionUseCaseImpl) SearchQuestions(queries []string, filter *core.Sea
 	return questions, nil
 }
 
-func (u *QuestionUseCaseImpl) mergeIdSets(idSets []map[int]struct{}) map[int]struct{} {
+func (u *QuestionUseCaseImpl) mergeIDSets(idSets []map[int]struct{}) map[int]struct{} {
 	if len(idSets) == 0 {
 		return nil
 	}
@@ -518,9 +519,9 @@ func (u *QuestionUseCaseImpl) findQuestionByIDOrURL(store *storage.QuestionStore
 
 	var foundQuestion *core.Question
 	if isID {
-		foundQuestion, _ = store.Questions[id]
+		foundQuestion = store.Questions[id]
 	} else if id, ok := store.URLIndex[target]; ok {
-		foundQuestion, _ = store.Questions[id]
+		foundQuestion = store.Questions[id]
 	} else {
 		for _, q := range store.Questions {
 			if strings.EqualFold(q.URL, target) {
@@ -564,12 +565,12 @@ func (u *QuestionUseCaseImpl) GetSettings() error {
 func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value any) error {
 	// Use the registry-based approach
 	if err := u.cfg.SetSettingValue(settingName, value); err != nil {
-		return err
+		return errs.WrapValidationError(err, fmt.Sprintf("Unknown setting: %s", settingName))
 	}
 
 	// Save the configuration
 	if err := u.cfg.Save(); err != nil {
-		return fmt.Errorf("Failed to save settings: %v", err)
+		return errs.WrapInternalError(err, "Failed to save settings")
 	}
 
 	return nil

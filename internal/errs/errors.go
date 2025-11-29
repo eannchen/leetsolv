@@ -1,3 +1,4 @@
+// Package errs implements the errors for the leetsolv application.
 package errs
 
 import "errors"

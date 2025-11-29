@@ -1,3 +1,4 @@
+// Package tokenizer implements the tokenizer for the leetsolv application.
 package tokenizer
 
 import (

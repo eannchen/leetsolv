@@ -1,3 +1,4 @@
+// Package storage implements the file storage for the leetsolv application.
 package storage
 
 import (
