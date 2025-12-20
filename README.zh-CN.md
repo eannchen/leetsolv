@@ -34,7 +34,8 @@ E --> F((SM-2 算法安排复习));
 - [LeetSolv](#leetsolv)
   - [目录](#目录)
   - [快速安装](#快速安装)
-    - [自动安装 (Linux/macOS)](#自动安装-linuxmacos)
+    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
+    - [安装脚本 (macOS/Linux)](#安装脚本-macoslinux)
     - [手动下载 (所有平台)](#手动下载-所有平台)
     - [验证安装](#验证安装)
   - [复习调度系统](#复习调度系统)
@@ -59,15 +60,20 @@ E --> F((SM-2 算法安排复习));
 
 ## 快速安装
 
-### 自动安装 (Linux/macOS)
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap eannchen/tap
+brew install leetsolv
+```
+
+### 安装脚本 (macOS/Linux)
 
 下载并运行安装脚本
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
-
-> *[未来规划](#发展规划)支持 Windows 自动安装。*
 
 ### 手动下载 (所有平台)
 1. 转到 [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -76,7 +82,8 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
    - **macOS**: `leetsolv-darwin-amd64` 或 `leetsolv-darwin-arm64`
    - **Windows**: `leetsolv-windows-amd64.exe` 或 `leetsolv-windows-arm64.exe`
 
-> *有关详细的安装说明，请参阅 [INSTALL.md](document/INSTALL.md)*
+> - *有关详细的安装说明，请参阅 [INSTALL.md](document/INSTALL.md)*
+> - *[未来规划](#发展规划)支持 Windows 自动安装。*
 
 ### 验证安装
 ```bash
@@ -280,8 +287,6 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 ### 安装 \& 运行
 
-- 支持通过包管理器安装
-- 支持作为 Docker 容器运行
 - 支持 Windows 自动安装
 
 ### 功能

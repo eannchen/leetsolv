@@ -34,7 +34,8 @@ E --> F((SM-2 演算法排定複習));
 - [LeetSolv](#leetsolv)
   - [目錄](#目錄)
   - [快速安裝](#快速安裝)
-    - [自動安裝 (Linux/macOS)](#自動安裝-linuxmacos)
+    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
+    - [安裝腳本 (macOS/Linux)](#安裝腳本-macoslinux)
     - [手動下載 (所有平台)](#手動下載-所有平台)
     - [驗證安裝](#驗證安裝)
   - [複習排程系統](#複習排程系統)
@@ -59,15 +60,20 @@ E --> F((SM-2 演算法排定複習));
 
 ## 快速安裝
 
-### 自動安裝 (Linux/macOS)
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap eannchen/tap
+brew install leetsolv
+```
+
+### 安裝腳本 (macOS/Linux)
 
 下載並執行安裝腳本
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
-
-> *[未來規劃](#發展規劃)支持 Windows 自動安裝。*
 
 ### 手動下載 (所有平台)
 1. 前往 [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -76,7 +82,8 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
    - **macOS**: `leetsolv-darwin-amd64` 或 `leetsolv-darwin-arm64`
    - **Windows**: `leetsolv-windows-amd64.exe` 或 `leetsolv-windows-arm64.exe`
 
-> *有關詳細的安裝說明，請參閱 [INSTALL.md](document/INSTALL.md)*
+> - *有關詳細的安裝說明，請參閱 [INSTALL.md](document/INSTALL.md)*
+> - *[未來規劃](#發展規劃)支持 Windows 自動安裝。*
 
 ### 驗證安裝
 ```bash
@@ -280,8 +287,6 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 ### 安裝 \& 執行
 
-- 支援通過套件管理器安裝
-- 支援作為 Docker 容器執行
 - 支援 Windows 自動安裝
 
 ### 功能
