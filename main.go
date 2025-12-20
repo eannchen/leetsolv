@@ -95,6 +95,9 @@ func main() {
 	commandRegistry.Register("ver", versionCommand)
 	commandRegistry.Register("v", versionCommand)
 
+	migrateCommand := &command.MigrateCommand{Handler: h}
+	commandRegistry.Register("migrate", migrateCommand)
+
 	clearCommand := &command.ClearCommand{Handler: h}
 	commandRegistry.Register("clear", clearCommand)
 	commandRegistry.Register("cls", clearCommand)

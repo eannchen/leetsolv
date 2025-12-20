@@ -34,6 +34,7 @@ type Handler interface {
 	HandleQuit()
 	HandleSetting(scanner *bufio.Scanner, args []string)
 	HandleVersion()
+	HandleMigrate(scanner *bufio.Scanner)
 }
 
 type HandlerImpl struct {
@@ -668,4 +669,24 @@ func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
 
 func (h *HandlerImpl) HandleVersion() {
 	h.IO.Println(h.Version)
+}
+
+func (h *HandlerImpl) HandleMigrate(scanner *bufio.Scanner) {
+	h.IO.Println("This will convert all timestamps in your data files to UTC format.")
+	h.IO.Println("This is recommended if you upgraded from a version (v1.0.5 or earlier) that used local timezone.")
+	h.IO.Println("")
+
+	confirm := h.IO.ReadLine(scanner, "Proceed with migration? (y/n): ")
+	if confirm != "y" && confirm != "Y" {
+		h.IO.PrintCancel("Migration cancelled.")
+		return
+	}
+
+	questionsCount, deltasCount, err := h.QuestionUseCase.MigrateToUTC()
+	if err != nil {
+		h.IO.PrintError(err)
+		return
+	}
+
+	h.IO.PrintSuccess(fmt.Sprintf("Migration completed: %d questions, %d deltas converted to UTC.", questionsCount, deltasCount))
 }

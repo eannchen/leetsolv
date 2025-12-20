@@ -32,6 +32,7 @@ type QuestionUseCase interface {
 	GetHistory() ([]core.Delta, error)
 	GetSettings() error
 	UpdateSetting(settingName string, value interface{}) error
+	MigrateToUTC() (int, int, error)
 }
 
 // QuestionUseCaseImpl struct encapsulates dependencies for use cases
@@ -586,4 +587,61 @@ func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value any) error
 	}
 
 	return nil
+}
+
+// MigrateToUTC converts all timestamps in questions and deltas to UTC.
+// This is needed for users upgrading from versions that stored local timezone.
+// Returns the number of questions and deltas migrated.
+func (u *QuestionUseCaseImpl) MigrateToUTC() (int, int, error) {
+	u.Storage.Lock()
+	defer u.Storage.Unlock()
+
+	// Migrate questions
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return 0, 0, errs.WrapInternalError(err, "Failed to load questions")
+	}
+
+	questionsCount := 0
+	for _, q := range store.Questions {
+		q.LastReviewed = q.LastReviewed.UTC()
+		q.NextReview = q.NextReview.UTC()
+		q.UpdatedAt = q.UpdatedAt.UTC()
+		q.CreatedAt = q.CreatedAt.UTC()
+		questionsCount++
+	}
+
+	if err := u.Storage.SaveQuestionStore(store); err != nil {
+		return 0, 0, errs.WrapInternalError(err, "Failed to save questions")
+	}
+
+	// Migrate deltas
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		return questionsCount, 0, errs.WrapInternalError(err, "Failed to load deltas")
+	}
+
+	deltasCount := 0
+	for i := range deltas {
+		deltas[i].CreatedAt = deltas[i].CreatedAt.UTC()
+		if deltas[i].OldState != nil {
+			deltas[i].OldState.LastReviewed = deltas[i].OldState.LastReviewed.UTC()
+			deltas[i].OldState.NextReview = deltas[i].OldState.NextReview.UTC()
+			deltas[i].OldState.UpdatedAt = deltas[i].OldState.UpdatedAt.UTC()
+			deltas[i].OldState.CreatedAt = deltas[i].OldState.CreatedAt.UTC()
+		}
+		if deltas[i].NewState != nil {
+			deltas[i].NewState.LastReviewed = deltas[i].NewState.LastReviewed.UTC()
+			deltas[i].NewState.NextReview = deltas[i].NewState.NextReview.UTC()
+			deltas[i].NewState.UpdatedAt = deltas[i].NewState.UpdatedAt.UTC()
+			deltas[i].NewState.CreatedAt = deltas[i].NewState.CreatedAt.UTC()
+		}
+		deltasCount++
+	}
+
+	if err := u.Storage.SaveDeltas(deltas); err != nil {
+		return questionsCount, 0, errs.WrapInternalError(err, "Failed to save deltas")
+	}
+
+	return questionsCount, deltasCount, nil
 }

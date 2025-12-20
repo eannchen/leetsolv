@@ -19,16 +19,16 @@ func NewClock() ClockImpl {
 type ClockImpl struct{}
 
 func (ClockImpl) Now() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }
 
 func (ClockImpl) Today() time.Time {
-	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	now := time.Now().UTC()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 }
 
 func (ClockImpl) ToDate(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 }
 
 func (ClockImpl) AddDays(t time.Time, days int) time.Time {

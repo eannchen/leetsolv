@@ -95,7 +95,7 @@ func (ioh *IOHandlerImpl) ReadLine(scanner *bufio.Scanner, prompt string) string
 }
 
 func (ioh *IOHandlerImpl) PrintQuestionBrief(q *core.Question) {
-	ioh.PrintfColored(ColorQuestionURL, "[%d] %s (Due: %s)\n", q.ID, q.URL, q.NextReview.Format("2006-01-02"))
+	ioh.PrintfColored(ColorQuestionURL, "[%d] %s (Due: %s)\n", q.ID, q.URL, q.NextReview.Local().Format("2006-01-02"))
 	if q.Note == "" {
 		ioh.Printf(" ↳ Note: (none)\n")
 	} else {
@@ -112,15 +112,15 @@ func (ioh *IOHandlerImpl) PrintQuestionDetail(question *core.Question) {
 	}
 	ioh.Printf("   Familiarity: %d/%d\n", question.Familiarity+1, core.MaxFamiliarity)
 	ioh.Printf("   Importance: %d/%d\n", question.Importance+1, core.MaxImportance)
-	ioh.Printf("   Last Reviewed: %s\n", question.LastReviewed.Format("2006-01-02"))
+	ioh.Printf("   Last Reviewed: %s\n", question.LastReviewed.Local().Format("2006-01-02"))
 	if question.NextReview.Before(ioh.Clock.Now()) {
-		ioh.PrintfColored(ColorWarning, "   Next Review: %s (Due)\n", question.NextReview.Format("2006-01-02"))
+		ioh.PrintfColored(ColorWarning, "   Next Review: %s (Due)\n", question.NextReview.Local().Format("2006-01-02"))
 	} else {
-		ioh.Printf("   Next Review: %s\n", question.NextReview.Format("2006-01-02"))
+		ioh.Printf("   Next Review: %s\n", question.NextReview.Local().Format("2006-01-02"))
 	}
 	ioh.Printf("   Review Count: %d\n", question.ReviewCount)
 	ioh.Printf("   Ease Factor: %.2f\n", question.EaseFactor)
-	ioh.Printf("   Created At: %s\n", question.CreatedAt.Format("2006-01-02"))
+	ioh.Printf("   Created At: %s\n", question.CreatedAt.Local().Format("2006-01-02"))
 	ioh.Printf("\n")
 }
 
@@ -139,11 +139,11 @@ func (ioh *IOHandlerImpl) PrintQuestionUpsertDetail(delta *core.Delta) {
 	if oldState == nil {
 		ioh.Printf("   Familiarity: %d/%d\n", newState.Familiarity+1, core.MaxFamiliarity)
 		ioh.Printf("   Importance: %d/%d\n", newState.Importance+1, core.MaxImportance)
-		ioh.Printf("   Last Reviewed: %s\n", newState.LastReviewed.Format("2006-01-02"))
-		ioh.Printf("   Next Review: %s\n", newState.NextReview.Format("2006-01-02"))
+		ioh.Printf("   Last Reviewed: %s\n", newState.LastReviewed.Local().Format("2006-01-02"))
+		ioh.Printf("   Next Review: %s\n", newState.NextReview.Local().Format("2006-01-02"))
 		ioh.Printf("   Review Count: %d\n", newState.ReviewCount)
 		ioh.Printf("   Ease Factor: %.2f\n", newState.EaseFactor)
-		ioh.Printf("   Created At: %s\n", newState.CreatedAt.Format("2006-01-02"))
+		ioh.Printf("   Created At: %s\n", newState.CreatedAt.Local().Format("2006-01-02"))
 		ioh.Printf("\n")
 	} else {
 		if oldState.Familiarity != newState.Familiarity {
@@ -157,14 +157,14 @@ func (ioh *IOHandlerImpl) PrintQuestionUpsertDetail(delta *core.Delta) {
 			ioh.Printf("   Importance: %d/%d\n", newState.Importance+1, core.MaxImportance)
 		}
 		if oldState.LastReviewed != newState.LastReviewed {
-			ioh.Printf("   Last Reviewed: %s → %s\n", oldState.LastReviewed.Format("2006-01-02"), newState.LastReviewed.Format("2006-01-02"))
+			ioh.Printf("   Last Reviewed: %s → %s\n", oldState.LastReviewed.Local().Format("2006-01-02"), newState.LastReviewed.Local().Format("2006-01-02"))
 		} else {
-			ioh.Printf("   Last Reviewed: %s\n", newState.LastReviewed.Format("2006-01-02"))
+			ioh.Printf("   Last Reviewed: %s\n", newState.LastReviewed.Local().Format("2006-01-02"))
 		}
 		if oldState.NextReview != newState.NextReview {
-			ioh.Printf("   Next Review: %s → %s\n", oldState.NextReview.Format("2006-01-02"), newState.NextReview.Format("2006-01-02"))
+			ioh.Printf("   Next Review: %s → %s\n", oldState.NextReview.Local().Format("2006-01-02"), newState.NextReview.Local().Format("2006-01-02"))
 		} else {
-			ioh.Printf("   Next Review: %s\n", newState.NextReview.Format("2006-01-02"))
+			ioh.Printf("   Next Review: %s\n", newState.NextReview.Local().Format("2006-01-02"))
 		}
 		if oldState.ReviewCount != newState.ReviewCount {
 			ioh.Printf("   Review Count: %d → %d\n", oldState.ReviewCount, newState.ReviewCount)
@@ -176,7 +176,7 @@ func (ioh *IOHandlerImpl) PrintQuestionUpsertDetail(delta *core.Delta) {
 		} else {
 			ioh.Printf("   Ease Factor: %.2f\n", newState.EaseFactor)
 		}
-		ioh.Printf("   Created At: %s\n", newState.CreatedAt.Format("2006-01-02"))
+		ioh.Printf("   Created At: %s\n", newState.CreatedAt.Local().Format("2006-01-02"))
 		ioh.Printf("\n")
 	}
 

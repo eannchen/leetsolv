@@ -82,9 +82,13 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Flag to track if this is an upgrade
+IS_UPGRADE="false"
+
 # Function to backup existing installation
 backup_existing() {
     if command_exists "$BINARY_NAME"; then
+        IS_UPGRADE="true"
         print_status "Backing up existing installation..."
         mkdir -p "$BACKUP_DIR"
         local backup_path="$BACKUP_DIR/$(date +%Y%m%d_%H%M%S)_$BINARY_NAME"
@@ -194,6 +198,8 @@ setup_config() {
 
 # Function to show post-install instructions
 show_post_install() {
+    local is_upgrade="$1"
+
     echo
     print_success "Installation completed successfully!"
     echo
@@ -202,6 +208,23 @@ show_post_install() {
     echo "2. Run '$BINARY_NAME help' to see available commands."
     echo "3. Configuration files are in '$CONFIG_DIR'."
     echo
+
+    # Show migration notice for upgrades
+    if [ "$is_upgrade" = "true" ]; then
+        echo -e "${YELLOW}╭───────────────────────────────────────────────────╮${NC}"
+        echo -e "${YELLOW}│  UPGRADE NOTICE: Timezone Migration               │${NC}"
+        echo -e "${YELLOW}├───────────────────────────────────────────────────┤${NC}"
+        echo -e "${YELLOW}│  This version stores timestamps in UTC format.    │${NC}"
+        echo -e "${YELLOW}│  To migrate your existing data, run:              │${NC}"
+        echo -e "${YELLOW}│                                                   │${NC}"
+        echo -e "${YELLOW}│      leetsolv migrate                             │${NC}"
+        echo -e "${YELLOW}│                                                   │${NC}"
+        echo -e "${YELLOW}│  This is optional but recommended if you travel   │${NC}"
+        echo -e "${YELLOW}│  across timezones.                                │${NC}"
+        echo -e "${YELLOW}╰───────────────────────────────────────────────────╯${NC}"
+        echo
+    fi
+
     echo "To uninstall, run: 'sudo rm \"$INSTALL_DIR/$BINARY_NAME\"' or use the --uninstall flag with this script."
     echo
 }
@@ -223,7 +246,7 @@ main() {
     install_binary
     setup_config
     verify_installation
-    show_post_install
+    show_post_install "$IS_UPGRADE"
 }
 
 # Uninstall function with interactive cleanup.

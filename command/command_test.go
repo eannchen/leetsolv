@@ -86,6 +86,10 @@ func (m *MockHandler) HandleVersion() {
 	// Not used in command tests
 }
 
+func (m *MockHandler) HandleMigrate(scanner *bufio.Scanner) {
+	// Not used in command tests
+}
+
 func TestNewCommandRegistry(t *testing.T) {
 	unknownHandler := func(command string) {
 		// This handler is just for testing the constructor
