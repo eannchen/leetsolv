@@ -35,7 +35,8 @@ E --> F((SM-2 Algorithm Schedules Review));
 - [LeetSolv](#leetsolv)
   - [Table of Contents](#table-of-contents)
   - [Quick Installation](#quick-installation)
-    - [Automated Install (Linux/macOS)](#automated-install-linuxmacos)
+    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
+    - [Installation Script (macOS/Linux)](#installation-script-macoslinux)
     - [Manual Download (All Platforms)](#manual-download-all-platforms)
     - [Verify Installation](#verify-installation)
   - [Review Scheduling System](#review-scheduling-system)
@@ -60,14 +61,19 @@ E --> F((SM-2 Algorithm Schedules Review));
 
 ## Quick Installation
 
-### Automated Install (Linux/macOS)
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap eannchen/tap
+brew install leetsolv
+```
+
+### Installation Script (macOS/Linux)
 
 Download and run the installation script
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
-
-> *Future Windows automated installation support is [planned](#roadmap).*
 
 ### Manual Download (All Platforms)
 1. Go to [Releases](https://github.com/eannchen/leetsolv/releases)
@@ -76,7 +82,8 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
    - **macOS**: `leetsolv-darwin-amd64` or `leetsolv-darwin-arm64`
    - **Windows**: `leetsolv-windows-amd64.exe` or `leetsolv-windows-arm64.exe`
 
-> *For detailed installation instructions, see [INSTALL.md](document/INSTALL.md)*
+> - *For detailed installation instructions, see [INSTALL.md](document/INSTALL.md)*
+> - *Future Windows automated installation support is [planned](#roadmap).*
 
 ### Verify Installation
 ```bash
@@ -280,8 +287,6 @@ Our roadmap is guided by our goal to make LeetSolv a powerful tool for deliberat
 
 ### Installation & Execution
 
-- Support installation via package managers
-- Support running as a Docker container
 - Support Windows automated installation
 
 ### Functionality
