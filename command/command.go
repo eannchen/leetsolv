@@ -174,3 +174,12 @@ func (c *VersionCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	c.Handler.HandleVersion()
 	return false
 }
+
+type MigrateCommand struct {
+	Handler handler.Handler
+}
+
+func (c *MigrateCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleMigrate(scanner)
+	return false
+}
