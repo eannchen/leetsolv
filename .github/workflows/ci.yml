@@ -222,7 +222,13 @@ jobs:
 
       - name: Download checksums
         run: |
-          curl -sL "https://github.com/eannchen/leetsolv/releases/download/${{ github.ref_name }}/checksums.txt" -o checksums.txt
+          CHECKSUM_URL="https://github.com/eannchen/leetsolv/releases/download/${{ github.ref_name }}/checksums.txt"
+          echo "Downloading checksums from: ${CHECKSUM_URL}"
+          if ! curl -fsSL "${CHECKSUM_URL}" -o checksums.txt; then
+            echo "::error::Failed to download checksums.txt from ${CHECKSUM_URL}"
+            exit 1
+          fi
+          echo "Downloaded checksums.txt:"
           cat checksums.txt
 
       - name: Update formula
@@ -235,6 +241,14 @@ jobs:
           SHA_DARWIN_AMD64=$(grep "leetsolv-darwin-amd64$" checksums.txt | awk '{print $1}')
           SHA_LINUX_ARM64=$(grep "leetsolv-linux-arm64$" checksums.txt | awk '{print $1}')
           SHA_LINUX_AMD64=$(grep "leetsolv-linux-amd64$" checksums.txt | awk '{print $1}')
+
+          # Validate that all SHA256 values were extracted
+          if [ -z "$SHA_DARWIN_ARM64" ] || [ -z "$SHA_DARWIN_AMD64" ] || \
+             [ -z "$SHA_LINUX_ARM64" ] || [ -z "$SHA_LINUX_AMD64" ]; then
+            echo "::error::Failed to extract SHA256 checksums. Contents of checksums.txt:"
+            cat checksums.txt
+            exit 1
+          fi
 
           echo "Updating to version: ${VERSION}"
           echo "SHA256 darwin-arm64: ${SHA_DARWIN_ARM64}"
