@@ -27,9 +27,9 @@ func TestClockImpl_Today(t *testing.T) {
 	clock := NewClock()
 	today := clock.Today()
 
-	// Today() should return today's date at midnight
-	now := time.Now()
-	expected := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	// Today() should return today's date at midnight in UTC
+	now := time.Now().UTC()
+	expected := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	if !today.Equal(expected) {
 		t.Errorf("Today() returned %v, expected %v", today, expected)
 	}
