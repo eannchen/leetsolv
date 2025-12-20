@@ -205,3 +205,63 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+
+  update-homebrew:
+    name: Update Homebrew Formula
+    runs-on: ubuntu-latest
+    needs: release
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: eannchen/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Download checksums
+        run: |
+          curl -sL "https://github.com/eannchen/leetsolv/releases/download/${{ github.ref_name }}/checksums.txt" -o checksums.txt
+          cat checksums.txt
+
+      - name: Update formula
+        run: |
+          VERSION="${{ github.ref_name }}"
+          FORMULA="homebrew-tap/Formula/leetsolv.rb"
+
+          # Extract SHA256 for each platform from checksums.txt
+          SHA_DARWIN_ARM64=$(grep "leetsolv-darwin-arm64$" checksums.txt | awk '{print $1}')
+          SHA_DARWIN_AMD64=$(grep "leetsolv-darwin-amd64$" checksums.txt | awk '{print $1}')
+          SHA_LINUX_ARM64=$(grep "leetsolv-linux-arm64$" checksums.txt | awk '{print $1}')
+          SHA_LINUX_AMD64=$(grep "leetsolv-linux-amd64$" checksums.txt | awk '{print $1}')
+
+          echo "Updating to version: ${VERSION}"
+          echo "SHA256 darwin-arm64: ${SHA_DARWIN_ARM64}"
+          echo "SHA256 darwin-amd64: ${SHA_DARWIN_AMD64}"
+          echo "SHA256 linux-arm64: ${SHA_LINUX_ARM64}"
+          echo "SHA256 linux-amd64: ${SHA_LINUX_AMD64}"
+
+          # Update version
+          sed -i "s|version \"v[^\"]*\"|version \"${VERSION}\"|g" "$FORMULA"
+
+          # Update all download URLs (version in path)
+          sed -i "s|/releases/download/v[^/]*/|/releases/download/${VERSION}/|g" "$FORMULA"
+
+          # Update SHA256 hashes using the URL as context (awk replaces the sha256 line after matching URL)
+          awk -v sha="$SHA_DARWIN_ARM64" '/leetsolv-darwin-arm64"/{found=1} found && /sha256/{sub(/sha256 "[^"]*"/, "sha256 \""sha"\""); found=0} 1' "$FORMULA" > tmp && mv tmp "$FORMULA"
+          awk -v sha="$SHA_DARWIN_AMD64" '/leetsolv-darwin-amd64"/{found=1} found && /sha256/{sub(/sha256 "[^"]*"/, "sha256 \""sha"\""); found=0} 1' "$FORMULA" > tmp && mv tmp "$FORMULA"
+          awk -v sha="$SHA_LINUX_ARM64" '/leetsolv-linux-arm64"/{found=1} found && /sha256/{sub(/sha256 "[^"]*"/, "sha256 \""sha"\""); found=0} 1' "$FORMULA" > tmp && mv tmp "$FORMULA"
+          awk -v sha="$SHA_LINUX_AMD64" '/leetsolv-linux-amd64"/{found=1} found && /sha256/{sub(/sha256 "[^"]*"/, "sha256 \""sha"\""); found=0} 1' "$FORMULA" > tmp && mv tmp "$FORMULA"
+
+          echo "Updated formula:"
+          cat "$FORMULA"
+
+      - name: Commit and push
+        run: |
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/leetsolv.rb
+          git diff --staged --quiet || git commit -m "leetsolv ${{ github.ref_name }}"
+          git push
