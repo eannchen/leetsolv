@@ -231,6 +231,14 @@ show_post_install() {
 
 # Main installation function
 main() {
+    # Check if already installed via Homebrew
+    if command_exists "brew" && brew list leetsolv &>/dev/null; then
+        print_warning "LeetSolv is already installed via Homebrew."
+        print_warning "To upgrade, use: brew upgrade leetsolv"
+        print_warning "To switch to script installation, first run: brew uninstall leetsolv"
+        exit 1
+    fi
+
     echo -e "${BLUE}╭───────────────────────────────────────────────────╮${NC}"
     echo -e "${BLUE}│                                                   │${NC}"
     echo -e "${BLUE}│      ░▒▓   LeetSolv — CLI SRS for DSA   ▓▒░       │${NC}"
