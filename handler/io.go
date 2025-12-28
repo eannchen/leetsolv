@@ -35,7 +35,7 @@ const (
 	ColorOrange    = "\033[38;5;208m"
 	ColorGray      = "\033[38;5;245m"
 	ColorLightGray = "\033[38;5;245m"
-	ColorBlue      = "\033[34m"
+	ColorBlue      = "\033[38;5;33m"
 	Bold           = "\033[1m"
 	Italic         = "\033[3m"
 )
