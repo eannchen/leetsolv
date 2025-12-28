@@ -6,28 +6,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** is a CLI tool for **Data Structures and Algorithms (DSA)** problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**, this approach moves beyond rote memorization, helping you to master complex algorithms through **deliberate practice**.
+**LeetSolv** is a CLI tool for **Data Structures and Algorithms (DSA)** problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates **familiarity**, **importance**, and **reasoning** to move beyond rote memorization.
 
-*Curious how this compares to tools like Anki? See the [FAQ](#faq).*
-
-> ***0️⃣ Zero Dependencies Philosophy**: Implemented entirely in pure Go with no third-party libraries, APIs, or external tools. Even some standard packages are avoided to give full control over the underlying implementations—highlighting the project’s focus on fundamentals. For more details, see [MOTIVATION.md](document/MOTIVATION.md)*.
-
-**The LeetSolv Workflow:**
-
-This diagram illustrates the recommended daily workflow for using LeetSolv effectively.
-
-```mermaid
-graph LR
-A{What are you working on?} --> B[A New Problem];
-A --> C[A Due Problem on LeetSolv];
-
-D[Practice the Problem] --> E[Add/Update to LeetSolv];
-
-B --> D
-C --> D
-
-E --> F((SM-2 Algorithm Schedules Review));
-```
+> ***Zero Dependencies**: Implemented in pure Go with no third-party libraries or external tools—full control over all implementations. See [MOTIVATION.md](document/MOTIVATION.md).*
 
 ![Demo](document/image/DEMO_header.gif)
 
@@ -44,9 +25,8 @@ E --> F((SM-2 Algorithm Schedules Review));
     - [Due Priority Scoring](#due-priority-scoring)
     - [Interval Growing Curve](#interval-growing-curve)
   - [Problem Management](#problem-management)
-    - [Core Functionalities](#core-functionalities)
+    - [Functionalities](#functionalities)
     - [Data Privacy \& Safety](#data-privacy--safety)
-    - [CLI Interface](#cli-interface)
   - [Usage](#usage)
   - [Configuration](#configuration)
   - [Support](#support)
@@ -56,7 +36,6 @@ E --> F((SM-2 Algorithm Schedules Review));
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation)
   - [Roadmap](#roadmap)
-    - [Functionality](#functionality)
 
 ## Quick Installation
 
@@ -90,8 +69,7 @@ leetsolv help
 
 ### Adaptive SM-2 Algorithm
 
-When a problem is added, LeetSolv applies the SM-2 algorithm with custom factors—**familiarity (5 levels)**, **importance (4 levels)**, and **reasoning (3 levels)**— to calculate the next review date. And a **randomization** is applied to avoid bunching reviews into the same days. This design reinforces the goal of mastering data structures and algorithms and **avoids rote recall**.
-
+Unlike standard SM-2 (used by Anki), LeetSolv adds **importance** and **reasoning** factors—designed for DSA practice, not flashcard memorization. Familiarity (5 levels), importance (4 levels), and reasoning (3 levels) determine your next review date. Randomization prevents bunching reviews on the same days.
 
 ```mermaid
 graph TD
@@ -113,109 +91,37 @@ graph TD
     H --> I[Determine Next Review]
 ```
 
-> *Check here to learn more about the algorithm: [Interval Growth Curve](#interval-growing-curve)*
-
-
 ### Due Priority Scoring
-With SM-2, due reviews can easily accumulate since users have varying schedules and study habits. To address this challenge, LeetSolv introduces a due priority scoring feature that **allows users to prioritize due questions based on the priority score**.
+Due reviews can accumulate over time. LeetSolv ranks them by priority score so you can focus on what matters most.
 
-```mermaid
-graph LR
-    A[Question] --> B[Priority Score Calculation]
-    B --> C[Importance Weight]
-    B --> D[Overdue Weight]
-    B --> E[Familiarity Weight]
-    B --> F[Review Count]
-    B --> G[Ease Factor]
+> *Default formula: (1.5×Importance) + (0.5×Overdue Days) + (3.0×Familiarity) + (-1.5×Review Count) + (-1.0×Ease Factor)*
 
-    C --> H[Final Priority Score]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-
-    H --> I[Sort by Score]
-    I --> J[Top-K Due Questions]
-    I --> K[Top-K Upcoming Questions]
-```
-
-> *By default, the priority score is calculated using the following formula: (1.5×Importance)+(0.5×Overdue Days)+(3.0×Familiarity)+(-1.5×Review Count)+(-1.0×Ease Factor)*
-
-**Due priority list demo:**
 ![Demo](document/image/DEMO_due_scoring.gif)
 
 ### Interval Growing Curve
 
-This system helps you prioritize problems and manage your review schedule efficiently, even with limited study time.
-
-Your **review intervals** are automatically set based on a problem's **importance**. This interval then expands over time based on your **familiarity** and **reasoning** level with the problem.
-
-This means you can:
-
-- **Build a strong foundation**: Prioritize *NeetCode Blind 75* or *NeetCode 150* to build a foundation, and use *NeetCode 250* for extra practice.
-- **Target specific goals**: Prioritize problems from company-specific lists for upcoming interviews.
-
-**Critical problems are reviewed more often, while less important ones get longer intervals.**
-
-The following graphs demonstrate how review intervals grow over time for different importance levels, showing the default growth pattern:
+Review intervals expand based on importance, familiarity, and reasoning. Higher importance = shorter intervals, more frequent reviews.
 
 ![SM2 Critical](document/image/SM2_CRITICAL.png)
-**Critical Problems**: Shortest intervals with frequent reviews to ensure mastery of the most important concepts.
-
 ![SM2 High](document/image/SM2_HIGH.png)
-**High Importance**: Moderate intervals balance frequency for important problems.
-
 ![SM2 Medium](document/image/SM2_MEDIUM.png)
-**Medium Importance**: Standard intervals for regular practice.
-
 ![SM2 Low](document/image/SM2_LOW.png)
-**Low Importance**: Longer intervals for problems that require less frequent review.
-
-> *[Future iterations](#roadmap) may enable the modification of algorithm parameters directly within the configuration file.*
-
 
 ## Problem Management
 
-### Core Functionalities
+### Functionalities
 
-- **CRUD + Undo**: Easily **create**, **view**, **update**, and **delete** your problems. You can also **undo** your last action.
-- **Trie-Based Search**: Instantly find problems with **blazing-fast search and filtering** by keyword, importance, familiarity, and more.
-- **Quick Views**: Get a **summary** of all your problems, including those that are due soon, or view a full **paginated list**.
-
-```mermaid
-graph TD
-    A[User Command] --> B{Command Type}
-    B -->|Search/List| C[Apply Filters & Search] --> D[Trie-Based Search] --> E[Paginate Results]
-    B -->|Add/Update| F[Schedule Review by SM-2 Algorithm] --> I[Upsert Data & Index]
-    B -->|Remove| G[Remove Data & Index]
-    B -->|Undo| H[Restore Data & Index from History]
-
-    J[Add to History]
-    I --> J
-    G --> J
-```
-
-**Search, History, Delete, Undo functionality demo:**
+- **CRUD + Undo**: Create, view, update, delete problems. Undo your last action.
+- **Trie-Based Search**: Fast filtering by keyword, importance, familiarity.
+- **Quick Views**: Summary of due/upcoming problems with paginated listing.
+- **Interactive & Batch Modes**: Run interactively or pass commands directly.
+- **Intuitive Commands**: Familiar aliases (`ls`, `rm`), color-coded output.
 ![Demo](document/image/DEMO_mgmt.gif)
 
 ### Data Privacy & Safety
 
 - **No Data Collection**: LeetSolv does not upload user data to the internet.
-- **Atomic Writes**: All updates use temporary files with atomic replacement to **guarantee consistency** and **prevent data loss**.
-
-```mermaid
-graph LR
-    A[Write New Data] -->|To| B[Temporary File]
-    B --> C[Rename Temporary File]
-    C -->|Replaces| D[Original File]
-```
-
-### CLI Interface
-- **Interactive & Batch Modes**: Work in a **turn-based interactive mode** or run **direct commands** for quick actions.
-- **Intuitive Commands**: Use familiar aliases like `ls`, `rm`, and get **color-coded output** for a clear and pleasant experience.
-
-**Pagination demo:**
-![Demo](document/image/DEMO_pagination.gif)
+- **Atomic Writes**: All writes use temp file + rename for data consistency.
 
 ## Usage
 
@@ -237,11 +143,7 @@ leetsolv help
 
 ## Configuration
 
-LeetSolv can be customized using environment variables or a JSON settings file. This allows you to change file paths, algorithm parameters, and scoring weights.
-
-For a complete list of all available options, default values, and examples, please see the detailed configuration guide:
-
-[View Full Configuration Guide (CONFIGURATION.md)](document/CONFIGURATION.md)
+Customize via environment variables or JSON config. See [CONFIGURATION.md](document/CONFIGURATION.md) for all options.
 
 ## Support
 
@@ -249,39 +151,27 @@ For a complete list of all available options, default values, and examples, plea
 
 #### Q: Why use LeetSolv instead of an Anki deck?
 
-A: Anki is excellent for **memorizing facts** that take seconds, **but for DSA, it can be counterproductive**. LeetSolv's custom SM-2 algorithm **spaces out** the review interval and uses your input on **reasoning**, **familiarity**, and a problem's **importance** to create a schedule that deepens your problem-solving ability—not just check if you memorized the answer.
-
-👉 Tip: Use Anki for memorizing facts, but use LeetSolv to schedule deep, deliberate problem-solving sessions.
+A: Anki is great for memorizing facts, but DSA requires deeper practice. LeetSolv's SM-2 algorithm uses reasoning, familiarity, and importance to schedule deliberate problem-solving—not rote recall.
 
 #### Q: Should I add all my previously solved problems?
 
-A: **No.** LeetSolv is not a solved-problem database — it’s a spaced repetition scheduler.
-Only add problems you actually want to revisit. The scheduling algorithm relies on the date you add a problem to calculate reviews, so bulk-adding will create an unrealistic schedule and an overwhelming pile of due problems.
-
-👉 Tip: If you want to review an old problem you solved months ago, just re-solve it first, then add it to LeetSolv on that day. This way the "last seen" date is accurate.
+A: No. Only add problems you want to revisit. The algorithm uses the add date for scheduling—bulk-adding creates unrealistic schedules. For old problems, re-solve first, then add.
 
 #### Q: After a period of use, I accumulated too many due problems.
 
-A: This is the **nature** of the SM-2 algorithm — if you skip days or add many problems at once, the due list can grow quickly.
-To make this manageable, LeetSolv introduces **[Due Priority Scoring](#due-priority-scoring)**, which ranks due problems by importance, familiarity, overdue days, review count, and ease factor.
-Instead of clearing everything at once, just focus on the **highest-priority problems** first. The rest can safely wait until later.
-
-👉 Tip: Once you’ve mastered a problem and re-solved it a few times, you can safely remove it from LeetSolv. The goal isn’t to track everything forever, but to focus on problems that still need spaced practice.
+A: SM-2 accumulates dues if you skip days. Use [Due Priority Scoring](#due-priority-scoring) to focus on high-priority problems first. Remove mastered problems—the goal is active practice, not tracking everything.
 
 
 ### Documentation
-- **[USAGE.md](document/USAGE.md)**: Command-line usage guide
-- **[CONFIGURATION.md](document/CONFIGURATION.md)**: Configuration options and environment variables
-- **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
-- **This README**: Project overview and quick start
+- [USAGE.md](document/USAGE.md) — Command-line usage
+- [CONFIGURATION.md](document/CONFIGURATION.md) — Configuration options
+- [MOTIVATION.md](document/MOTIVATION.md) — Design rationale
 
 ## Roadmap
 
-Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
+- Tagging functionality
 
-### Functionality
-
-- Provide tagging functionality
+[Open an issue](https://github.com/eannchen/leetsolv/issues) for suggestions.
 
 ---
 
