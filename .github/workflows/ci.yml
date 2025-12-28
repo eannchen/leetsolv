@@ -325,38 +325,42 @@ jobs:
           echo "SHA256 windows-amd64: ${SHA_WINDOWS_AMD64}"
           echo "SHA256 windows-arm64: ${SHA_WINDOWS_ARM64}"
 
-          # Create updated manifest
-          cat > "$MANIFEST" << EOF
-          {
-              "version": "${VERSION}",
-              "description": "A CLI tool for DSA problem revision with spaced repetition, powered by a customized SuperMemo 2 algorithm.",
-              "homepage": "https://github.com/eannchen/leetsolv",
-              "license": "MIT",
-              "architecture": {
-                  "64bit": {
-                      "url": "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-amd64.exe",
-                      "hash": "${SHA_WINDOWS_AMD64}",
-                      "bin": [["leetsolv-windows-amd64.exe", "leetsolv"]]
-                  },
-                  "arm64": {
-                      "url": "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-arm64.exe",
-                      "hash": "${SHA_WINDOWS_ARM64}",
-                      "bin": [["leetsolv-windows-arm64.exe", "leetsolv"]]
-                  }
+          # Create updated manifest using jq for proper JSON formatting
+          jq -n \
+            --arg version "${VERSION}" \
+            --arg url_amd64 "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-amd64.exe" \
+            --arg url_arm64 "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-arm64.exe" \
+            --arg hash_amd64 "${SHA_WINDOWS_AMD64}" \
+            --arg hash_arm64 "${SHA_WINDOWS_ARM64}" \
+            '{
+              version: $version,
+              description: "A CLI tool for DSA problem revision with spaced repetition, powered by a customized SuperMemo 2 algorithm.",
+              homepage: "https://github.com/eannchen/leetsolv",
+              license: "MIT",
+              architecture: {
+                "64bit": {
+                  url: $url_amd64,
+                  hash: $hash_amd64,
+                  bin: [["leetsolv-windows-amd64.exe", "leetsolv"]]
+                },
+                arm64: {
+                  url: $url_arm64,
+                  hash: $hash_arm64,
+                  bin: [["leetsolv-windows-arm64.exe", "leetsolv"]]
+                }
               },
-              "checkver": "github",
-              "autoupdate": {
-                  "architecture": {
-                      "64bit": {
-                          "url": "https://github.com/eannchen/leetsolv/releases/download/\$version/leetsolv-windows-amd64.exe"
-                      },
-                      "arm64": {
-                          "url": "https://github.com/eannchen/leetsolv/releases/download/\$version/leetsolv-windows-arm64.exe"
-                      }
+              checkver: "github",
+              autoupdate: {
+                architecture: {
+                  "64bit": {
+                    url: "https://github.com/eannchen/leetsolv/releases/download/$version/leetsolv-windows-amd64.exe"
+                  },
+                  arm64: {
+                    url: "https://github.com/eannchen/leetsolv/releases/download/$version/leetsolv-windows-arm64.exe"
                   }
+                }
               }
-          }
-          EOF
+            }' > "$MANIFEST"
 
           echo "Updated manifest:"
           cat "$MANIFEST"
