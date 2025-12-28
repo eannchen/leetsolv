@@ -121,6 +121,11 @@ func initDefaultConfig() error {
 
 	configDir := filepath.Join(homeDir, ".leetsolv")
 
+	// Ensure config directory exists
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %v", err)
+	}
+
 	defaultConfig = &Config{
 		// Default data files with absolute paths
 		QuestionsFile: filepath.Join(configDir, "questions.json"),

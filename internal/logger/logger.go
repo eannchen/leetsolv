@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 )
 
 type Logger struct {
@@ -14,11 +13,6 @@ type Logger struct {
 }
 
 func NewLogger(infoPath, errorPath string) *Logger {
-	// Ensure parent directory exists
-	if err := os.MkdirAll(filepath.Dir(infoPath), 0755); err != nil {
-		log.Fatalf("Failed to create log directory: %v", err)
-	}
-
 	// Open the info log file, creating it if it doesn't exist
 	infoFile, err := os.OpenFile(infoPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
