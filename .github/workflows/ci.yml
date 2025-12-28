@@ -279,3 +279,94 @@ jobs:
           git add Formula/leetsolv.rb
           git diff --staged --quiet || git commit -m "leetsolv ${{ github.ref_name }}"
           git push
+
+  update-scoop:
+    name: Update Scoop Manifest
+    runs-on: ubuntu-latest
+    needs: release
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Checkout scoop-bucket
+        uses: actions/checkout@v4
+        with:
+          repository: eannchen/scoop-bucket
+          token: ${{ secrets.SCOOP_BUCKET_TOKEN }}
+          path: scoop-bucket
+
+      - name: Download checksums
+        run: |
+          CHECKSUM_URL="https://github.com/eannchen/leetsolv/releases/download/${{ github.ref_name }}/checksums.txt"
+          echo "Downloading checksums from: ${CHECKSUM_URL}"
+          if ! curl -fsSL "${CHECKSUM_URL}" -o checksums.txt; then
+            echo "::error::Failed to download checksums.txt from ${CHECKSUM_URL}"
+            exit 1
+          fi
+          echo "Downloaded checksums.txt:"
+          cat checksums.txt
+
+      - name: Update Scoop manifest
+        run: |
+          VERSION="${{ github.ref_name }}"
+          MANIFEST="scoop-bucket/bucket/leetsolv.json"
+
+          # Extract SHA256 for Windows platforms from checksums.txt
+          SHA_WINDOWS_AMD64=$(grep "leetsolv-windows-amd64.exe$" checksums.txt | awk '{print $1}')
+          SHA_WINDOWS_ARM64=$(grep "leetsolv-windows-arm64.exe$" checksums.txt | awk '{print $1}')
+
+          # Validate that all SHA256 values were extracted
+          if [ -z "$SHA_WINDOWS_AMD64" ] || [ -z "$SHA_WINDOWS_ARM64" ]; then
+            echo "::error::Failed to extract Windows SHA256 checksums. Contents of checksums.txt:"
+            cat checksums.txt
+            exit 1
+          fi
+
+          echo "Updating Scoop manifest to version: ${VERSION}"
+          echo "SHA256 windows-amd64: ${SHA_WINDOWS_AMD64}"
+          echo "SHA256 windows-arm64: ${SHA_WINDOWS_ARM64}"
+
+          # Create updated manifest using jq
+          cat > "$MANIFEST" << EOF
+          {
+              "version": "${VERSION}",
+              "description": "A CLI tool for DSA problem revision with spaced repetition, powered by a customized SuperMemo 2 algorithm.",
+              "homepage": "https://github.com/eannchen/leetsolv",
+              "license": "MIT",
+              "architecture": {
+                  "64bit": {
+                      "url": "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-amd64.exe",
+                      "hash": "${SHA_WINDOWS_AMD64}"
+                  },
+                  "arm64": {
+                      "url": "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-arm64.exe",
+                      "hash": "${SHA_WINDOWS_ARM64}"
+                  }
+              },
+              "bin": [
+                  ["leetsolv-windows-amd64.exe", "leetsolv"]
+              ],
+              "checkver": "github",
+              "autoupdate": {
+                  "architecture": {
+                      "64bit": {
+                          "url": "https://github.com/eannchen/leetsolv/releases/download/\$version/leetsolv-windows-amd64.exe"
+                      },
+                      "arm64": {
+                          "url": "https://github.com/eannchen/leetsolv/releases/download/\$version/leetsolv-windows-arm64.exe"
+                      }
+                  }
+              }
+          }
+          EOF
+
+          echo "Updated manifest:"
+          cat "$MANIFEST"
+
+      - name: Commit and push
+        run: |
+          cd scoop-bucket
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bucket/leetsolv.json
+          git diff --staged --quiet || git commit -m "leetsolv ${{ github.ref_name }}"
+          git push
