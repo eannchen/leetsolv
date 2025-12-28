@@ -173,7 +173,8 @@ func TestQuestionUseCase_Integration_ListQuestionsSummary(t *testing.T) {
 	useCase, _ := setupIntegrationTest(t)
 
 	// Create test questions with different review dates
-	now := time.Now()
+	// Use UTC to match the Clock implementation
+	now := time.Now().UTC()
 	tomorrow := now.AddDate(0, 0, 1)   // Add 1 calendar day
 	yesterday := now.AddDate(0, 0, -1) // Subtract 1 calendar day
 
