@@ -92,8 +92,3 @@ func Parse(inputURL string) (*core.ParsedURL, error) {
 	// No matching platform found
 	return nil, errs.ErrUnsupportedPlatform
 }
-
-// SupportedPlatforms returns a list of supported platform names
-func SupportedPlatforms() []string {
-	return []string{"LeetCode", "HackerRank"}
-}

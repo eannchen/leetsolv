@@ -172,17 +172,3 @@ func TestParse_UnsupportedPlatform(t *testing.T) {
 		})
 	}
 }
-
-func TestSupportedPlatforms(t *testing.T) {
-	platforms := SupportedPlatforms()
-	if len(platforms) != 2 {
-		t.Errorf("expected 2 supported platforms, got %d", len(platforms))
-	}
-
-	expected := map[string]bool{"LeetCode": true, "HackerRank": true}
-	for _, p := range platforms {
-		if !expected[p] {
-			t.Errorf("unexpected platform: %s", p)
-		}
-	}
-}
