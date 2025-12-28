@@ -325,7 +325,7 @@ jobs:
           echo "SHA256 windows-amd64: ${SHA_WINDOWS_AMD64}"
           echo "SHA256 windows-arm64: ${SHA_WINDOWS_ARM64}"
 
-          # Create updated manifest using jq
+          # Create updated manifest
           cat > "$MANIFEST" << EOF
           {
               "version": "${VERSION}",
@@ -335,16 +335,15 @@ jobs:
               "architecture": {
                   "64bit": {
                       "url": "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-amd64.exe",
-                      "hash": "${SHA_WINDOWS_AMD64}"
+                      "hash": "${SHA_WINDOWS_AMD64}",
+                      "bin": [["leetsolv-windows-amd64.exe", "leetsolv"]]
                   },
                   "arm64": {
                       "url": "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-arm64.exe",
-                      "hash": "${SHA_WINDOWS_ARM64}"
+                      "hash": "${SHA_WINDOWS_ARM64}",
+                      "bin": [["leetsolv-windows-arm64.exe", "leetsolv"]]
                   }
               },
-              "bin": [
-                  ["leetsolv-windows-amd64.exe", "leetsolv"]
-              ],
               "checkver": "github",
               "autoupdate": {
                   "architecture": {
