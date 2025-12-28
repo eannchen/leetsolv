@@ -35,8 +35,8 @@ E --> F((SM-2 算法安排复习));
   - [目录](#目录)
   - [快速安装](#快速安装)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
-    - [安装脚本 (macOS/Linux)](#安装脚本-macoslinux)
-    - [手动下载 (所有平台)](#手动下载-所有平台)
+    - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
+    - [Scoop (Windows)](#scoop-windows)
     - [验证安装](#验证安装)
   - [复习调度系统](#复习调度系统)
     - [自适应 SM-2 算法](#自适应-sm-2-算法)
@@ -55,7 +55,6 @@ E --> F((SM-2 算法安排复习));
       - [问：使用一段时间后，我积累了太多到期问题。](#问使用一段时间后我积累了太多到期问题)
     - [文档](#文档)
   - [发展规划](#发展规划)
-    - [安装 \& 运行](#安装--运行)
     - [功能](#功能)
 
 ## 快速安装
@@ -67,7 +66,7 @@ brew tap eannchen/tap
 brew install leetsolv
 ```
 
-### 安装脚本 (macOS/Linux)
+### Shell Script (macOS/Linux)
 
 下载并运行安装脚本
 
@@ -75,15 +74,12 @@ brew install leetsolv
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-### 手动下载 (所有平台)
-1. 转到 [Releases](https://github.com/eannchen/leetsolv/releases)
-2. 下载适用于您平台的二进制文件：
-   - **Linux**: `leetsolv-linux-amd64` 或 `leetsolv-linux-arm64`
-   - **macOS**: `leetsolv-darwin-amd64` 或 `leetsolv-darwin-arm64`
-   - **Windows**: `leetsolv-windows-amd64.exe` 或 `leetsolv-windows-arm64.exe`
+### Scoop (Windows)
 
-> - *有关详细的安装说明，请参阅 [INSTALL.md](document/INSTALL.md)*
-> - *[未来规划](#发展规划)支持 Windows 自动安装。*
+```powershell
+scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
+scoop install leetsolv
+```
 
 ### 验证安装
 ```bash
@@ -275,7 +271,6 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 
 ### 文档
-- **[INSTALL.md](document/INSTALL.md)**：完整的安装指南，包含故障排除
 - **[USAGE.md](document/USAGE.md)**：命令行使用指南
 - **[CONFIGURATION.md](document/CONFIGURATION.md)**：配置选项和环境变量
 - **[MOTIVATION.md](document/MOTIVATION.md)**：项目动机和设计说明
@@ -285,9 +280,6 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 我们的发展规划是以使 LeetSolv 成为刻意练习的强大工具为目标。有什么建议吗？请随时[提出问题](https://github.com/eannchen/leetsolv/issues)！
 
-### 安装 \& 运行
-
-- 支持 Windows 自动安装
 
 ### 功能
 

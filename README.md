@@ -36,8 +36,8 @@ E --> F((SM-2 Algorithm Schedules Review));
   - [Table of Contents](#table-of-contents)
   - [Quick Installation](#quick-installation)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
-    - [Installation Script (macOS/Linux)](#installation-script-macoslinux)
-    - [Manual Download (All Platforms)](#manual-download-all-platforms)
+    - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
+    - [Scoop (Windows)](#scoop-windows)
     - [Verify Installation](#verify-installation)
   - [Review Scheduling System](#review-scheduling-system)
     - [Adaptive SM-2 Algorithm](#adaptive-sm-2-algorithm)
@@ -56,7 +56,6 @@ E --> F((SM-2 Algorithm Schedules Review));
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
     - [Documentation](#documentation)
   - [Roadmap](#roadmap)
-    - [Installation \& Execution](#installation--execution)
     - [Functionality](#functionality)
 
 ## Quick Installation
@@ -68,22 +67,18 @@ brew tap eannchen/tap
 brew install leetsolv
 ```
 
-### Installation Script (macOS/Linux)
+### Shell Script (macOS/Linux)
 
-Download and run the installation script
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
 ```
 
-### Manual Download (All Platforms)
-1. Go to [Releases](https://github.com/eannchen/leetsolv/releases)
-2. Download the binary for your platform:
-   - **Linux**: `leetsolv-linux-amd64` or `leetsolv-linux-arm64`
-   - **macOS**: `leetsolv-darwin-amd64` or `leetsolv-darwin-arm64`
-   - **Windows**: `leetsolv-windows-amd64.exe` or `leetsolv-windows-arm64.exe`
+### Scoop (Windows)
 
-> - *For detailed installation instructions, see [INSTALL.md](document/INSTALL.md)*
-> - *Future Windows automated installation support is [planned](#roadmap).*
+```powershell
+scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
+scoop install leetsolv
+```
 
 ### Verify Installation
 ```bash
@@ -275,7 +270,6 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 
 
 ### Documentation
-- **[INSTALL.md](document/INSTALL.md)**: Complete installation guide with troubleshooting
 - **[USAGE.md](document/USAGE.md)**: Command-line usage guide
 - **[CONFIGURATION.md](document/CONFIGURATION.md)**: Configuration options and environment variables
 - **[MOTIVATION.md](document/MOTIVATION.md)**: Project motivation and design notes
@@ -284,10 +278,6 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 ## Roadmap
 
 Our roadmap is guided by our goal to make LeetSolv a powerful tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
-
-### Installation & Execution
-
-- Support Windows automated installation
 
 ### Functionality
 
