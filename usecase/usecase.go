@@ -4,8 +4,6 @@ package usecase
 import (
 	"errors"
 	"fmt"
-	"net/url"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,6 +15,7 @@ import (
 	"github.com/eannchen/leetsolv/internal/logger"
 	"github.com/eannchen/leetsolv/internal/rank"
 	"github.com/eannchen/leetsolv/internal/tokenizer"
+	"github.com/eannchen/leetsolv/internal/urlparser"
 	"github.com/eannchen/leetsolv/storage"
 )
 
@@ -299,7 +298,7 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		store.URLIndex[url] = store.MaxID
 
 		// Create the URL and note indices for search
-		questionName, err := u.extractLeetCodeQuestionName(newState.URL)
+		questionName, err := u.extractProblemSlug(newState.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -550,23 +549,13 @@ func (u *QuestionUseCaseImpl) findQuestionByIDOrURL(store *storage.QuestionStore
 	return foundQuestion, nil
 }
 
-func (u *QuestionUseCaseImpl) extractLeetCodeQuestionName(inputURL string) (string, error) {
-	parsedURL, err := url.Parse(inputURL)
+// extractProblemSlug extracts the problem slug from any supported platform URL
+func (u *QuestionUseCaseImpl) extractProblemSlug(inputURL string) (string, error) {
+	parsed, err := urlparser.Parse(inputURL)
 	if err != nil {
-		return "", errs.ErrInvalidURLFormat
+		return "", err
 	}
-
-	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
-		return "", errs.ErrInvalidLeetCodeURL
-	}
-
-	re := regexp.MustCompile(`^/problems/([^/]+)`)
-	matches := re.FindStringSubmatch(parsedURL.Path)
-	if len(matches) != 2 {
-		return "", errs.ErrInvalidLeetCodeURLFormat
-	}
-	questionName := strings.TrimSpace(matches[1])
-	return questionName, nil
+	return parsed.ProblemSlug, nil
 }
 
 func (u *QuestionUseCaseImpl) GetSettings() error {

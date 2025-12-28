@@ -13,6 +13,7 @@ import (
 	"github.com/eannchen/leetsolv/core"
 	"github.com/eannchen/leetsolv/internal/errs"
 	"github.com/eannchen/leetsolv/internal/logger"
+	"github.com/eannchen/leetsolv/internal/urlparser"
 	"github.com/eannchen/leetsolv/usecase"
 )
 
@@ -543,11 +544,11 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	}
 
 	// Test the URL normalization directly first
-	normalizedURL, err := handler.normalizeLeetCodeURL("https://leetcode.com/problems/two-sum")
+	parsed, err := urlparser.Parse("https://leetcode.com/problems/two-sum")
 	if err != nil {
 		t.Fatalf("URL normalization failed: %v", err)
 	}
-	t.Logf("Normalized URL: %s", normalizedURL)
+	t.Logf("Normalized URL: %s", parsed.NormalizedURL)
 
 	// Simulate user input: URL, note, familiarity (3), importance (2)
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -1022,89 +1023,7 @@ func TestHandler_ValidateImportance(t *testing.T) {
 	}
 }
 
-func TestHandler_NormalizeLeetCodeURL(t *testing.T) {
-	handler, _, _ := setupTestHandler(t)
-
-	testCases := []struct {
-		input    string
-		expected string
-		hasError bool
-	}{
-		{
-			"https://leetcode.com/problems/two-sum/",
-			"https://leetcode.com/problems/two-sum/",
-			false,
-		},
-		{
-			"https://leetcode.com/problems/two-sum",
-			"https://leetcode.com/problems/two-sum/",
-			false,
-		},
-		{
-			"https://leetcode.com/problems/two-sum/solution/",
-			"https://leetcode.com/problems/two-sum/",
-			false,
-		},
-		{
-			"https://leetcode.com/problems/two-sum/discuss/",
-			"https://leetcode.com/problems/two-sum/",
-			false,
-		},
-		{
-			"https://leetcode.com/problems/",
-			"",
-			true,
-		},
-		{
-			"https://leetcode.com/",
-			"",
-			true,
-		},
-		{
-			"https://google.com/problems/test",
-			"",
-			true,
-		},
-		{
-			"invalid-url",
-			"",
-			true,
-		},
-		{
-			"",
-			"",
-			true,
-		},
-		{
-			"https://leetcode.com/problems/",
-			"",
-			true,
-		},
-		{
-			"https://leetcode.com/problems//",
-			"",
-			true,
-		},
-		{
-			"https://leetcode.com/problems/",
-			"",
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		result, err := handler.normalizeLeetCodeURL(tc.input)
-		if tc.hasError && err == nil {
-			t.Errorf("Expected error for input %s, got none", tc.input)
-		}
-		if !tc.hasError && err != nil {
-			t.Errorf("Expected no error for input %s, got %v", tc.input, err)
-		}
-		if !tc.hasError && result != tc.expected {
-			t.Errorf("Expected %s for input %s, got %s", tc.expected, tc.input, result)
-		}
-	}
-}
+// TestHandler_NormalizeLeetCodeURL removed - now covered by internal/urlparser/urlparser_test.go
 
 func TestHandler_ParseSearchQueries(t *testing.T) {
 	handler, _, _ := setupTestHandler(t)
