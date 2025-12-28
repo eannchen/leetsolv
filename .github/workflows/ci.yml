@@ -326,8 +326,10 @@ jobs:
           echo "SHA256 windows-arm64: ${SHA_WINDOWS_ARM64}"
 
           # Create updated manifest using jq for proper JSON formatting
+          # Strip "v" prefix for Scoop version field (v1.0.0 -> 1.0.0)
+          SCOOP_VERSION="${VERSION#v}"
           jq -n \
-            --arg version "${VERSION}" \
+            --arg version "${SCOOP_VERSION}" \
             --arg url_amd64 "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-amd64.exe" \
             --arg url_arm64 "https://github.com/eannchen/leetsolv/releases/download/${VERSION}/leetsolv-windows-arm64.exe" \
             --arg hash_amd64 "${SHA_WINDOWS_AMD64}" \
