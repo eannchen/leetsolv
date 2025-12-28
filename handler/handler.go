@@ -5,8 +5,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +14,7 @@ import (
 	"github.com/eannchen/leetsolv/internal/errs"
 	"github.com/eannchen/leetsolv/internal/logger"
 	"github.com/eannchen/leetsolv/internal/tokenizer"
+	"github.com/eannchen/leetsolv/internal/urlparser"
 	"github.com/eannchen/leetsolv/usecase"
 )
 
@@ -222,11 +221,12 @@ func (h *HandlerImpl) HandleGet(scanner *bufio.Scanner, target string) {
 	_, err := strconv.Atoi(target)
 	isID := err == nil
 	if !isID {
-		target, err = h.normalizeLeetCodeURL(target)
+		parsed, err := urlparser.Parse(target)
 		if err != nil {
 			h.IO.PrintError(err)
 			return
 		}
+		target = parsed.NormalizedURL
 	}
 
 	question, err := h.QuestionUseCase.GetQuestion(target)
@@ -287,16 +287,17 @@ func (h *HandlerImpl) HandleStatus() {
 func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 	if rawURL == "" {
 		h.IO.Println("Provided URL will be normalized to a canonical form to match existing data.")
+		h.IO.Println("Supported platforms: LeetCode, HackerRank")
 		rawURL = h.IO.ReadLine(scanner, "URL: ")
 	}
 
-	// Normalize and validate the URL
-	url, err := h.normalizeLeetCodeURL(rawURL)
+	// Normalize and validate the URL using multi-platform parser
+	parsed, err := urlparser.Parse(rawURL)
 	if err != nil {
 		h.IO.PrintError(err)
 		return
 	}
-	h.IO.PrintfColored(ColorGreen, "Using normalized URL: %s\n", url)
+	h.IO.PrintfColored(ColorGreen, "[%s] Using normalized URL: %s\n", parsed.Platform.String(), parsed.NormalizedURL)
 
 	h.IO.Printf("\n")
 
@@ -348,7 +349,7 @@ func (h *HandlerImpl) HandleUpsert(scanner *bufio.Scanner, rawURL string) {
 	}
 
 	// Call the updated UpsertQuestion function
-	delta, err := h.QuestionUseCase.UpsertQuestion(url, note, familiarity, importance, memory)
+	delta, err := h.QuestionUseCase.UpsertQuestion(parsed.NormalizedURL, note, familiarity, importance, memory)
 	if err != nil {
 		h.IO.PrintError(err)
 	} else {
@@ -384,27 +385,6 @@ func (h *HandlerImpl) validateMemoryUse(input string) (core.MemoryUse, error) {
 	return core.MemoryUse(memory - 1), nil
 }
 
-func (h *HandlerImpl) normalizeLeetCodeURL(inputURL string) (string, error) {
-	parsedURL, err := url.Parse(strings.TrimSpace(inputURL))
-	if err != nil {
-		return "", errs.ErrInvalidURLFormat
-	}
-
-	if parsedURL.Host != "leetcode.com" || !strings.HasPrefix(parsedURL.Path, "/problems/") {
-		return "", errs.ErrInvalidLeetCodeURL
-	}
-
-	re := regexp.MustCompile(`^/problems/([^/]+)`)
-	matches := re.FindStringSubmatch(parsedURL.Path)
-	if len(matches) != 2 {
-		return "", errs.ErrInvalidLeetCodeURLFormat
-	}
-	questionName := strings.TrimSpace(matches[1])
-
-	normalizedURL := "https://leetcode.com/problems/" + questionName + "/"
-	return normalizedURL, nil
-}
-
 func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 	if target == "" {
 		target = h.IO.ReadLine(scanner, "Enter ID or URL to delete the question: ")
@@ -416,11 +396,12 @@ func (h *HandlerImpl) HandleDelete(scanner *bufio.Scanner, target string) {
 	_, err := strconv.Atoi(target)
 	isID := err == nil
 	if !isID {
-		target, err = h.normalizeLeetCodeURL(target)
+		parsed, err := urlparser.Parse(target)
 		if err != nil {
 			h.IO.PrintError(err)
 			return
 		}
+		target = parsed.NormalizedURL
 	}
 
 	// Confirm before deleting

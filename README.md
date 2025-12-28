@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** is a CLI tool for **Data Structures and Algorithms (DSA)** problem revision with **spaced repetition**. It's powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**. This approach moves beyond rote memorization, helping you to master complex algorithms through **deliberate practice**.
+**LeetSolv** is a CLI tool for **Data Structures and Algorithms (DSA)** problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates variables such as **familiarity**, **importance**, and **reasoning**, this approach moves beyond rote memorization, helping you to master complex algorithms through **deliberate practice**.
 
 *Curious how this compares to tools like Anki? See the [FAQ](#faq).*
 
@@ -35,9 +35,9 @@ E --> F((SM-2 Algorithm Schedules Review));
 - [LeetSolv](#leetsolv)
   - [Table of Contents](#table-of-contents)
   - [Quick Installation](#quick-installation)
+    - [Scoop (Windows)](#scoop-windows)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
     - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
-    - [Scoop (Windows)](#scoop-windows)
     - [Verify Installation](#verify-installation)
   - [Review Scheduling System](#review-scheduling-system)
     - [Adaptive SM-2 Algorithm](#adaptive-sm-2-algorithm)
@@ -60,6 +60,13 @@ E --> F((SM-2 Algorithm Schedules Review));
 
 ## Quick Installation
 
+### Scoop (Windows)
+
+```powershell
+scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
+scoop install leetsolv
+```
+
 ### Homebrew (macOS/Linux)
 
 ```bash
@@ -71,13 +78,6 @@ brew install leetsolv
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
-```
-
-### Scoop (Windows)
-
-```powershell
-scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
-scoop install leetsolv
 ```
 
 ### Verify Installation
@@ -277,12 +277,11 @@ Instead of clearing everything at once, just focus on the **highest-priority pro
 
 ## Roadmap
 
-Our roadmap is guided by our goal to make LeetSolv a powerful tool for deliberate practice. Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
+Have a suggestion? Feel free to [open an issue](https://github.com/eannchen/leetsolv/issues)!
 
 ### Functionality
 
 - Provide tagging functionality
-- Support other DSA practice platforms
 
 ---
 

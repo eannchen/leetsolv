@@ -33,6 +33,31 @@ const (
 	MemoryFull
 )
 
+// Platform represents the source platform of a DSA problem
+type Platform string
+
+const (
+	PlatformLeetCode   Platform = "leetcode"
+	PlatformHackerRank Platform = "hackerrank"
+)
+
+func (p Platform) String() string {
+	switch p {
+	case PlatformLeetCode:
+		return "LeetCode"
+	case PlatformHackerRank:
+		return "HackerRank"
+	}
+	return string(p)
+}
+
+// ParsedURL contains normalized URL info from any supported platform
+type ParsedURL struct {
+	Platform      Platform
+	NormalizedURL string
+	ProblemSlug   string
+}
+
 type QuestionMap map[int]*Question
 
 type Question struct {
