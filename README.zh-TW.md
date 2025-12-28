@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計，带有 **间隔重复 (spaced repetition)** 功能。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您掌握複雜的演算法。
+**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計，带有 **间隔重复 (spaced repetition)** 功能。支援 **[LeetCode](https://leetcode.com)** 和 **[HackerRank](https://hackerrank.com)** 平台的題目。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數。這個方法避免了死記硬背，透過 **刻意練習** 幫助您掌握複雜的演算法。
 
 *想知道這與 Anki 之類的工具有何不同嗎？請參閱 [常見問題](#常見問題)。*
 
@@ -34,9 +34,9 @@ E --> F((SM-2 演算法排定複習));
 - [LeetSolv](#leetsolv)
   - [目錄](#目錄)
   - [快速安裝](#快速安裝)
+    - [Scoop (Windows)](#scoop-windows)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
     - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
-    - [Scoop (Windows)](#scoop-windows)
     - [驗證安裝](#驗證安裝)
   - [複習排程系統](#複習排程系統)
     - [自適應 SM-2 演算法](#自適應-sm-2-演算法)
@@ -59,6 +59,13 @@ E --> F((SM-2 演算法排定複習));
 
 ## 快速安裝
 
+### Scoop (Windows)
+
+```powershell
+scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
+scoop install leetsolv
+```
+
 ### Homebrew (macOS/Linux)
 
 ```bash
@@ -70,13 +77,6 @@ brew install leetsolv
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
-```
-
-### Scoop (Windows)
-
-```powershell
-scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
-scoop install leetsolv
 ```
 
 ### 驗證安裝
@@ -276,12 +276,11 @@ LeetSolv 可以使用環境變數或 JSON 設定檔進行自訂。這允許您�
 
 ## 發展規劃
 
-我們的發展規劃是以使 LeetSolv 成為刻意練習的强大工具為目標。有建議嗎？隨時 [開啟 issue](https://github.com/eannchen/leetsolv/issues)！
+有建議嗎？隨時 [開啟 issue](https://github.com/eannchen/leetsolv/issues)！
 
 ### 功能
 
 - 提供標記功能
-- 新增對來自其他平台的 DSA 問題的支援
 
 ---
 

@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eannchen/leetsolv)](https://goreportcard.com/report/github.com/eannchen/leetsolv)
 [![CI/CD](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml/badge.svg)](https://github.com/eannchen/leetsolv/actions/workflows/ci.yml)
 
-**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计，带有 **间隔重复 (spaced repetition)** 功能。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了诸如 **熟悉度**、**重要性** 和 **推理** 等变量。这个方法避免了死记硬背，通过 **刻意练习** 帮助你掌握复杂的算法。
+**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计，带有 **间隔重复 (spaced repetition)** 功能。支持 [LeetCode](https://leetcode.com) 和 [HackerRank](https://hackerrank.com) 平台的题目。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了诸如 **熟悉度**、**重要性** 和 **推理** 等变量。这个方法避免了死记硬背，通过 **刻意练习** 帮助你掌握复杂的算法。
 
 *想知道这与 Anki 这样的工具有什么不同吗？请参阅 [支持](#支持)。*
 
@@ -34,9 +34,9 @@ E --> F((SM-2 算法安排复习));
 - [LeetSolv](#leetsolv)
   - [目录](#目录)
   - [快速安装](#快速安装)
+    - [Scoop (Windows)](#scoop-windows)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
     - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
-    - [Scoop (Windows)](#scoop-windows)
     - [验证安装](#验证安装)
   - [复习调度系统](#复习调度系统)
     - [自适应 SM-2 算法](#自适应-sm-2-算法)
@@ -59,6 +59,13 @@ E --> F((SM-2 算法安排复习));
 
 ## 快速安装
 
+### Scoop (Windows)
+
+```powershell
+scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
+scoop install leetsolv
+```
+
 ### Homebrew (macOS/Linux)
 
 ```bash
@@ -72,13 +79,6 @@ brew install leetsolv
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
-```
-
-### Scoop (Windows)
-
-```powershell
-scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
-scoop install leetsolv
 ```
 
 ### 验证安装
@@ -278,13 +278,12 @@ LeetSolv 可以使用环境变量或 JSON 设置文件进行自定义。这允�
 
 ## 发展规划
 
-我们的发展规划是以使 LeetSolv 成为刻意练习的强大工具为目标。有什么建议吗？请随时[提出问题](https://github.com/eannchen/leetsolv/issues)！
+有什么建议吗？请随时[提出问题](https://github.com/eannchen/leetsolv/issues)！
 
 
 ### 功能
 
 - 提供标记功能
-- 支持其他 DSA 练习平台
 
 ---
 
