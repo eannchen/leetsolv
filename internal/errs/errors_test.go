@@ -87,7 +87,7 @@ func TestValidationErrors(t *testing.T) {
 		{
 			name:    "ErrUnsupportedPlatform",
 			err:     ErrUnsupportedPlatform,
-			userMsg: "Unsupported platform or problem URL format. Supported: LeetCode, HackerRank",
+			userMsg: "Unsupported platform. Supported: LeetCode, HackerRank",
 		},
 		{
 			name:    "ErrInvalidProblemURLFormat",
