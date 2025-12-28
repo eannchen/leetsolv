@@ -355,10 +355,10 @@ jobs:
               autoupdate: {
                 architecture: {
                   "64bit": {
-                    url: "https://github.com/eannchen/leetsolv/releases/download/$version/leetsolv-windows-amd64.exe"
+                    url: "https://github.com/eannchen/leetsolv/releases/download/v$version/leetsolv-windows-amd64.exe"
                   },
                   arm64: {
-                    url: "https://github.com/eannchen/leetsolv/releases/download/$version/leetsolv-windows-arm64.exe"
+                    url: "https://github.com/eannchen/leetsolv/releases/download/v$version/leetsolv-windows-arm64.exe"
                   }
                 }
               }
