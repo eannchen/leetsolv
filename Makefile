@@ -1,10 +1,9 @@
-.PHONY: help prod dev clean build build-all test lint install
+.PHONY: help dev clean build build-all test lint install
 
 # Default target
 help:
 	@echo "Available targets:"
 	@echo "  make dev       - Run in development mode (uses test files)"
-	@echo "  make prod      - Run in production mode (uses production files)"
 	@echo "  make clean     - Remove all testing data files and build artifacts"
 	@echo "  make build     - Build the application for current platform"
 	@echo "  make build-all - Build for all supported platforms"
@@ -18,11 +17,6 @@ help:
 dev:
 	@echo "Running in TEST mode..."
 	@./run_dev.sh
-
-# Production mode - uses production files
-prod:
-	@echo "Running in PRODUCTION mode..."
-	@./run_prod.sh
 
 # Clean all data files and build artifacts
 clean:

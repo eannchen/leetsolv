@@ -279,7 +279,7 @@ uninstall() {
     if [ -d "$CONFIG_DIR" ]; then
         echo
         print_warning "Configuration directory found at '$CONFIG_DIR'."
-        read -p "Do you want to remove all configurations and backups? [y/N] " -n 1 -r
+        read -p "Do you want to remove all configurations and backups? [y/N] " -n 1 -r < /dev/tty
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             print_status "Removing configuration directory..."

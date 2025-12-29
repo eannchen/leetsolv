@@ -14,7 +14,7 @@
 ## 目錄
 - [LeetSolv](#leetsolv)
   - [目錄](#目錄)
-  - [快速安裝](#快速安裝)
+  - [安裝](#安裝)
     - [Scoop (Windows)](#scoop-windows)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
     - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
@@ -28,15 +28,12 @@
     - [資料隱私 \& 安全](#資料隱私--安全)
   - [使用方法](#使用方法)
   - [配置](#配置)
-  - [支援](#支援)
-    - [常見問題](#常見問題)
+  - [常見問題](#常見問題)
       - [問：為什麼要使用 LeetSolv 而不是 Anki 卡片？](#問為什麼要使用-leetsolv-而不是-anki-卡片)
       - [問：我應該加入所有之前解決過的問題嗎？](#問我應該加入所有之前解決過的問題嗎)
       - [問：使用一段時間後，我累積了太多到期問題。](#問使用一段時間後我累積了太多到期問題)
-    - [文件](#文件)
-  - [發展規劃](#發展規劃)
 
-## 快速安裝
+## 安裝
 
 ### Scoop (Windows)
 
@@ -56,6 +53,12 @@ brew install leetsolv
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
+```
+
+解除安裝：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash -s -- --uninstall
 ```
 
 ### 驗證安裝
@@ -144,9 +147,7 @@ leetsolv help
 
 透過環境變數或 JSON 設定檔自訂。詳見 [CONFIGURATION.md](document/CONFIGURATION.md)。
 
-## 支援
-
-### 常見問題
+## 常見問題 
 
 #### 問：為什麼要使用 LeetSolv 而不是 Anki 卡片？
 
@@ -159,18 +160,6 @@ leetsolv help
 #### 問：使用一段時間後，我累積了太多到期問題。
 
 答：跳過幾天後 SM-2 會累積到期問題。使用[到期優先級評分](#到期優先級評分)專注於高優先級問題。已掌握的問題可以刪除——目標是持續練習，而非追蹤所有內容。
-
-
-### 文件
-- [USAGE.md](document/USAGE.md) — 命令列使用
-- [CONFIGURATION.md](document/CONFIGURATION.md) — 配置選項
-- [MOTIVATION.md](document/MOTIVATION.md) — 設計理念
-
-## 發展規劃
-
-- 標記功能
-
-[提出建議](https://github.com/eannchen/leetsolv/issues)
 
 ---
 
