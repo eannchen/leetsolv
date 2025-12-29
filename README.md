@@ -15,7 +15,7 @@
 ## Table of Contents
 - [LeetSolv](#leetsolv)
   - [Table of Contents](#table-of-contents)
-  - [Quick Installation](#quick-installation)
+  - [Installation](#installation)
     - [Scoop (Windows)](#scoop-windows)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
     - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
@@ -29,15 +29,12 @@
     - [Data Privacy \& Safety](#data-privacy--safety)
   - [Usage](#usage)
   - [Configuration](#configuration)
-  - [Support](#support)
-    - [FAQ](#faq)
+  - [FAQ](#faq)
       - [Q: Why use LeetSolv instead of an Anki deck?](#q-why-use-leetsolv-instead-of-an-anki-deck)
       - [Q: Should I add all my previously solved problems?](#q-should-i-add-all-my-previously-solved-problems)
       - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
-    - [Documentation](#documentation)
-  - [Roadmap](#roadmap)
 
-## Quick Installation
+## Installation
 
 ### Scoop (Windows)
 
@@ -57,6 +54,12 @@ brew install leetsolv
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash
+```
+
+To uninstall:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash -s -- --uninstall
 ```
 
 ### Verify Installation
@@ -145,9 +148,7 @@ leetsolv help
 
 Customize via environment variables or JSON config. See [CONFIGURATION.md](document/CONFIGURATION.md) for all options.
 
-## Support
-
-### FAQ
+## FAQ
 
 #### Q: Why use LeetSolv instead of an Anki deck?
 
@@ -161,17 +162,7 @@ A: No. Only add problems you want to revisit. The algorithm uses the add date fo
 
 A: SM-2 accumulates dues if you skip days. Use [Due Priority Scoring](#due-priority-scoring) to focus on high-priority problems first. Remove mastered problems—the goal is active practice, not tracking everything.
 
-
-### Documentation
-- [USAGE.md](document/USAGE.md) — Command-line usage
-- [CONFIGURATION.md](document/CONFIGURATION.md) — Configuration options
-- [MOTIVATION.md](document/MOTIVATION.md) — Design rationale
-
-## Roadmap
-
-- Tagging functionality
-
-[Open an issue](https://github.com/eannchen/leetsolv/issues) for suggestions.
+[Open an issue](https://github.com/eannchen/leetsolv/issues) for questions or suggestions.
 
 ---
 
