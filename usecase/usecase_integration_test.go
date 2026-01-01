@@ -19,7 +19,8 @@ func setupIntegrationTest(t *testing.T) (*QuestionUseCaseImpl, *config.TestConfi
 	testConfig, cfg := config.MockEnv(t)
 	mockClock := clock.NewMockClock(integrationTestTime)
 	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
-	scheduler := core.NewSM2Scheduler(cfg, mockClock)
+	// Use fixed random for deterministic tests
+	scheduler := core.NewSM2SchedulerWithRand(cfg, mockClock, core.FixedRand{Value: 1})
 	logger.InitNop()
 	useCase := NewQuestionUseCase(cfg, storage, scheduler, mockClock)
 	return useCase, testConfig

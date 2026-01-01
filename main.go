@@ -37,7 +37,10 @@ func main() {
 		fmt.Println("Failed to load configuration:", err)
 		os.Exit(1)
 	}
-	logger.Init(cfg.InfoLogFile, cfg.ErrorLogFile)
+	if err := logger.Init(cfg.InfoLogFile, cfg.ErrorLogFile); err != nil {
+		fmt.Println("Failed to initialize logger:", err)
+		os.Exit(1)
+	}
 	storage := storage.NewFileStorage(cfg.QuestionsFile, cfg.DeltasFile, fileutil)
 	scheduler := core.NewSM2Scheduler(cfg, clock)
 	questionUseCase := usecase.NewQuestionUseCase(cfg, storage, scheduler, clock)

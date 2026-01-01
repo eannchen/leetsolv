@@ -27,8 +27,8 @@ func setupTestEnvironment(t *testing.T) (*config.TestConfig, *QuestionUseCaseImp
 	// Create storage with test files
 	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
 
-	// Create scheduler
-	scheduler := core.NewSM2Scheduler(cfg, mockClock)
+	// Create scheduler with fixed random for deterministic tests
+	scheduler := core.NewSM2SchedulerWithRand(cfg, mockClock, core.FixedRand{Value: 1})
 
 	// Initialize no-op logger for tests (no file I/O)
 	logger.InitNop()

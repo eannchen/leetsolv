@@ -35,7 +35,7 @@ func (m *MockClock) AddDays(t time.Time, days int) time.Time {
 func TestNewSM2Scheduler(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1}) // +0 days randomization
 
 	// Test that scheduler is properly initialized
 	if scheduler.Clock != mockClock {
@@ -85,7 +85,8 @@ func TestNewSM2Scheduler(t *testing.T) {
 func TestScheduleNewQuestion(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	// FixedRand{Value: 1} means rand.IntN(4) returns 1, so randomization is 1-1=0 days
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	tests := []struct {
 		name     string
@@ -112,12 +113,10 @@ func TestScheduleNewQuestion(t *testing.T) {
 					t.Errorf("Expected LastReviewed to be today, got %v", q.LastReviewed)
 				}
 				// Base interval for LowImportance is 8, Medium familiarity adds 2 days
-				// Total: (8 + 2) × 1.00 = 10 days
-				// With randomization (-1 to +2 days), expect 9-12 days
-				expectedMin := mockClock.AddDays(mockClock.Today(), 9)
-				expectedMax := mockClock.AddDays(mockClock.Today(), 12)
-				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
-					t.Errorf("Expected NextReview to be between %v and %v, got %v", expectedMin, expectedMax, q.NextReview)
+				// Total: (8 + 2) × 1.00 = 10 days, randomization +0
+				expectedNextReview := mockClock.AddDays(mockClock.Today(), 10)
+				if !q.NextReview.Equal(expectedNextReview) {
+					t.Errorf("Expected NextReview to be %v, got %v", expectedNextReview, q.NextReview)
 				}
 				return nil
 			},
@@ -135,11 +134,10 @@ func TestScheduleNewQuestion(t *testing.T) {
 					t.Errorf("Expected EaseFactor to be 1.7, got %f", q.EaseFactor)
 				}
 				// Base interval for CriticalImportance is 4, VeryEasy adds 7 days, MemoryFull multiplies by 1.25
-				// Expected: (4+7) * 1.25 = 13.75 ≈ 14 days, with randomization (-1 to +2): 13-16 days
-				expectedMin := mockClock.AddDays(mockClock.Today(), 13)
-				expectedMax := mockClock.AddDays(mockClock.Today(), 16)
-				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
-					t.Errorf("Expected NextReview to be between %v and %v, got %v", expectedMin, expectedMax, q.NextReview)
+				// Expected: (4+7) * 1.25 = 13.75 ≈ 14 days, randomization +0
+				expectedNextReview := mockClock.AddDays(mockClock.Today(), 14)
+				if !q.NextReview.Equal(expectedNextReview) {
+					t.Errorf("Expected NextReview to be %v, got %v", expectedNextReview, q.NextReview)
 				}
 				return nil
 			},
@@ -157,11 +155,10 @@ func TestScheduleNewQuestion(t *testing.T) {
 					t.Errorf("Expected EaseFactor to be 1.8, got %f", q.EaseFactor)
 				}
 				// Base interval for HighImportance is 5, Easy adds 5 days, MemoryPartial multiplies by 1.10
-				// Expected: (5+5) * 1.10 = 11 days, with randomization (-1 to +2): 10-13 days
-				expectedMin := mockClock.AddDays(mockClock.Today(), 10)
-				expectedMax := mockClock.AddDays(mockClock.Today(), 13)
-				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
-					t.Errorf("Expected NextReview to be between %v and %v, got %v", expectedMin, expectedMax, q.NextReview)
+				// Expected: (5+5) * 1.10 = 11 days, randomization +0
+				expectedNextReview := mockClock.AddDays(mockClock.Today(), 11)
+				if !q.NextReview.Equal(expectedNextReview) {
+					t.Errorf("Expected NextReview to be %v, got %v", expectedNextReview, q.NextReview)
 				}
 				return nil
 			},
@@ -184,7 +181,8 @@ func TestScheduleNewQuestion(t *testing.T) {
 func TestSchedule(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	// FixedRand{Value: 1} means randomization is 1-1=0 days
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	tests := []struct {
 		name     string
@@ -211,12 +209,10 @@ func TestSchedule(t *testing.T) {
 				if !q.LastReviewed.Equal(mockClock.Today()) {
 					t.Errorf("Expected LastReviewed to be today, got %v", q.LastReviewed)
 				}
-				// Should reset to base interval for MediumImportance (6 days)
-				// With randomization (-1 to +2 days), expect 5-8 days
-				expectedMin := mockClock.AddDays(mockClock.Today(), 5)
-				expectedMax := mockClock.AddDays(mockClock.Today(), 8)
-				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
-					t.Errorf("Expected NextReview to be between %v and %v, got %v", expectedMin, expectedMax, q.NextReview)
+				// Should reset to base interval for MediumImportance (6 days), randomization +0
+				expectedNextReview := mockClock.AddDays(mockClock.Today(), 6)
+				if !q.NextReview.Equal(expectedNextReview) {
+					t.Errorf("Expected NextReview to be %v, got %v", expectedNextReview, q.NextReview)
 				}
 				return nil
 			},
@@ -241,12 +237,10 @@ func TestSchedule(t *testing.T) {
 					t.Errorf("Expected LastReviewed to be today, got %v", q.LastReviewed)
 				}
 				// Previous interval was 2 days, EaseFactor 1.8, MemoryReasoned 1.0
-				// Expected: 2 * 1.8 * 1.0 = 3.6 ≈ 4 days
-				// With randomization (-1 to +2 days), expect 3-6 days
-				expectedMin := mockClock.AddDays(mockClock.Today(), 3)
-				expectedMax := mockClock.AddDays(mockClock.Today(), 6)
-				if q.NextReview.Before(expectedMin) || q.NextReview.After(expectedMax) {
-					t.Errorf("Expected NextReview to be between %v and %v, got %v", expectedMin, expectedMax, q.NextReview)
+				// Expected: 2 * 1.8 * 1.0 = 3.6 ≈ 4 days, randomization +0
+				expectedNextReview := mockClock.AddDays(mockClock.Today(), 4)
+				if !q.NextReview.Equal(expectedNextReview) {
+					t.Errorf("Expected NextReview to be %v, got %v", expectedNextReview, q.NextReview)
 				}
 				return nil
 			},
@@ -266,7 +260,7 @@ func TestSchedule(t *testing.T) {
 func TestSetEaseFactor(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	tests := []struct {
 		name     string
@@ -335,7 +329,7 @@ func TestSetEaseFactorOverduePenalty(t *testing.T) {
 	_, cfg := config.MockEnv(t)
 	// Enable overdue penalty for this test
 	cfg.OverduePenalty = true
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	tests := []struct {
 		name           string
@@ -413,35 +407,28 @@ func TestSetEaseFactorOverduePenalty(t *testing.T) {
 func TestSetNextReview(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	// FixedRand{Value: 1} means randomization is 1-1=0 days
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	tests := []struct {
 		name         string
 		intervalDays int
-		checkBounds  bool
-		expectedMin  int
-		expectedMax  int
+		expectedDays int
 	}{
 		{
 			name:         "Normal interval",
 			intervalDays: 10,
-			checkBounds:  true,
-			expectedMin:  9,  // 10 - 1 (randomization)
-			expectedMax:  12, // 10 + 2 (randomization)
+			expectedDays: 10, // 10 + 0 randomization
 		},
 		{
 			name:         "Minimum interval",
 			intervalDays: 1,
-			checkBounds:  true,
-			expectedMin:  1, // Should not go below 1
-			expectedMax:  3, // 1 + 2 (randomization)
+			expectedDays: 1, // 1 + 0, minimum is 1
 		},
 		{
 			name:         "Maximum interval",
 			intervalDays: 100,
-			checkBounds:  true,
-			expectedMin:  89, // 90 - 1 (randomization, capped at maxInterval)
-			expectedMax:  90, // Capped at maxInterval
+			expectedDays: 90, // Capped at maxInterval
 		},
 	}
 
@@ -450,14 +437,12 @@ func TestSetNextReview(t *testing.T) {
 			question := &Question{}
 			scheduler.setNextReview(question, mockClock.Today(), tt.intervalDays)
 
-			if tt.checkBounds {
-				daysDiff := int(question.NextReview.Sub(mockClock.Today()).Hours() / 24)
-				if daysDiff < tt.expectedMin || daysDiff > tt.expectedMax {
-					t.Errorf("Expected interval to be between %d and %d days, got %d", tt.expectedMin, tt.expectedMax, daysDiff)
-				}
+			expectedNextReview := mockClock.AddDays(mockClock.Today(), tt.expectedDays)
+			if !question.NextReview.Equal(expectedNextReview) {
+				t.Errorf("Expected NextReview to be %v, got %v", expectedNextReview, question.NextReview)
 			}
 
-			// Should always be in the future
+			// Should always be in the future or today
 			if question.NextReview.Before(mockClock.Today()) {
 				t.Errorf("NextReview %v is before today %v", question.NextReview, mockClock.Today())
 			}
@@ -468,7 +453,7 @@ func TestSetNextReview(t *testing.T) {
 func TestCalculatePriorityScore(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	tests := []struct {
 		name     string
@@ -541,7 +526,7 @@ func TestCalculatePriorityScore(t *testing.T) {
 func TestSchedulerInterface(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	var scheduler Scheduler = NewSM2Scheduler(cfg, mockClock)
+	var scheduler Scheduler = NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	// Test that we can call interface methods
 	question := &Question{
@@ -569,7 +554,8 @@ func TestSchedulerInterface(t *testing.T) {
 func TestEdgeCases(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
+	// FixedRand{Value: 1} means randomization is 1-1=0 days
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	t.Run("Question with zero interval", func(t *testing.T) {
 		question := &Question{
@@ -578,11 +564,10 @@ func TestEdgeCases(t *testing.T) {
 		}
 		scheduler.setNextReview(question, mockClock.Today(), 0)
 
-		// Should default to 1 day minimum, with randomization could be 1-3 days
-		expectedMin := mockClock.AddDays(mockClock.Today(), 1)
-		expectedMax := mockClock.AddDays(mockClock.Today(), 3)
-		if question.NextReview.Before(expectedMin) || question.NextReview.After(expectedMax) {
-			t.Errorf("Expected NextReview to be between %v and %v for zero interval, got %v", expectedMin, expectedMax, question.NextReview)
+		// 0 + 0 = 0, but minimum is 1 day
+		expectedNextReview := mockClock.AddDays(mockClock.Today(), 1)
+		if !question.NextReview.Equal(expectedNextReview) {
+			t.Errorf("Expected NextReview to be %v for zero interval, got %v", expectedNextReview, question.NextReview)
 		}
 	})
 
@@ -593,7 +578,7 @@ func TestEdgeCases(t *testing.T) {
 		}
 		scheduler.setNextReview(question, mockClock.Today(), -5)
 
-		// Should default to 1 day minimum
+		// -5 + 0 = -5, but minimum is 1 day
 		expectedNextReview := mockClock.AddDays(mockClock.Today(), 1)
 		if !question.NextReview.Equal(expectedNextReview) {
 			t.Errorf("Expected NextReview to be %v for negative interval, got %v", expectedNextReview, question.NextReview)
@@ -607,7 +592,7 @@ func TestEdgeCases(t *testing.T) {
 		}
 		scheduler.setNextReview(question, mockClock.Today(), 1000)
 
-		// Should be capped at maxInterval (90 days)
+		// 1000 + 0 = 1000, but capped at maxInterval (90 days)
 		expectedNextReview := mockClock.AddDays(mockClock.Today(), 90)
 		if !question.NextReview.Equal(expectedNextReview) {
 			t.Errorf("Expected NextReview to be %v for large interval, got %v", expectedNextReview, question.NextReview)
@@ -618,13 +603,8 @@ func TestEdgeCases(t *testing.T) {
 func TestMemoryMultipliers(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
-	scheduler := NewSM2Scheduler(cfg, mockClock)
-
-	question := &Question{
-		ID:          1,
-		Importance:  MediumImportance,
-		Familiarity: Medium,
-	}
+	// FixedRand{Value: 1} means randomization is 1-1=0 days
+	scheduler := NewSM2SchedulerWithRand(cfg, mockClock, FixedRand{Value: 1})
 
 	// Test that different memory types result in different intervals
 	// Base interval for MediumImportance is 6 days, Medium familiarity adds 2 days = 8 days
@@ -632,25 +612,23 @@ func TestMemoryMultipliers(t *testing.T) {
 	// MemoryPartial: 8 * 1.10 = 8.8 ≈ 9 days
 	// MemoryFull: 8 * 1.25 = 10 days
 
-	// With randomization (-1 to +2 days), the ranges are:
-	// MemoryReasoned: 7-10 days
-	// MemoryPartial: 8-11 days
-	// MemoryFull: 9-12 days
-
-	// Test that the expected ranges are reasonable
-	expectedRanges := map[MemoryUse]struct{ min, max int }{
-		MemoryReasoned: {7, 10},
-		MemoryPartial:  {8, 11},
-		MemoryFull:     {9, 12},
+	expectedIntervals := map[MemoryUse]int{
+		MemoryReasoned: 8,
+		MemoryPartial:  9,
+		MemoryFull:     10,
 	}
 
-	for memory, expected := range expectedRanges {
-		question.NextReview = time.Time{} // Reset
+	for memory, expectedDays := range expectedIntervals {
+		question := &Question{
+			ID:          1,
+			Importance:  MediumImportance,
+			Familiarity: Medium,
+		}
 		scheduler.ScheduleNewQuestion(question, memory)
 		interval := int(question.NextReview.Sub(mockClock.Today()).Hours() / 24)
 
-		if interval < expected.min || interval > expected.max {
-			t.Errorf("Expected %v interval to be between %d and %d days, got %d", memory, expected.min, expected.max, interval)
+		if interval != expectedDays {
+			t.Errorf("Expected %v interval to be %d days, got %d", memory, expectedDays, interval)
 		}
 	}
 }

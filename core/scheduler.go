@@ -15,10 +15,29 @@ type Scheduler interface {
 	CalculatePriorityScore(q *Question) float64
 }
 
+// Rand abstracts random number generation for testability.
+type Rand interface {
+	// IntN returns a random int in [0, n).
+	IntN(n int) int
+}
+
+// DefaultRand uses the global math/rand/v2 functions.
+type DefaultRand struct{}
+
+func (DefaultRand) IntN(n int) int { return rand.IntN(n) }
+
+// FixedRand returns a fixed value for deterministic tests.
+type FixedRand struct {
+	Value int
+}
+
+func (f FixedRand) IntN(_ int) int { return f.Value }
+
 // SM2Scheduler implements the spaced repetition scheduling logic
 type SM2Scheduler struct {
 	cfg   *config.Config
 	Clock clock.Clock
+	Rand  Rand
 
 	// Interval settings (in days)
 	maxInterval       int
@@ -42,9 +61,14 @@ type SM2Scheduler struct {
 }
 
 func NewSM2Scheduler(cfg *config.Config, clock clock.Clock) *SM2Scheduler {
+	return NewSM2SchedulerWithRand(cfg, clock, DefaultRand{})
+}
+
+func NewSM2SchedulerWithRand(cfg *config.Config, clock clock.Clock, rand Rand) *SM2Scheduler {
 	return &SM2Scheduler{
 		cfg:   cfg,
 		Clock: clock,
+		Rand:  rand,
 
 		// Interval settings (in days)
 		maxInterval: 90,
@@ -157,8 +181,8 @@ func (s SM2Scheduler) setNextReview(q *Question, date time.Time, intervalDays in
 	// Randomize interval to avoid over-fitting to a specific date
 	if s.cfg.RandomizeInterval {
 		// Randomize between -1 and +2 days
-		// rand.IntN(4) produces 0,1,2,3; subtracting 1 gives -1,0,1,2
-		intervalDays += rand.IntN(4) - 1
+		// IntN(4) produces 0,1,2,3; subtracting 1 gives -1,0,1,2
+		intervalDays += s.Rand.IntN(4) - 1
 	}
 
 	// Secure bounds

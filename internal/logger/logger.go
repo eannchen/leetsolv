@@ -2,6 +2,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -14,17 +15,18 @@ var (
 
 // Init initializes the package-level loggers with the given file paths.
 // Must be called before using Infof or Errorf.
-func Init(infoPath, errorPath string) {
+// Returns an error if the log files cannot be opened.
+func Init(infoPath, errorPath string) error {
 	// Open the info log file, creating it if it doesn't exist
 	infoFile, err := os.OpenFile(infoPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Failed to open info log file: %v", err)
+		return fmt.Errorf("failed to open info log file: %w", err)
 	}
 
 	// Open the error log file, creating it if it doesn't exist
 	errorFile, err := os.OpenFile(errorPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Failed to open error log file: %v", err)
+		return fmt.Errorf("failed to open error log file: %w", err)
 	}
 
 	// Combine terminal (os.Stderr) and file for errors
@@ -32,6 +34,7 @@ func Init(infoPath, errorPath string) {
 
 	infoLogger = log.New(infoFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 	errorLogger = log.New(errorWriter, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	return nil
 }
 
 // InitNop initializes loggers that discard all output. Useful for tests.
