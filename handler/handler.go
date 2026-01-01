@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/eannchen/leetsolv/config"
 	"github.com/eannchen/leetsolv/core"
@@ -473,7 +472,7 @@ func (h *HandlerImpl) HandleHistory() {
 		}
 
 		// Format the time
-		timeDesc := h.formatTimeAgo(delta.CreatedAt)
+		timeDesc := h.IO.FormatTimeAgo(delta.CreatedAt)
 
 		// Print entry. If multiple changes, print them on separate aligned lines.
 		if len(changeList) == 0 {
@@ -618,33 +617,6 @@ func (h *HandlerImpl) getChanges(oldState, newState *core.Question) []string {
 	}
 
 	return changes
-}
-
-func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
-	now := time.Now()
-	diff := now.Sub(t)
-
-	if diff < time.Minute {
-		return "just now"
-	} else if diff < time.Hour {
-		minutes := int(diff.Minutes())
-		if minutes == 1 {
-			return "1 minute ago"
-		}
-		return fmt.Sprintf("%d minutes ago", minutes)
-	} else if diff < 24*time.Hour {
-		hours := int(diff.Hours())
-		if hours == 1 {
-			return "1 hour ago"
-		}
-		return fmt.Sprintf("%d hours ago", hours)
-	} else {
-		days := int(diff.Hours() / 24)
-		if days == 1 {
-			return "1 day ago"
-		}
-		return fmt.Sprintf("%d days ago", days)
-	}
 }
 
 func (h *HandlerImpl) HandleVersion() {

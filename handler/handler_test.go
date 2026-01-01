@@ -100,6 +100,11 @@ func (m *MockIOHandler) PrintCancel(message string) {
 	m.output.WriteString(fmt.Sprintf("CANCELLED: %s\n", message))
 }
 
+func (m *MockIOHandler) FormatTimeAgo(t time.Time) string {
+	// Return a fixed string for deterministic testing
+	return "just now"
+}
+
 // MockQuestionUseCase implements QuestionUseCase for testing
 type MockQuestionUseCase struct {
 	questions     []core.Question
@@ -1312,5 +1317,216 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 
 	if totalPages != 0 {
 		t.Errorf("Expected 0 total pages for empty questions, got %d", totalPages)
+	}
+}
+
+func TestHandler_HandleVersion(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	handler.HandleVersion()
+
+	output := mockIO.output.String()
+	if !strings.Contains(output, "test-version") {
+		t.Errorf("Expected output to contain version, got: %s", output)
+	}
+}
+
+func TestHandler_GetChanges(t *testing.T) {
+	handler, _, _ := setupTestHandler(t)
+
+	tests := []struct {
+		name     string
+		oldState *core.Question
+		newState *core.Question
+		expected []string
+	}{
+		{
+			name: "no changes",
+			oldState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.MediumImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.MediumImportance,
+			},
+			expected: nil,
+		},
+		{
+			name: "importance changed",
+			oldState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.LowImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.HighImportance,
+			},
+			expected: []string{"Importance: 1 → 3"},
+		},
+		{
+			name: "familiarity changed",
+			oldState: &core.Question{
+				Familiarity: core.Hard,
+				Importance:  core.MediumImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.Easy,
+				Importance:  core.MediumImportance,
+			},
+			expected: []string{"Familiarity: 2 → 4"},
+		},
+		{
+			name: "both changed",
+			oldState: &core.Question{
+				Familiarity: core.VeryHard,
+				Importance:  core.LowImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.VeryEasy,
+				Importance:  core.CriticalImportance,
+			},
+			expected: []string{"Importance: 1 → 4", "Familiarity: 1 → 5"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			changes := handler.getChanges(tt.oldState, tt.newState)
+
+			if len(changes) != len(tt.expected) {
+				t.Errorf("Expected %d changes, got %d", len(tt.expected), len(changes))
+				return
+			}
+
+			for i, expected := range tt.expected {
+				if changes[i] != expected {
+					t.Errorf("Expected change %q, got %q", expected, changes[i])
+				}
+			}
+		})
+	}
+}
+
+func TestHandler_HandleMigrate_Success(t *testing.T) {
+	mockIO := NewMockIOHandler("y") // User confirms
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("y\n"))
+	handler.HandleMigrate(scanner)
+
+	// Check that success message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintSuccess" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintSuccess to be called after migration")
+	}
+}
+
+func TestHandler_HandleMigrate_Cancelled(t *testing.T) {
+	mockIO := NewMockIOHandler("n") // User cancels
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("n\n"))
+	handler.HandleMigrate(scanner)
+
+	// Check that cancel message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintCancel" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintCancel to be called when migration is cancelled")
+	}
+}
+
+func TestHandler_HandleReset_Success(t *testing.T) {
+	mockIO := NewMockIOHandler("yes") // User confirms with 'yes'
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("yes\n"))
+	handler.HandleReset(scanner)
+
+	// Check that success message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintSuccess" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintSuccess to be called after reset")
+	}
+}
+
+func TestHandler_HandleReset_Cancelled(t *testing.T) {
+	mockIO := NewMockIOHandler("no") // User doesn't type 'yes'
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("no\n"))
+	handler.HandleReset(scanner)
+
+	// Check that cancel message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintCancel" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintCancel to be called when reset is cancelled")
+	}
+}
+
+func TestHandler_HandleSetting_ShowSettings(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleSetting(scanner, []string{}) // No args - show settings
+
+	// Should print settings
+	if len(mockIO.writeCalls) == 0 {
+		t.Error("Expected output when showing settings")
+	}
+}
+
+func TestHandler_HandleSetting_InvalidUsage(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleSetting(scanner, []string{"OnlySetting"}) // Only 1 arg - invalid
+
+	// Check that error was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintError" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintError for invalid usage")
 	}
 }

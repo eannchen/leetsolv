@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/eannchen/leetsolv/core"
 	"github.com/eannchen/leetsolv/internal/clock"
@@ -52,6 +53,7 @@ type IOHandler interface {
 	PrintSuccess(message string)
 	PrintError(err error)
 	PrintCancel(message string)
+	FormatTimeAgo(t time.Time) string
 }
 
 type IOHandlerImpl struct {
@@ -215,4 +217,32 @@ func (ioh *IOHandlerImpl) PrintError(err error) {
 	}
 
 	ioh.PrintlnColored(ColorError, "[✘] Error: "+err.Error())
+}
+
+// FormatTimeAgo formats a time as a human-readable relative time string.
+func (ioh *IOHandlerImpl) FormatTimeAgo(t time.Time) string {
+	now := ioh.Clock.Now()
+	diff := now.Sub(t)
+
+	if diff < time.Minute {
+		return "just now"
+	} else if diff < time.Hour {
+		minutes := int(diff.Minutes())
+		if minutes == 1 {
+			return "1 minute ago"
+		}
+		return fmt.Sprintf("%d minutes ago", minutes)
+	} else if diff < 24*time.Hour {
+		hours := int(diff.Hours())
+		if hours == 1 {
+			return "1 hour ago"
+		}
+		return fmt.Sprintf("%d hours ago", hours)
+	} else {
+		days := int(diff.Hours() / 24)
+		if days == 1 {
+			return "1 day ago"
+		}
+		return fmt.Sprintf("%d days ago", days)
+	}
 }
