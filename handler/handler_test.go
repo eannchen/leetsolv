@@ -17,6 +17,9 @@ import (
 	"github.com/eannchen/leetsolv/usecase"
 )
 
+// Fixed test time for deterministic tests
+var testTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // MockIOHandler implements IOHandler for testing
 type MockIOHandler struct {
 	output     *bytes.Buffer
@@ -224,7 +227,7 @@ func (m *MockQuestionUseCase) GetHistory() ([]core.Delta, error) {
 				ID:  1,
 				URL: "https://leetcode.com/problems/test-question/",
 			},
-			CreatedAt: time.Now(),
+			CreatedAt: testTime,
 		},
 	}, nil
 }
@@ -298,13 +301,13 @@ func TestHandler_HandleList_WithQuestions(t *testing.T) {
 			ID:         1,
 			URL:        "https://leetcode.com/problems/test1",
 			Note:       "Test question 1",
-			NextReview: time.Now(),
+			NextReview: testTime,
 		},
 		{
 			ID:         2,
 			URL:        "https://leetcode.com/problems/test2",
 			Note:       "Test question 2",
-			NextReview: time.Now(),
+			NextReview: testTime,
 		},
 	}
 
@@ -407,7 +410,7 @@ func TestHandler_HandleGet_Success(t *testing.T) {
 		ID:         1,
 		URL:        "https://leetcode.com/problems/test",
 		Note:       "Test question",
-		NextReview: time.Now(),
+		NextReview: testTime,
 	}
 	mockUseCase.questions = []core.Question{testQuestion}
 
@@ -552,7 +555,7 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 		QuestionID: upsertedQuestion.ID,
 		OldState:   nil,
 		NewState:   upsertedQuestion,
-		CreatedAt:  time.Now(),
+		CreatedAt:  testTime,
 	}
 
 	// Test the URL normalization directly first
@@ -711,7 +714,7 @@ func TestHandler_HandleUpsert_NoMemoryPromptForVeryHardFamiliarity(t *testing.T)
 		QuestionID: upsertedQuestion.ID,
 		OldState:   nil,
 		NewState:   upsertedQuestion,
-		CreatedAt:  time.Now(),
+		CreatedAt:  testTime,
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -761,7 +764,7 @@ func TestHandler_HandleUpsert_NoMemoryPromptForHardFamiliarity(t *testing.T) {
 		QuestionID: upsertedQuestion.ID,
 		OldState:   nil,
 		NewState:   upsertedQuestion,
-		CreatedAt:  time.Now(),
+		CreatedAt:  testTime,
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(""))

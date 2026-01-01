@@ -12,6 +12,9 @@ import (
 	"github.com/eannchen/leetsolv/internal/search"
 )
 
+// Fixed test time for deterministic tests
+var testTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // setupTestStorage creates a test storage with temporary files
 func setupTestStorage(t *testing.T) (*FileStorage, *config.TestConfig) {
 	testConfig, _ := config.MockEnv(t)
@@ -28,11 +31,11 @@ func createTestQuestion(id int, url string) *core.Question {
 		Note:         "Test question",
 		Familiarity:  core.Medium,
 		Importance:   core.MediumImportance,
-		LastReviewed: time.Now(),
-		NextReview:   time.Now().Add(24 * time.Hour),
+		LastReviewed: testTime,
+		NextReview:   testTime.Add(24 * time.Hour),
 		ReviewCount:  0,
 		EaseFactor:   2.5,
-		CreatedAt:    time.Now(),
+		CreatedAt:    testTime,
 	}
 }
 
@@ -158,14 +161,14 @@ func TestFileStorage_SaveAndLoadDeltas(t *testing.T) {
 			QuestionID: 1,
 			OldState:   nil,
 			NewState:   question1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 		{
 			Action:     core.ActionUpdate,
 			QuestionID: 1,
 			OldState:   question1,
 			NewState:   question2,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 	}
 
@@ -421,7 +424,7 @@ func TestFileStorage_DeltaLimitHandling(t *testing.T) {
 		deltas[i] = core.Delta{
 			Action:     core.ActionAdd,
 			QuestionID: i,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		}
 	}
 
@@ -608,7 +611,7 @@ func TestFileStorage_DeltasCacheUpdateOnSave(t *testing.T) {
 		{
 			Action:     core.ActionAdd,
 			QuestionID: 1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 	}
 
@@ -628,12 +631,12 @@ func TestFileStorage_DeltasCacheUpdateOnSave(t *testing.T) {
 		{
 			Action:     core.ActionAdd,
 			QuestionID: 1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 		{
 			Action:     core.ActionUpdate,
 			QuestionID: 1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 	}
 
