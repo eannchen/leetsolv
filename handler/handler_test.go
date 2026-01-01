@@ -1533,3 +1533,53 @@ func TestHandler_HandleSetting_InvalidUsage(t *testing.T) {
 		t.Error("Expected PrintError for invalid usage")
 	}
 }
+
+func TestHandler_ExtractQuestionNameFromURL(t *testing.T) {
+	handler, _, _ := setupTestHandler(t)
+
+	tests := []struct {
+		name     string
+		url      string
+		expected string
+	}{
+		{
+			name:     "LeetCode URL",
+			url:      "https://leetcode.com/problems/two-sum/",
+			expected: "two-sum",
+		},
+		{
+			name:     "LeetCode URL without trailing slash",
+			url:      "https://leetcode.com/problems/add-two-numbers",
+			expected: "add-two-numbers",
+		},
+		{
+			name:     "HackerRank URL",
+			url:      "https://hackerrank.com/challenges/solve-me-first/problem",
+			expected: "solve-me-first",
+		},
+		{
+			name:     "HackerRank URL with www",
+			url:      "https://www.hackerrank.com/challenges/simple-array-sum/problem",
+			expected: "simple-array-sum",
+		},
+		{
+			name:     "invalid URL",
+			url:      "https://example.com/something",
+			expected: "unknown",
+		},
+		{
+			name:     "empty URL",
+			url:      "",
+			expected: "unknown",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := handler.extractQuestionNameFromURL(tt.url)
+			if result != tt.expected {
+				t.Errorf("extractQuestionNameFromURL(%q) = %q, want %q", tt.url, result, tt.expected)
+			}
+		})
+	}
+}

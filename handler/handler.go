@@ -591,18 +591,14 @@ func (h *HandlerImpl) HandleQuit() {
 
 // Helper methods for history formatting
 func (h *HandlerImpl) extractQuestionNameFromURL(url string) string {
-	// Extract the question name from LeetCode URL
+	// Extract the problem slug from any supported platform URL
 	// e.g., "https://leetcode.com/problems/two-sum/" -> "two-sum"
-	if strings.Contains(url, "/problems/") {
-		parts := strings.Split(url, "/problems/")
-		if len(parts) > 1 {
-			questionPart := parts[1]
-			// Remove trailing slash if present
-			questionPart = strings.TrimSuffix(questionPart, "/")
-			return questionPart
-		}
+	// e.g., "https://hackerrank.com/challenges/solve-me-first/problem" -> "solve-me-first"
+	parsed, err := urlparser.Parse(url)
+	if err != nil {
+		return "unknown"
 	}
-	return "unknown"
+	return parsed.ProblemSlug
 }
 
 func (h *HandlerImpl) getChanges(oldState, newState *core.Question) []string {
