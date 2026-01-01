@@ -12,44 +12,41 @@ import (
 
 // platformParser defines how to parse URLs for a specific platform
 type platformParser struct {
-	host         string
+	platform     core.Platform
 	pathPrefix   string
 	pathRegex    *regexp.Regexp
 	normalizeURL func(slug string) string
 }
 
-var platformParsers = []platformParser{
-	{
-		host:       "leetcode.com",
+// newLeetCodeParser creates a parser for LeetCode URLs
+func newLeetCodeParser(host string) platformParser {
+	return platformParser{
+		platform:   core.PlatformLeetCode,
 		pathPrefix: "/problems/",
 		pathRegex:  regexp.MustCompile(`^/problems/([^/]+)`),
 		normalizeURL: func(slug string) string {
-			return "https://leetcode.com/problems/" + slug + "/"
+			return "https://" + host + "/problems/" + slug + "/"
 		},
-	},
-	{
-		host:       "hackerrank.com",
-		pathPrefix: "/challenges/",
-		pathRegex:  regexp.MustCompile(`^/challenges/([^/]+)`),
-		normalizeURL: func(slug string) string {
-			return "https://hackerrank.com/challenges/" + slug + "/problem"
-		},
-	},
-	{
-		host:       "www.hackerrank.com",
-		pathPrefix: "/challenges/",
-		pathRegex:  regexp.MustCompile(`^/challenges/([^/]+)`),
-		normalizeURL: func(slug string) string {
-			return "https://www.hackerrank.com/challenges/" + slug + "/problem"
-		},
-	},
+	}
 }
 
-// hostToPlatform maps hostnames to Platform type
-var hostToPlatform = map[string]core.Platform{
-	"leetcode.com":       core.PlatformLeetCode,
-	"hackerrank.com":     core.PlatformHackerRank,
-	"www.hackerrank.com": core.PlatformHackerRank,
+// newHackerRankParser creates a parser for HackerRank URLs
+func newHackerRankParser(host string) platformParser {
+	return platformParser{
+		platform:   core.PlatformHackerRank,
+		pathPrefix: "/challenges/",
+		pathRegex:  regexp.MustCompile(`^/challenges/([^/]+)`),
+		normalizeURL: func(slug string) string {
+			return "https://" + host + "/challenges/" + slug + "/problem"
+		},
+	}
+}
+
+// platformParsers maps hostnames to their parser configuration
+var platformParsers = map[string]platformParser{
+	"leetcode.com":       newLeetCodeParser("leetcode.com"),
+	"hackerrank.com":     newHackerRankParser("hackerrank.com"),
+	"www.hackerrank.com": newHackerRankParser("www.hackerrank.com"),
 }
 
 // Parse normalizes and validates a URL from any supported platform.
@@ -65,30 +62,27 @@ func Parse(inputURL string) (*core.ParsedURL, error) {
 		return nil, errs.ErrInvalidURLFormat
 	}
 
-	// Find matching platform by host and path prefix
-	for _, parser := range platformParsers {
-		if parsedURL.Host == parser.host && strings.HasPrefix(parsedURL.Path, parser.pathPrefix) {
-			// Extract problem slug using platform-specific regex
-			matches := parser.pathRegex.FindStringSubmatch(parsedURL.Path)
-			if len(matches) != 2 {
-				return nil, errs.ErrInvalidProblemURLFormat
-			}
-
-			slug := strings.TrimSpace(matches[1])
-			if slug == "" {
-				return nil, errs.ErrInvalidProblemURLFormat
-			}
-
-			// Build and return the parsed result
-			platform := hostToPlatform[parsedURL.Host]
-			return &core.ParsedURL{
-				Platform:      platform,
-				NormalizedURL: parser.normalizeURL(slug),
-				ProblemSlug:   slug,
-			}, nil
-		}
+	// O(1) lookup by host
+	parser, found := platformParsers[parsedURL.Host]
+	if !found || !strings.HasPrefix(parsedURL.Path, parser.pathPrefix) {
+		return nil, errs.ErrUnsupportedPlatform
 	}
 
-	// No matching platform found
-	return nil, errs.ErrUnsupportedPlatform
+	// Extract problem slug using platform-specific regex
+	matches := parser.pathRegex.FindStringSubmatch(parsedURL.Path)
+	if len(matches) != 2 {
+		return nil, errs.ErrInvalidProblemURLFormat
+	}
+
+	slug := strings.TrimSpace(matches[1])
+	if slug == "" {
+		return nil, errs.ErrInvalidProblemURLFormat
+	}
+
+	// Build and return the parsed result
+	return &core.ParsedURL{
+		Platform:      parser.platform,
+		NormalizedURL: parser.normalizeURL(slug),
+		ProblemSlug:   slug,
+	}, nil
 }
