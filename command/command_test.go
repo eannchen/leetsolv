@@ -19,11 +19,16 @@ type MockHandler struct {
 	clearCalled   bool
 	quitCalled    bool
 	historyCalled bool
+	settingCalled bool
+	versionCalled bool
+	migrateCalled bool
+	resetCalled   bool
 
-	searchArgs []string
-	getArgs    string
-	upsertArgs string
-	deleteArgs string
+	searchArgs  []string
+	getArgs     string
+	upsertArgs  string
+	deleteArgs  string
+	settingArgs []string
 }
 
 func (m *MockHandler) HandleList(scanner *bufio.Scanner) {
@@ -75,7 +80,8 @@ func (m *MockHandler) HandleHistory() {
 }
 
 func (m *MockHandler) HandleSetting(scanner *bufio.Scanner, args []string) {
-	// Not used in command tests
+	m.settingCalled = true
+	m.settingArgs = args
 }
 
 func (m *MockHandler) HandleUnknown(command string) {
@@ -83,15 +89,15 @@ func (m *MockHandler) HandleUnknown(command string) {
 }
 
 func (m *MockHandler) HandleVersion() {
-	// Not used in command tests
+	m.versionCalled = true
 }
 
 func (m *MockHandler) HandleMigrate(scanner *bufio.Scanner) {
-	// Not used in command tests
+	m.migrateCalled = true
 }
 
 func (m *MockHandler) HandleReset(scanner *bufio.Scanner) {
-	// Not used in command tests
+	m.resetCalled = true
 }
 
 func TestNewCommandRegistry(t *testing.T) {
@@ -529,4 +535,72 @@ func TestCommandInterfaceCompliance(t *testing.T) {
 	var _ Command = &ClearCommand{}
 	var _ Command = &QuitCommand{}
 	var _ Command = &HistoryCommand{}
+	var _ Command = &SettingCommand{}
+	var _ Command = &VersionCommand{}
+	var _ Command = &MigrateCommand{}
+	var _ Command = &ResetCommand{}
+}
+
+func TestSettingCommand_Execute(t *testing.T) {
+	mockHandler := &MockHandler{}
+	command := &SettingCommand{Handler: mockHandler}
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	quit := command.Execute(scanner, []string{"randomizeinterval", "true"})
+
+	if quit {
+		t.Error("SettingCommand should not return quit=true")
+	}
+
+	if !mockHandler.settingCalled {
+		t.Error("Handler.HandleSetting should have been called")
+	}
+}
+
+func TestVersionCommand_Execute(t *testing.T) {
+	mockHandler := &MockHandler{}
+	command := &VersionCommand{Handler: mockHandler}
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	quit := command.Execute(scanner, []string{})
+
+	if quit {
+		t.Error("VersionCommand should not return quit=true")
+	}
+
+	if !mockHandler.versionCalled {
+		t.Error("Handler.HandleVersion should have been called")
+	}
+}
+
+func TestMigrateCommand_Execute(t *testing.T) {
+	mockHandler := &MockHandler{}
+	command := &MigrateCommand{Handler: mockHandler}
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	quit := command.Execute(scanner, []string{})
+
+	if quit {
+		t.Error("MigrateCommand should not return quit=true")
+	}
+
+	if !mockHandler.migrateCalled {
+		t.Error("Handler.HandleMigrate should have been called")
+	}
+}
+
+func TestResetCommand_Execute(t *testing.T) {
+	mockHandler := &MockHandler{}
+	command := &ResetCommand{Handler: mockHandler}
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	quit := command.Execute(scanner, []string{})
+
+	if quit {
+		t.Error("ResetCommand should not return quit=true")
+	}
+
+	if !mockHandler.resetCalled {
+		t.Error("Handler.HandleReset should have been called")
+	}
 }

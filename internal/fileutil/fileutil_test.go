@@ -388,3 +388,44 @@ func TestJSONFileUtil_Interface_Compliance(t *testing.T) {
 		t.Errorf("Interface data mismatch. Expected: %+v, Got: %+v", testData, loadedData)
 	}
 }
+
+func TestJSONFileUtil_Delete_ExistingFile(t *testing.T) {
+	util := NewJSONFileUtil()
+
+	// Create a temporary file
+	tempFile, err := os.CreateTemp("", "test_delete_*.json")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	tempFileName := tempFile.Name()
+	tempFile.Close()
+
+	// Verify file exists
+	if _, err := os.Stat(tempFileName); os.IsNotExist(err) {
+		t.Fatal("Temp file should exist before delete")
+	}
+
+	// Delete the file
+	err = util.Delete(tempFileName)
+	if err != nil {
+		t.Errorf("Delete should not return error for existing file, got: %v", err)
+	}
+
+	// Verify file no longer exists
+	if _, err := os.Stat(tempFileName); !os.IsNotExist(err) {
+		t.Error("File should not exist after delete")
+		os.Remove(tempFileName) // Cleanup in case test fails
+	}
+}
+
+func TestJSONFileUtil_Delete_NonExistentFile(t *testing.T) {
+	util := NewJSONFileUtil()
+
+	// Try to delete a non-existent file
+	err := util.Delete("/path/that/does/not/exist/file.json")
+
+	// Should not return an error for non-existent files
+	if err != nil {
+		t.Errorf("Delete should not return error for non-existent file, got: %v", err)
+	}
+}

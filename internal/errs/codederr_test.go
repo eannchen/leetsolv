@@ -173,3 +173,93 @@ func TestCodedError_WithNilError(t *testing.T) {
 	_ = codedErr.UserMessage()
 	_ = codedErr.Unwrap()
 }
+
+func TestCodedError_Error_AllBranches(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      *CodedError
+		expected string
+	}{
+		{
+			name: "with TechnicalMsg and Err",
+			err: &CodedError{
+				Err:          errors.New("original"),
+				Kind:         SystemErrorKind,
+				TechnicalMsg: "tech msg",
+			},
+			expected: "SYSTEM ERROR: tech msg (original)",
+		},
+		{
+			name: "with TechnicalMsg but no Err",
+			err: &CodedError{
+				Err:          nil,
+				Kind:         SystemErrorKind,
+				TechnicalMsg: "tech msg",
+			},
+			expected: "SYSTEM ERROR: tech msg",
+		},
+		{
+			name: "with Err but no TechnicalMsg",
+			err: &CodedError{
+				Err:  errors.New("original"),
+				Kind: BusinessErrorKind,
+			},
+			expected: "BUSINESS ERROR: original",
+		},
+		{
+			name: "with neither Err nor TechnicalMsg",
+			err: &CodedError{
+				Kind: ValidationErrorKind,
+			},
+			expected: "VALIDATION ERROR",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.err.Error(); got != tt.expected {
+				t.Errorf("Error() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestCodedError_UserMessage_AllBranches(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      *CodedError
+		expected string
+	}{
+		{
+			name: "with UserMsg",
+			err: &CodedError{
+				UserMsg: "user message",
+				Kind:    ValidationErrorKind,
+			},
+			expected: "user message",
+		},
+		{
+			name: "no UserMsg but has Err",
+			err: &CodedError{
+				Err:  errors.New("fallback error"),
+				Kind: BusinessErrorKind,
+			},
+			expected: "fallback error",
+		},
+		{
+			name: "no UserMsg and no Err",
+			err: &CodedError{
+				Kind: SystemErrorKind,
+			},
+			expected: "SYSTEM ERROR",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.err.UserMessage(); got != tt.expected {
+				t.Errorf("UserMessage() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}

@@ -32,6 +32,42 @@ func (m *MockClock) AddDays(t time.Time, days int) time.Time {
 	return t.AddDate(0, 0, days)
 }
 
+func TestRandImplementations(t *testing.T) {
+	t.Run("DefaultRand returns value in range", func(t *testing.T) {
+		rand := DefaultRand{}
+		for i := 0; i < 100; i++ {
+			result := rand.IntN(10)
+			if result < 0 || result >= 10 {
+				t.Errorf("DefaultRand.IntN(10) returned %d, expected 0-9", result)
+			}
+		}
+	})
+
+	t.Run("FixedRand returns fixed value", func(t *testing.T) {
+		rand := FixedRand{Value: 5}
+		for i := 0; i < 10; i++ {
+			result := rand.IntN(100)
+			if result != 5 {
+				t.Errorf("FixedRand.IntN() returned %d, expected 5", result)
+			}
+		}
+	})
+}
+
+func TestNewSM2Scheduler_Default(t *testing.T) {
+	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
+	_, cfg := config.MockEnv(t)
+	// Test the default constructor (uses DefaultRand)
+	scheduler := NewSM2Scheduler(cfg, mockClock)
+
+	if scheduler.Clock != mockClock {
+		t.Error("Expected Clock to be set")
+	}
+	if scheduler.Rand == nil {
+		t.Error("Expected Rand to be set")
+	}
+}
+
 func TestNewSM2Scheduler(t *testing.T) {
 	mockClock := NewMockClock(time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC))
 	_, cfg := config.MockEnv(t)
