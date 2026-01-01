@@ -624,7 +624,7 @@ func (h *HandlerImpl) HandleMigrate(scanner *bufio.Scanner) {
 	h.IO.Println("This is recommended if you upgraded from a version (v1.0.5 or earlier) that used local timezone.")
 	h.IO.Println("")
 
-	confirm := h.IO.ReadLine(scanner, "Proceed with migration? (y/n): ")
+	confirm := h.IO.ReadLine(scanner, "Proceed with migration? [y/N]: ")
 	if confirm != "y" && confirm != "Y" {
 		h.IO.PrintCancel("Migration cancelled.")
 		return
@@ -647,7 +647,7 @@ func (h *HandlerImpl) HandleReset(scanner *bufio.Scanner) {
 	h.IO.PrintlnColored(ColorWarning, "This action cannot be undone.")
 	h.IO.Println("")
 
-	confirm := h.IO.ReadLine(scanner, "Type 'yes' to confirm: ")
+	confirm := h.IO.ReadLine(scanner, "Type 'yes' to confirm (any other input cancels): ")
 	if confirm != "yes" {
 		h.IO.PrintCancel("Reset cancelled.")
 		h.IO.Printf("\n")
