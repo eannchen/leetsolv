@@ -13,25 +13,28 @@ import (
 	"github.com/eannchen/leetsolv/storage"
 )
 
+// Fixed test time for deterministic tests
+var testTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // setupTestEnvironment creates a test environment with temporary files
 func setupTestEnvironment(t *testing.T) (*config.TestConfig, *QuestionUseCaseImpl) {
 	// Create test configuration with temporary files
 	testConfig, cfg := config.MockEnv(t)
 
-	// Create mock clock
-	mockClock := clock.NewClock()
+	// Use mock clock with fixed time for deterministic tests
+	mockClock := clock.NewMockClock(testTime)
 
 	// Create storage with test files
 	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
 
-	// Create scheduler
-	scheduler := core.NewSM2Scheduler(cfg, mockClock)
+	// Create scheduler with fixed random for deterministic tests
+	scheduler := core.NewSM2SchedulerWithRand(cfg, mockClock, core.FixedRand{Value: 1})
 
-	// Create logger
-	logger := logger.NewLogger(testConfig.InfoLogFile, testConfig.ErrorLogFile)
+	// Initialize no-op logger for tests (no file I/O)
+	logger.InitNop()
 
 	// Create use case
-	useCase := NewQuestionUseCase(cfg, logger, storage, scheduler, mockClock)
+	useCase := NewQuestionUseCase(cfg, storage, scheduler, mockClock)
 
 	return testConfig, useCase
 }
@@ -44,11 +47,11 @@ func createTestQuestion(id int, url string) *core.Question {
 		Note:         "Test question",
 		Familiarity:  core.Medium,
 		Importance:   core.MediumImportance,
-		LastReviewed: time.Now(),
-		NextReview:   time.Now().Add(24 * time.Hour),
+		LastReviewed: testTime,
+		NextReview:   testTime.AddDate(0, 0, 1),
 		ReviewCount:  0,
 		EaseFactor:   2.5,
-		CreatedAt:    time.Now(),
+		CreatedAt:    testTime,
 	}
 }
 
@@ -213,10 +216,9 @@ func TestQuestionUseCase_ListQuestionsSummary(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
 	// Create test questions with different review dates
-	// Use UTC to match the Clock implementation
-	now := time.Now().UTC()
-	tomorrow := now.AddDate(0, 0, 1)   // Add 1 calendar day
-	yesterday := now.AddDate(0, 0, -1) // Subtract 1 calendar day
+	// Use testTime to match the MockClock
+	tomorrow := testTime.AddDate(0, 0, 1)   // Add 1 calendar day
+	yesterday := testTime.AddDate(0, 0, -1) // Subtract 1 calendar day
 
 	dueQuestion := createTestQuestion(1, "https://leetcode.com/problems/due")
 	dueQuestion.NextReview = yesterday
@@ -586,28 +588,26 @@ func TestQuestionUseCase_LargeDataSet(t *testing.T) {
 func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
-	// Add a question with different familiarity levels
-	testCases := []struct {
-		familiarity core.Familiarity
-		expected    string
-	}{
-		{core.VeryHard, "Expected very hard question to be scheduled"},
-		{core.Hard, "Expected hard question to be scheduled"},
-		{core.Medium, "Expected medium question to be scheduled"},
-		{core.Easy, "Expected easy question to be scheduled"},
-		{core.VeryEasy, "Expected very easy question to be scheduled"},
+	// Test that questions with different familiarity levels are scheduled correctly
+	familiarityLevels := []core.Familiarity{
+		core.VeryHard,
+		core.Hard,
+		core.Medium,
+		core.Easy,
+		core.VeryEasy,
 	}
 
-	for i, tc := range testCases {
+	for i, familiarity := range familiarityLevels {
 		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
-		delta, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance, core.MemoryReasoned)
+		delta, err := useCase.UpsertQuestion(url, "test", familiarity, core.MediumImportance, core.MemoryReasoned)
 		if err != nil {
-			t.Fatalf("Failed to add question with familiarity %d: %v", tc.familiarity, err)
+			t.Fatalf("Failed to add question with familiarity %d: %v", familiarity, err)
 		}
 
-		// Verify the question was scheduled
-		if delta.NewState.NextReview.Before(time.Now()) {
-			t.Errorf("Expected question to be scheduled in the future, got %v", delta.NewState.NextReview)
+		// Verify the question was scheduled in the future relative to testTime
+		if delta.NewState.NextReview.Before(testTime) {
+			t.Errorf("Familiarity %d: expected NextReview after %v, got %v",
+				familiarity, testTime, delta.NewState.NextReview)
 		}
 
 		// Clean up for next test
@@ -615,5 +615,275 @@ func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to delete question: %v", err)
 		}
+	}
+}
+
+func TestQuestionUseCase_GetHistory(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Initially, history should be empty or return error
+	history, err := useCase.GetHistory()
+	if err != nil {
+		t.Fatalf("Failed to get history: %v", err)
+	}
+	if len(history) != 0 {
+		t.Errorf("Expected empty history, got %d items", len(history))
+	}
+
+	// Add a question
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test1", "note1", core.Medium, core.MediumImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// History should now have 1 entry
+	history, err = useCase.GetHistory()
+	if err != nil {
+		t.Fatalf("Failed to get history: %v", err)
+	}
+	if len(history) != 1 {
+		t.Errorf("Expected 1 history entry, got %d", len(history))
+	}
+	if history[0].Action != core.ActionAdd {
+		t.Errorf("Expected action Add, got %v", history[0].Action)
+	}
+
+	// Update the question
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test1", "note2", core.Easy, core.HighImportance, core.MemoryPartial)
+	if err != nil {
+		t.Fatalf("Failed to update question: %v", err)
+	}
+
+	// History should have 2 entries, most recent first
+	history, err = useCase.GetHistory()
+	if err != nil {
+		t.Fatalf("Failed to get history: %v", err)
+	}
+	if len(history) != 2 {
+		t.Errorf("Expected 2 history entries, got %d", len(history))
+	}
+	if history[0].Action != core.ActionUpdate {
+		t.Errorf("Expected most recent action to be Update, got %v", history[0].Action)
+	}
+}
+
+func TestQuestionUseCase_SearchQuestions_WithImportanceFilter(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions with different importance levels
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/low", "low importance", core.Medium, core.LowImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add low importance question: %v", err)
+	}
+
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/high", "high importance", core.Medium, core.HighImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add high importance question: %v", err)
+	}
+
+	// Search with importance filter
+	importance := core.HighImportance
+	filter := &core.SearchFilter{Importance: &importance}
+	results, err := useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Failed to search: %v", err)
+	}
+
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result, got %d", len(results))
+	}
+	if len(results) > 0 && results[0].Importance != core.HighImportance {
+		t.Errorf("Expected HighImportance, got %v", results[0].Importance)
+	}
+}
+
+func TestQuestionUseCase_SearchQuestions_WithDueOnlyFilter(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add a question (will be scheduled in the future, so not due)
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/future", "future question", core.Medium, core.MediumImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Search with DueOnly filter - should find nothing since question is scheduled for future
+	filter := &core.SearchFilter{DueOnly: true}
+	results, err := useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Failed to search: %v", err)
+	}
+
+	// New questions are scheduled in the future, so DueOnly should return 0
+	if len(results) != 0 {
+		t.Errorf("Expected 0 due results, got %d", len(results))
+	}
+
+	// Search without filter should return 1
+	results, err = useCase.SearchQuestions([]string{}, nil)
+	if err != nil {
+		t.Fatalf("Failed to search: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result without filter, got %d", len(results))
+	}
+}
+
+func TestQuestionUseCase_ListQuestionsOrderByDesc_Ordering(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions in order
+	for i := 0; i < 5; i++ {
+		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
+		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
+		if err != nil {
+			t.Fatalf("Failed to add question: %v", err)
+		}
+	}
+
+	// Get questions ordered by ID desc
+	questions, err := useCase.ListQuestionsOrderByDesc()
+	if err != nil {
+		t.Fatalf("Failed to list questions: %v", err)
+	}
+
+	if len(questions) != 5 {
+		t.Fatalf("Expected 5 questions, got %d", len(questions))
+	}
+
+	// Verify ordering (highest ID first)
+	for i := 0; i < len(questions)-1; i++ {
+		if questions[i].ID <= questions[i+1].ID {
+			t.Errorf("Questions not in descending order: ID %d should be > ID %d",
+				questions[i].ID, questions[i+1].ID)
+		}
+	}
+}
+
+func TestQuestionUseCase_GetSettings(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// GetSettings is a no-op, just verify it doesn't return an error
+	err := useCase.GetSettings()
+	if err != nil {
+		t.Errorf("GetSettings should not return error, got: %v", err)
+	}
+}
+
+func TestQuestionUseCase_UpdateSetting(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Test updating a valid setting
+	originalOverdueLimit := useCase.cfg.OverdueLimit
+	err := useCase.UpdateSetting("overduelimit", 20)
+	if err != nil {
+		t.Fatalf("Failed to update setting: %v", err)
+	}
+	if useCase.cfg.OverdueLimit != 20 {
+		t.Errorf("Expected OverdueLimit to be 20, got %d", useCase.cfg.OverdueLimit)
+	}
+
+	// Restore original value
+	useCase.cfg.OverdueLimit = originalOverdueLimit
+
+	// Test updating an unknown setting
+	err = useCase.UpdateSetting("unknownsetting", 123)
+	if err == nil {
+		t.Error("Expected error for unknown setting")
+	}
+}
+
+func TestQuestionUseCase_MigrateToUTC(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Create a question with non-UTC times
+	localTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.FixedZone("EST", -5*60*60))
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Manually set non-UTC times to simulate old data
+	store, err := useCase.Storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store: %v", err)
+	}
+	for _, q := range store.Questions {
+		q.LastReviewed = localTime
+		q.NextReview = localTime.Add(24 * time.Hour)
+		q.CreatedAt = localTime
+	}
+	if err := useCase.Storage.SaveQuestionStore(store); err != nil {
+		t.Fatalf("Failed to save store: %v", err)
+	}
+
+	// Migrate to UTC
+	questionsCount, deltasCount, err := useCase.MigrateToUTC()
+	if err != nil {
+		t.Fatalf("Failed to migrate: %v", err)
+	}
+
+	if questionsCount != 1 {
+		t.Errorf("Expected 1 question migrated, got %d", questionsCount)
+	}
+	if deltasCount < 1 {
+		t.Errorf("Expected at least 1 delta migrated, got %d", deltasCount)
+	}
+
+	// Verify times are now UTC
+	store, err = useCase.Storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to reload store: %v", err)
+	}
+	for _, q := range store.Questions {
+		if q.LastReviewed.Location() != time.UTC {
+			t.Errorf("Expected LastReviewed to be UTC, got %v", q.LastReviewed.Location())
+		}
+		if q.CreatedAt.Location() != time.UTC {
+			t.Errorf("Expected CreatedAt to be UTC, got %v", q.CreatedAt.Location())
+		}
+	}
+}
+
+func TestQuestionUseCase_ResetData(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add some data first
+	for i := 0; i < 3; i++ {
+		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
+		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
+		if err != nil {
+			t.Fatalf("Failed to add question: %v", err)
+		}
+	}
+
+	// Verify data exists
+	summary, err := useCase.ListQuestionsSummary()
+	if err != nil {
+		t.Fatalf("Failed to get summary: %v", err)
+	}
+	if summary.Total != 3 {
+		t.Errorf("Expected 3 questions before reset, got %d", summary.Total)
+	}
+
+	// Reset data
+	questionsCount, deltasCount, err := useCase.ResetData()
+	if err != nil {
+		t.Fatalf("Failed to reset data: %v", err)
+	}
+
+	if questionsCount != 3 {
+		t.Errorf("Expected 3 questions deleted, got %d", questionsCount)
+	}
+	if deltasCount < 3 {
+		t.Errorf("Expected at least 3 deltas deleted, got %d", deltasCount)
+	}
+
+	// Verify data is gone
+	summary, err = useCase.ListQuestionsSummary()
+	if err != nil {
+		t.Fatalf("Failed to get summary after reset: %v", err)
+	}
+	if summary.Total != 0 {
+		t.Errorf("Expected 0 questions after reset, got %d", summary.Total)
 	}
 }

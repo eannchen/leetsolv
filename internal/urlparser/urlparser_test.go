@@ -269,6 +269,11 @@ func TestParse_ErrorTypes(t *testing.T) {
 			input:       "https://hackerrank.com/challenges/",
 			expectedErr: errs.ErrInvalidProblemURLFormat,
 		},
+		{
+			name:        "malformed URL with invalid scheme returns ErrInvalidURLFormat",
+			input:       "://no-scheme",
+			expectedErr: errs.ErrInvalidURLFormat,
+		},
 	}
 
 	for _, tc := range testCases {

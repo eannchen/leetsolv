@@ -11,14 +11,18 @@ import (
 	"github.com/eannchen/leetsolv/storage"
 )
 
+// Fixed integration test time for deterministic tests
+var integrationTestTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // setupIntegrationTest creates a complete test environment with real dependencies
 func setupIntegrationTest(t *testing.T) (*QuestionUseCaseImpl, *config.TestConfig) {
 	testConfig, cfg := config.MockEnv(t)
-	mockClock := clock.NewClock()
+	mockClock := clock.NewMockClock(integrationTestTime)
 	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
-	scheduler := core.NewSM2Scheduler(cfg, mockClock)
-	logger := logger.NewLogger(testConfig.InfoLogFile, testConfig.ErrorLogFile)
-	useCase := NewQuestionUseCase(cfg, logger, storage, scheduler, mockClock)
+	// Use fixed random for deterministic tests
+	scheduler := core.NewSM2SchedulerWithRand(cfg, mockClock, core.FixedRand{Value: 1})
+	logger.InitNop()
+	useCase := NewQuestionUseCase(cfg, storage, scheduler, mockClock)
 	return useCase, testConfig
 }
 
@@ -173,10 +177,9 @@ func TestQuestionUseCase_Integration_ListQuestionsSummary(t *testing.T) {
 	useCase, _ := setupIntegrationTest(t)
 
 	// Create test questions with different review dates
-	// Use UTC to match the Clock implementation
-	now := time.Now().UTC()
-	tomorrow := now.AddDate(0, 0, 1)   // Add 1 calendar day
-	yesterday := now.AddDate(0, 0, -1) // Subtract 1 calendar day
+	// Use integrationTestTime to match the MockClock
+	tomorrow := integrationTestTime.AddDate(0, 0, 1)   // Add 1 calendar day
+	yesterday := integrationTestTime.AddDate(0, 0, -1) // Subtract 1 calendar day
 
 	dueQuestion := createTestQuestion(1, "https://leetcode.com/problems/due")
 	dueQuestion.NextReview = yesterday

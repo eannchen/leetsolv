@@ -7,12 +7,10 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/eannchen/leetsolv/config"
 	"github.com/eannchen/leetsolv/core"
 	"github.com/eannchen/leetsolv/internal/errs"
-	"github.com/eannchen/leetsolv/internal/logger"
 	"github.com/eannchen/leetsolv/internal/tokenizer"
 	"github.com/eannchen/leetsolv/internal/urlparser"
 	"github.com/eannchen/leetsolv/usecase"
@@ -39,16 +37,14 @@ type Handler interface {
 
 type HandlerImpl struct {
 	cfg             *config.Config
-	Logger          *logger.Logger
 	QuestionUseCase usecase.QuestionUseCase
 	IO              IOHandler
 	Version         string
 }
 
-func NewHandler(cfg *config.Config, logger *logger.Logger, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler, version string) *HandlerImpl {
+func NewHandler(cfg *config.Config, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler, version string) *HandlerImpl {
 	return &HandlerImpl{
 		cfg:             cfg,
-		Logger:          logger,
 		QuestionUseCase: questionUseCase,
 		IO:              IOHandler,
 		Version:         version,
@@ -476,7 +472,7 @@ func (h *HandlerImpl) HandleHistory() {
 		}
 
 		// Format the time
-		timeDesc := h.formatTimeAgo(delta.CreatedAt)
+		timeDesc := h.IO.FormatTimeAgo(delta.CreatedAt)
 
 		// Print entry. If multiple changes, print them on separate aligned lines.
 		if len(changeList) == 0 {
@@ -595,18 +591,14 @@ func (h *HandlerImpl) HandleQuit() {
 
 // Helper methods for history formatting
 func (h *HandlerImpl) extractQuestionNameFromURL(url string) string {
-	// Extract the question name from LeetCode URL
+	// Extract the problem slug from any supported platform URL
 	// e.g., "https://leetcode.com/problems/two-sum/" -> "two-sum"
-	if strings.Contains(url, "/problems/") {
-		parts := strings.Split(url, "/problems/")
-		if len(parts) > 1 {
-			questionPart := parts[1]
-			// Remove trailing slash if present
-			questionPart = strings.TrimSuffix(questionPart, "/")
-			return questionPart
-		}
+	// e.g., "https://hackerrank.com/challenges/solve-me-first/problem" -> "solve-me-first"
+	parsed, err := urlparser.Parse(url)
+	if err != nil {
+		return "unknown"
 	}
-	return "unknown"
+	return parsed.ProblemSlug
 }
 
 func (h *HandlerImpl) getChanges(oldState, newState *core.Question) []string {
@@ -623,33 +615,6 @@ func (h *HandlerImpl) getChanges(oldState, newState *core.Question) []string {
 	return changes
 }
 
-func (h *HandlerImpl) formatTimeAgo(t time.Time) string {
-	now := time.Now()
-	diff := now.Sub(t)
-
-	if diff < time.Minute {
-		return "just now"
-	} else if diff < time.Hour {
-		minutes := int(diff.Minutes())
-		if minutes == 1 {
-			return "1 minute ago"
-		}
-		return fmt.Sprintf("%d minutes ago", minutes)
-	} else if diff < 24*time.Hour {
-		hours := int(diff.Hours())
-		if hours == 1 {
-			return "1 hour ago"
-		}
-		return fmt.Sprintf("%d hours ago", hours)
-	} else {
-		days := int(diff.Hours() / 24)
-		if days == 1 {
-			return "1 day ago"
-		}
-		return fmt.Sprintf("%d days ago", days)
-	}
-}
-
 func (h *HandlerImpl) HandleVersion() {
 	h.IO.Println(h.Version)
 }
@@ -659,7 +624,7 @@ func (h *HandlerImpl) HandleMigrate(scanner *bufio.Scanner) {
 	h.IO.Println("This is recommended if you upgraded from a version (v1.0.5 or earlier) that used local timezone.")
 	h.IO.Println("")
 
-	confirm := h.IO.ReadLine(scanner, "Proceed with migration? (y/n): ")
+	confirm := h.IO.ReadLine(scanner, "Proceed with migration? [y/N]: ")
 	if confirm != "y" && confirm != "Y" {
 		h.IO.PrintCancel("Migration cancelled.")
 		return
@@ -682,7 +647,7 @@ func (h *HandlerImpl) HandleReset(scanner *bufio.Scanner) {
 	h.IO.PrintlnColored(ColorWarning, "This action cannot be undone.")
 	h.IO.Println("")
 
-	confirm := h.IO.ReadLine(scanner, "Type 'yes' to confirm: ")
+	confirm := h.IO.ReadLine(scanner, "Type 'yes' to confirm (any other input cancels): ")
 	if confirm != "yes" {
 		h.IO.PrintCancel("Reset cancelled.")
 		h.IO.Printf("\n")

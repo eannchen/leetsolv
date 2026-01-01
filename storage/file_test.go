@@ -12,6 +12,9 @@ import (
 	"github.com/eannchen/leetsolv/internal/search"
 )
 
+// Fixed test time for deterministic tests
+var testTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // setupTestStorage creates a test storage with temporary files
 func setupTestStorage(t *testing.T) (*FileStorage, *config.TestConfig) {
 	testConfig, _ := config.MockEnv(t)
@@ -28,11 +31,11 @@ func createTestQuestion(id int, url string) *core.Question {
 		Note:         "Test question",
 		Familiarity:  core.Medium,
 		Importance:   core.MediumImportance,
-		LastReviewed: time.Now(),
-		NextReview:   time.Now().Add(24 * time.Hour),
+		LastReviewed: testTime,
+		NextReview:   testTime.Add(24 * time.Hour),
 		ReviewCount:  0,
 		EaseFactor:   2.5,
-		CreatedAt:    time.Now(),
+		CreatedAt:    testTime,
 	}
 }
 
@@ -158,14 +161,14 @@ func TestFileStorage_SaveAndLoadDeltas(t *testing.T) {
 			QuestionID: 1,
 			OldState:   nil,
 			NewState:   question1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 		{
 			Action:     core.ActionUpdate,
 			QuestionID: 1,
 			OldState:   question1,
 			NewState:   question2,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 	}
 
@@ -421,7 +424,7 @@ func TestFileStorage_DeltaLimitHandling(t *testing.T) {
 		deltas[i] = core.Delta{
 			Action:     core.ActionAdd,
 			QuestionID: i,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		}
 	}
 
@@ -608,7 +611,7 @@ func TestFileStorage_DeltasCacheUpdateOnSave(t *testing.T) {
 		{
 			Action:     core.ActionAdd,
 			QuestionID: 1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 	}
 
@@ -628,12 +631,12 @@ func TestFileStorage_DeltasCacheUpdateOnSave(t *testing.T) {
 		{
 			Action:     core.ActionAdd,
 			QuestionID: 1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 		{
 			Action:     core.ActionUpdate,
 			QuestionID: 1,
-			CreatedAt:  time.Now(),
+			CreatedAt:  testTime,
 		},
 	}
 
@@ -786,5 +789,67 @@ func TestFileStorage_CacheWithFileModification(t *testing.T) {
 
 	if loadedStore.MaxID != 999 {
 		t.Errorf("Expected MaxID 999 after cache invalidation, got %d", loadedStore.MaxID)
+	}
+}
+
+func TestFileStorage_DeleteAllData(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Create and save some data first
+	store := &QuestionStore{
+		MaxID:     3,
+		Questions: map[int]*core.Question{1: createTestQuestion(1, "test1"), 2: createTestQuestion(2, "test2")},
+		URLIndex:  map[string]int{"test1": 1, "test2": 2},
+		URLTrie:   search.NewTrie(3),
+		NoteTrie:  search.NewTrie(3),
+	}
+	if err := storage.SaveQuestionStore(store); err != nil {
+		t.Fatalf("Failed to save question store: %v", err)
+	}
+
+	deltas := []core.Delta{
+		{Action: core.ActionAdd, QuestionID: 1, CreatedAt: testTime, NewState: createTestQuestion(1, "test1")},
+	}
+	if err := storage.SaveDeltas(deltas); err != nil {
+		t.Fatalf("Failed to save deltas: %v", err)
+	}
+
+	// Verify data exists
+	loadedStore, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store: %v", err)
+	}
+	if len(loadedStore.Questions) != 2 {
+		t.Errorf("Expected 2 questions before delete, got %d", len(loadedStore.Questions))
+	}
+
+	loadedDeltas, err := storage.LoadDeltas()
+	if err != nil {
+		t.Fatalf("Failed to load deltas: %v", err)
+	}
+	if len(loadedDeltas) != 1 {
+		t.Errorf("Expected 1 delta before delete, got %d", len(loadedDeltas))
+	}
+
+	// Delete all data
+	if err := storage.DeleteAllData(); err != nil {
+		t.Fatalf("Failed to delete all data: %v", err)
+	}
+
+	// Verify cache is cleared and new load returns empty data
+	loadedStore, err = storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store after delete: %v", err)
+	}
+	if len(loadedStore.Questions) != 0 {
+		t.Errorf("Expected 0 questions after delete, got %d", len(loadedStore.Questions))
+	}
+
+	loadedDeltas, err = storage.LoadDeltas()
+	if err != nil {
+		t.Fatalf("Failed to load deltas after delete: %v", err)
+	}
+	if len(loadedDeltas) != 0 {
+		t.Errorf("Expected 0 deltas after delete, got %d", len(loadedDeltas))
 	}
 }

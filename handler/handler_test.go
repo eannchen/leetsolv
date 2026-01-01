@@ -17,6 +17,9 @@ import (
 	"github.com/eannchen/leetsolv/usecase"
 )
 
+// Fixed test time for deterministic tests
+var testTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // MockIOHandler implements IOHandler for testing
 type MockIOHandler struct {
 	output     *bytes.Buffer
@@ -98,6 +101,11 @@ func (m *MockIOHandler) PrintError(err error) {
 func (m *MockIOHandler) PrintCancel(message string) {
 	m.writeCalls = append(m.writeCalls, "PrintCancel")
 	m.output.WriteString(fmt.Sprintf("CANCELLED: %s\n", message))
+}
+
+func (m *MockIOHandler) FormatTimeAgo(t time.Time) string {
+	// Return a fixed string for deterministic testing
+	return "just now"
 }
 
 // MockQuestionUseCase implements QuestionUseCase for testing
@@ -219,7 +227,7 @@ func (m *MockQuestionUseCase) GetHistory() ([]core.Delta, error) {
 				ID:  1,
 				URL: "https://leetcode.com/problems/test-question/",
 			},
-			CreatedAt: time.Now(),
+			CreatedAt: testTime,
 		},
 	}, nil
 }
@@ -255,10 +263,10 @@ func (m *MockQuestionUseCase) ResetData() (int, int, error) {
 // setupTestHandler creates a test handler with mocked dependencies
 func setupTestHandler(t *testing.T) (*HandlerImpl, *MockIOHandler, *MockQuestionUseCase) {
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	logger.InitNop()
 	mockIO := NewMockIOHandler("")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 	return handler, mockIO, mockUseCase
 }
 
@@ -293,13 +301,13 @@ func TestHandler_HandleList_WithQuestions(t *testing.T) {
 			ID:         1,
 			URL:        "https://leetcode.com/problems/test1",
 			Note:       "Test question 1",
-			NextReview: time.Now(),
+			NextReview: testTime,
 		},
 		{
 			ID:         2,
 			URL:        "https://leetcode.com/problems/test2",
 			Note:       "Test question 2",
-			NextReview: time.Now(),
+			NextReview: testTime,
 		},
 	}
 
@@ -402,7 +410,7 @@ func TestHandler_HandleGet_Success(t *testing.T) {
 		ID:         1,
 		URL:        "https://leetcode.com/problems/test",
 		Note:       "Test question",
-		NextReview: time.Now(),
+		NextReview: testTime,
 	}
 	mockUseCase.questions = []core.Question{testQuestion}
 
@@ -531,8 +539,8 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n3\n1\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -547,7 +555,7 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 		QuestionID: upsertedQuestion.ID,
 		OldState:   nil,
 		NewState:   upsertedQuestion,
-		CreatedAt:  time.Now(),
+		CreatedAt:  testTime,
 	}
 
 	// Test the URL normalization directly first
@@ -690,8 +698,8 @@ func TestHandler_HandleUpsert_NoMemoryPromptForVeryHardFamiliarity(t *testing.T)
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n1\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -706,7 +714,7 @@ func TestHandler_HandleUpsert_NoMemoryPromptForVeryHardFamiliarity(t *testing.T)
 		QuestionID: upsertedQuestion.ID,
 		OldState:   nil,
 		NewState:   upsertedQuestion,
-		CreatedAt:  time.Now(),
+		CreatedAt:  testTime,
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -740,8 +748,8 @@ func TestHandler_HandleUpsert_NoMemoryPromptForHardFamiliarity(t *testing.T) {
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n2\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -756,7 +764,7 @@ func TestHandler_HandleUpsert_NoMemoryPromptForHardFamiliarity(t *testing.T) {
 		QuestionID: upsertedQuestion.ID,
 		OldState:   nil,
 		NewState:   upsertedQuestion,
-		CreatedAt:  time.Now(),
+		CreatedAt:  testTime,
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -789,8 +797,8 @@ func TestHandler_HandleDelete_Success(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful deletion
 	deletedQuestion := &core.Question{
@@ -862,8 +870,8 @@ func TestHandler_HandleDelete_UseCaseError(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up use case error
 	mockUseCase.shouldError = true
@@ -891,8 +899,8 @@ func TestHandler_HandleUndo_Success(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Simulate user confirmation
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -916,8 +924,8 @@ func TestHandler_HandleUndo_Error(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up error
 	mockUseCase.shouldError = true
@@ -1312,5 +1320,266 @@ func TestHandler_GetQuestionsPage(t *testing.T) {
 
 	if totalPages != 0 {
 		t.Errorf("Expected 0 total pages for empty questions, got %d", totalPages)
+	}
+}
+
+func TestHandler_HandleVersion(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	handler.HandleVersion()
+
+	output := mockIO.output.String()
+	if !strings.Contains(output, "test-version") {
+		t.Errorf("Expected output to contain version, got: %s", output)
+	}
+}
+
+func TestHandler_GetChanges(t *testing.T) {
+	handler, _, _ := setupTestHandler(t)
+
+	tests := []struct {
+		name     string
+		oldState *core.Question
+		newState *core.Question
+		expected []string
+	}{
+		{
+			name: "no changes",
+			oldState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.MediumImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.MediumImportance,
+			},
+			expected: nil,
+		},
+		{
+			name: "importance changed",
+			oldState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.LowImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.Medium,
+				Importance:  core.HighImportance,
+			},
+			expected: []string{"Importance: 1 → 3"},
+		},
+		{
+			name: "familiarity changed",
+			oldState: &core.Question{
+				Familiarity: core.Hard,
+				Importance:  core.MediumImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.Easy,
+				Importance:  core.MediumImportance,
+			},
+			expected: []string{"Familiarity: 2 → 4"},
+		},
+		{
+			name: "both changed",
+			oldState: &core.Question{
+				Familiarity: core.VeryHard,
+				Importance:  core.LowImportance,
+			},
+			newState: &core.Question{
+				Familiarity: core.VeryEasy,
+				Importance:  core.CriticalImportance,
+			},
+			expected: []string{"Importance: 1 → 4", "Familiarity: 1 → 5"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			changes := handler.getChanges(tt.oldState, tt.newState)
+
+			if len(changes) != len(tt.expected) {
+				t.Errorf("Expected %d changes, got %d", len(tt.expected), len(changes))
+				return
+			}
+
+			for i, expected := range tt.expected {
+				if changes[i] != expected {
+					t.Errorf("Expected change %q, got %q", expected, changes[i])
+				}
+			}
+		})
+	}
+}
+
+func TestHandler_HandleMigrate_Success(t *testing.T) {
+	mockIO := NewMockIOHandler("y") // User confirms
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("y\n"))
+	handler.HandleMigrate(scanner)
+
+	// Check that success message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintSuccess" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintSuccess to be called after migration")
+	}
+}
+
+func TestHandler_HandleMigrate_Cancelled(t *testing.T) {
+	mockIO := NewMockIOHandler("n") // User cancels
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("n\n"))
+	handler.HandleMigrate(scanner)
+
+	// Check that cancel message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintCancel" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintCancel to be called when migration is cancelled")
+	}
+}
+
+func TestHandler_HandleReset_Success(t *testing.T) {
+	mockIO := NewMockIOHandler("yes") // User confirms with 'yes'
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("yes\n"))
+	handler.HandleReset(scanner)
+
+	// Check that success message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintSuccess" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintSuccess to be called after reset")
+	}
+}
+
+func TestHandler_HandleReset_Cancelled(t *testing.T) {
+	mockIO := NewMockIOHandler("no") // User doesn't type 'yes'
+	mockUseCase := NewMockQuestionUseCase()
+	_, cfg := config.MockEnv(t)
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
+
+	scanner := bufio.NewScanner(strings.NewReader("no\n"))
+	handler.HandleReset(scanner)
+
+	// Check that cancel message was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintCancel" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintCancel to be called when reset is cancelled")
+	}
+}
+
+func TestHandler_HandleSetting_ShowSettings(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleSetting(scanner, []string{}) // No args - show settings
+
+	// Should print settings
+	if len(mockIO.writeCalls) == 0 {
+		t.Error("Expected output when showing settings")
+	}
+}
+
+func TestHandler_HandleSetting_InvalidUsage(t *testing.T) {
+	handler, mockIO, _ := setupTestHandler(t)
+
+	scanner := bufio.NewScanner(strings.NewReader(""))
+	handler.HandleSetting(scanner, []string{"OnlySetting"}) // Only 1 arg - invalid
+
+	// Check that error was printed
+	found := false
+	for _, call := range mockIO.writeCalls {
+		if call == "PrintError" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected PrintError for invalid usage")
+	}
+}
+
+func TestHandler_ExtractQuestionNameFromURL(t *testing.T) {
+	handler, _, _ := setupTestHandler(t)
+
+	tests := []struct {
+		name     string
+		url      string
+		expected string
+	}{
+		{
+			name:     "LeetCode URL",
+			url:      "https://leetcode.com/problems/two-sum/",
+			expected: "two-sum",
+		},
+		{
+			name:     "LeetCode URL without trailing slash",
+			url:      "https://leetcode.com/problems/add-two-numbers",
+			expected: "add-two-numbers",
+		},
+		{
+			name:     "HackerRank URL",
+			url:      "https://hackerrank.com/challenges/solve-me-first/problem",
+			expected: "solve-me-first",
+		},
+		{
+			name:     "HackerRank URL with www",
+			url:      "https://www.hackerrank.com/challenges/simple-array-sum/problem",
+			expected: "simple-array-sum",
+		},
+		{
+			name:     "invalid URL",
+			url:      "https://example.com/something",
+			expected: "unknown",
+		},
+		{
+			name:     "empty URL",
+			url:      "",
+			expected: "unknown",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := handler.extractQuestionNameFromURL(tt.url)
+			if result != tt.expected {
+				t.Errorf("extractQuestionNameFromURL(%q) = %q, want %q", tt.url, result, tt.expected)
+			}
+		})
 	}
 }
