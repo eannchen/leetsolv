@@ -1,40 +1,36 @@
 # Motivation & Design Notes
 
-*Author: Ian Chen, Last Update: 2025-08-24*
+*Author: Ian Chen, Last Update: 2026-01-01*
 
-This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project. In the AI "vibe coding" era, I want to show that this project is intentional and serious, not just toy code.
+This document explains why I built LeetSolv, how I adapted the SM-2 algorithm, and what design and efficiency choices went into the project.
 
 - [Motivation \& Design Notes](#motivation--design-notes)
-  - [Motivation](#motivation)
-    - [Zero Dependencies Philosophy](#zero-dependencies-philosophy)
-  - [Why SM-2 Algorithm](#why-sm-2-algorithm)
-    - [Custom Adaptations to SM-2](#custom-adaptations-to-sm-2)
-  - [Data Structures](#data-structures)
-    - [Indexing for Lookup](#indexing-for-lookup)
-    - [Trie for Text Search](#trie-for-text-search)
-    - [Heap for Top-K Problems](#heap-for-top-k-problems)
-    - [Stack for Undo](#stack-for-undo)
-  - [Storage](#storage)
-    - [Atomic File Write](#atomic-file-write)
-    - [Caching](#caching)
-  - [Design Patterns](#design-patterns)
-  - [Closing Note](#closing-note)
+	- [Motivation](#motivation)
+		- [Zero Dependencies Philosophy](#zero-dependencies-philosophy)
+	- [Why SM-2 Algorithm](#why-sm-2-algorithm)
+		- [Custom Adaptations to SM-2](#custom-adaptations-to-sm-2)
+	- [Data Structures](#data-structures)
+		- [Indexing for Lookup](#indexing-for-lookup)
+		- [Trie for Text Search](#trie-for-text-search)
+		- [Heap for Top-K Problems](#heap-for-top-k-problems)
+		- [Stack for Undo](#stack-for-undo)
+	- [Closing Note](#closing-note)
 
 
 ## Motivation
 
-After solving 190+ LeetCode problems, I noticed something missing: my understanding didn’t always stick. I was moving forward but not deepening.
+After solving 190+ LeetCode problems in mid-2025, I noticed something missing: my understanding didn’t always stick. I was moving forward but not deepening.
 
-My old method was starring ⭐️ hard problems, but it wasn’t reliable: some stars became trivial with progression, while other tough problems slipped through. Moreover, "when" to review those problems is also a challenge.
+My old method was starring ⭐️ hard problems, but it wasn’t reliable: some stars became trivial with progression, while other tough problems required more attention. Moreover, "when" to review those problems is also a challenge.
 
-I thought back to my English-learning experience: flashcards and spaced repetition worked well for vocabulary. But DSA isn’t like vocabulary. Memorization isn't the correct way to learn DSA, it requires reasoning, practice, and reviewing concepts in different contexts. I can't just use a software like Anki to review DSA.
+I thought back to my English-learning experience: flashcards and spaced repetition worked well for vocabulary. But DSA isn’t like vocabulary. Memorization isn't the correct way to learn DSA; it requires reasoning, practice, and reviewing concepts in different contexts. I can't just use a software like Anki to review DSA.
 
 So I made LeetSolv to solve my own learning problem: a revision tool that schedules problem reviews like flashcards, but adapts the method for algorithm practice.
 
 
 ### Zero Dependencies Philosophy
 
-On LeetCode, it encourages developers to adapt the fundamentals to solve problems, cultivating developers to be tool makers instead of tool users.
+LeetCode encourages developers to adapt the fundamentals to solve problems, cultivating developers to be tool makers instead of tool users.
 
 Since I am practicing problem-solving, why don't I challenge myself to apply what I’ve learned here? So I gave myself the challenge to build LeetSolv without any dependencies. The tool is not only a revision tool, but also a chance to apply what I’ve learned. To achieve this, even some Go built-in libraries for data structures are not used. Given that, I can even control the subtle details for better time efficiency, e.g., [Heap for Top-K Problems](#heap-for-top-k-problems).
 
@@ -61,14 +57,12 @@ The key customizations are:
 
 Together, these changes shift SM-2 from “memorize facts” toward “practice reasoning.”
 
-See my implementation in [scheduler.go](../core/scheduler.go).
+See the implementation in [scheduler.go](../core/scheduler.go).
 
 
 ## Data Structures
 
-LeetSolv is small. Users might only add hundreds of problems, far below where efficiency actually matters. But I treated this project as a chance to apply what I’ve learned — to write efficient structures and think about time complexity in a real project, not just in interview problems.
-
-Interestingly, AI models (in 2025) often suggested workable but inefficient solutions unless I explicitly point to improve efficiency. (e.g. linear scans with `O(n)` or `O(n * m)` time complexity instead of indexing or using more complex data structures). **I confirmed that learning data structures and algorithms is still essential.**
+LeetSolv is small. Users might only add hundreds of problems, far below where efficiency actually matters. But I treated this project as a chance to apply what I've learned — to write efficient structures and think about time complexity in a real project, not just in interview problems.
 
 ### Indexing for Lookup
 
@@ -91,25 +85,7 @@ Users should be able to search problems by both ID and URL. It provides `average
 
 ### Trie for Text Search
 
-In linear scans, it takes `O(n * m)` time to search, where `n` is the number of strings in the dataset and `m` is the average length of a string.
-
-```go
-// search linearly through a dataset.
-// Complexity: O(n * m)
-// - n: number of strings in the dataset
-// - m: average length of a string
-func linearSearch(dataset []string, pattern string) []string {
-	var results []string
-
-	for _, item := range dataset {
-		if strings.Contains(item, pattern) {
-			results = append(results, item)
-		}
-	}
-
-	return results
-}
-```
+Linear scans take `O(n * m)` time, where `n` is the number of strings and `m` is the average string length.
 
 By implementing a trie, search time drops to `O(L)`, where `L` is just the length of the search query itself. The key win here is that search performance is now **completely independent of the dataset size**. Whether I have 100 problems or 10,000, the search takes the same amount of time.
 
@@ -137,8 +113,6 @@ By implementing a trie, search time drops to `O(L)`, where `L` is just the lengt
 
 ```go
 func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
 
 	if prefix == "" {
 		idsCopy := make(map[int]struct{}, len(t.Root.IDs))
@@ -167,9 +141,8 @@ func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
 	return idsCopy
 }
 ```
-> *The app is single-threaded, so a race condition is impossible. But I kept the mutex around for ever features like a background process are added.*
 
-See my implementation in [trie.go](../internal/search/trie.go).
+See the implementation in [trie.go](../internal/search/trie.go).
 
 There’s a trade-off: a trie only supports prefix search, not fuzzy search. But I chose it because I fully understand it and wanted to avoid external libraries.
 
@@ -233,12 +206,12 @@ func (h *TopKMinHeap) Push(item HeapItem) {
 }
 ```
 
-See my implementation in [priority_heap.go](../internal/rank/priority_heap.go).
+See the implementation in [priority_heap.go](../internal/rank/priority_heap.go).
 
 
 ### Stack for Undo
 
-Stack is a natural choice for tracking a history owning to its LIFO behavior. Every change whether it's an `add`, `update`, or `delete` is captured in a `Delta` object. It is clean, efficient, and requires no external libraries.
+Stack is a natural choice for tracking a history owing to its LIFO behavior. Every change whether it's an `add`, `update`, or `delete` is captured in a `Delta` object. It is clean, efficient, and requires no external libraries.
 
 ```go
 type Delta struct {
@@ -248,78 +221,6 @@ type Delta struct {
     NewState   *Question  `json:"new_state"` // The question's state after the change
 }
 ```
-
-## Storage
-
-The system stores data in files to achieve the project's zero dependencies philosophy.
-
-### Atomic File Write
-
-As [README](../README.md) mentions, all updates use temporary files with atomic replacement to guarantee consistency and prevent data loss.
-
-```mermaid
-graph LR
-    A[Write New Data] -->|To| B[Temporary File]
-    B --> C[Rename Temporary File]
-    C -->|Replaces| D[Original File]
-```
-
-See my implementation in [fileutil.go](../internal/fileutil/fileutil.go).
-
-### Caching
-
-In interactive mode, the app caches data in memory instead of reloading the storage file on every operation.
-I applied **Cache-aside** and **Write-through** strategies. This way, performance is improved.
-
-> *The app is single-threaded, so a race condition is impossible. But I kept the mutex around for ever features like a background process are added.*
-
-```go
-func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
-	// Try to load from cache first
-	fs.deltasCacheMutex.RLock()
-	if fs.deltasCache != nil {
-		fs.deltasCacheMutex.RUnlock()
-		return fs.deltasCache, nil
-	}
-	fs.deltasCacheMutex.RUnlock()
-
-	fs.deltasCacheMutex.Lock()
-	defer fs.deltasCacheMutex.Unlock()
-
-	var deltas []core.Delta
-	err := fs.file.Load(&deltas, fs.deltasFileName)
-	if err != nil {
-		return nil, err
-	}
-
-	// Update cache
-	fs.deltasCache = deltas
-
-	return deltas, nil
-}
-
-func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
-	fs.deltasCacheMutex.Lock()
-	defer fs.deltasCacheMutex.Unlock()
-
-	err := fs.file.Save(deltas, fs.deltasFileName)
-	if err != nil {
-		return err
-	}
-
-	// Update cache after successful save
-	fs.deltasCache = deltas
-
-	return nil
-}
-```
-
-See my implementation in [storage.go](../storage/file.go).
-
-## Design Patterns
-
-*<span style="color: #888">[🏗️ Work in progress]</span>*
-
 
 ## Closing Note
 
