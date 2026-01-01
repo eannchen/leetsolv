@@ -7,8 +7,9 @@ import (
 
 // MockFileUtil implements FileUtil for testing
 type MockFileUtil struct {
-	loadError error
-	saveError error
+	loadError   error
+	saveError   error
+	deleteError error
 }
 
 func (m *MockFileUtil) Load(data interface{}, filename string) error {
@@ -17,6 +18,10 @@ func (m *MockFileUtil) Load(data interface{}, filename string) error {
 
 func (m *MockFileUtil) Save(data interface{}, filename string) error {
 	return m.saveError
+}
+
+func (m *MockFileUtil) Delete(filename string) error {
+	return m.deleteError
 }
 
 // TestConfig provides a way to override configuration for testing

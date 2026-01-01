@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
 
@@ -548,127 +547,6 @@ func TestQuestionUseCase_InvalidURL(t *testing.T) {
 	_, err := useCase.UpsertQuestion("invalid-url", "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
 	if err == nil {
 		t.Error("Expected error when upserting with invalid URL")
-	}
-}
-
-func TestQuestionUseCase_LostUpdateRaceCondition(t *testing.T) {
-	_, useCase := setupTestEnvironment(t)
-
-	// First, add a question
-	url := "https://leetcode.com/problems/test"
-	delta, err := useCase.UpsertQuestion(url, "initial note", core.Medium, core.MediumImportance, core.MemoryReasoned)
-	if err != nil {
-		t.Fatalf("Failed to add initial question: %v", err)
-	}
-
-	// Simulate Lost Update: Two concurrent updates to the same question
-	done := make(chan bool, 2)
-	var update1Err, update2Err error
-
-	// Update 1: Change note to "update 1"
-	go func() {
-		defer func() { done <- true }()
-		_, update1Err = useCase.UpsertQuestion(url, "update 1", core.Medium, core.MediumImportance, core.MemoryReasoned)
-	}()
-
-	// Update 2: Change note to "update 2"
-	go func() {
-		defer func() { done <- true }()
-		_, update2Err = useCase.UpsertQuestion(url, "update 2", core.Medium, core.MediumImportance, core.MemoryReasoned)
-	}()
-
-	// Wait for both updates to complete
-	<-done
-	<-done
-
-	// Check for errors
-	if update1Err != nil {
-		t.Errorf("Update 1 failed: %v", update1Err)
-	}
-	if update2Err != nil {
-		t.Errorf("Update 2 failed: %v", update2Err)
-	}
-
-	// Verify that one of the updates was lost (only one should persist)
-	finalQuestion, err := useCase.GetQuestion(strconv.Itoa(delta.QuestionID))
-	if err != nil {
-		t.Fatalf("Failed to get final question: %v", err)
-	}
-
-	// The final note should be either "update 1" or "update 2", not both
-	if finalQuestion.Note != "update 1" && finalQuestion.Note != "update 2" {
-		t.Errorf("Expected final note to be either 'update 1' or 'update 2', got: %s", finalQuestion.Note)
-	}
-
-	// Verify that the question was updated (not the original)
-	if finalQuestion.Note == "initial note" {
-		t.Error("Lost Update occurred: final note is still 'initial note', indicating one update was lost")
-	}
-}
-
-func TestQuestionUseCase_WriteSkewRaceCondition(t *testing.T) {
-	_, useCase := setupTestEnvironment(t)
-
-	// Add two questions
-	url1 := "https://leetcode.com/problems/test1"
-	url2 := "https://leetcode.com/problems/test2"
-
-	delta1, err := useCase.UpsertQuestion(url1, "question 1", core.Medium, core.MediumImportance, core.MemoryReasoned)
-	if err != nil {
-		t.Fatalf("Failed to add question 1: %v", err)
-	}
-
-	delta2, err := useCase.UpsertQuestion(url2, "question 2", core.Medium, core.MediumImportance, core.MemoryReasoned)
-	if err != nil {
-		t.Fatalf("Failed to add question 2: %v", err)
-	}
-
-	// Simulate Write Skew: Two concurrent operations that read-then-write
-	done := make(chan bool, 2)
-	var op1Err, op2Err error
-
-	// Operation 1: Update question 1
-	go func() {
-		defer func() { done <- true }()
-		_, op1Err = useCase.UpsertQuestion(url1, "question 1", core.Medium, core.HighImportance, core.MemoryReasoned)
-	}()
-
-	// Operation 2: Update question 2
-	go func() {
-		defer func() { done <- true }()
-		_, op2Err = useCase.UpsertQuestion(url2, "question 2", core.Medium, core.LowImportance, core.MemoryReasoned)
-	}()
-
-	// Wait for both operations to complete
-	<-done
-	<-done
-
-	// Check for errors
-	if op1Err != nil {
-		t.Errorf("Operation 1 failed: %v", op1Err)
-	}
-	if op2Err != nil {
-		t.Errorf("Operation 2 failed: %v", op2Err)
-	}
-
-	// Verify final state
-	finalQ1, err := useCase.GetQuestion(strconv.Itoa(delta1.QuestionID))
-	if err != nil {
-		t.Fatalf("Failed to get final question 1: %v", err)
-	}
-
-	finalQ2, err := useCase.GetQuestion(strconv.Itoa(delta2.QuestionID))
-	if err != nil {
-		t.Fatalf("Failed to get final question 2: %v", err)
-	}
-
-	// Both updates should have been applied
-	if finalQ1.Importance != core.HighImportance {
-		t.Errorf("Question 1 importance should be HighImportance, got: %v", finalQ1.Importance)
-	}
-
-	if finalQ2.Importance != core.LowImportance {
-		t.Errorf("Question 2 importance should be LowImportance, got: %v", finalQ2.Importance)
 	}
 }
 

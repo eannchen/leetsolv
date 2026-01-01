@@ -2,16 +2,12 @@
 package storage
 
 import (
-	"sync"
-
 	"github.com/eannchen/leetsolv/core"
 	"github.com/eannchen/leetsolv/internal/fileutil"
 	"github.com/eannchen/leetsolv/internal/search"
 )
 
 type Storage interface {
-	Lock()
-	Unlock()
 	LoadQuestionStore() (*QuestionStore, error)
 	SaveQuestionStore(*QuestionStore) error
 	LoadDeltas() ([]core.Delta, error)
@@ -35,38 +31,18 @@ type QuestionStore struct {
 }
 
 type FileStorage struct {
-	questionsFileName string
-	deltasFileName    string
-	file              fileutil.FileUtil
-	mu                sync.Mutex
-
-	questionStoreCache      *QuestionStore
-	questionStoreCacheMutex sync.RWMutex
-
-	deltasCache      []core.Delta
-	deltasCacheMutex sync.RWMutex
-}
-
-// Lock and Unlock are higher-level locks used to ensure atomicity for a read-and-then-write (lost update or write skew) sequence in the business logic layer.
-func (fs *FileStorage) Lock() {
-	fs.mu.Lock()
-}
-
-func (fs *FileStorage) Unlock() {
-	fs.mu.Unlock()
+	questionsFileName  string
+	deltasFileName     string
+	file               fileutil.FileUtil
+	questionStoreCache *QuestionStore
+	deltasCache        []core.Delta
 }
 
 func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
-	// Try to load from cache first
-	fs.questionStoreCacheMutex.RLock()
+	// Return from cache if available
 	if fs.questionStoreCache != nil {
-		fs.questionStoreCacheMutex.RUnlock()
 		return fs.questionStoreCache, nil
 	}
-	fs.questionStoreCacheMutex.RUnlock()
-
-	fs.questionStoreCacheMutex.Lock()
-	defer fs.questionStoreCacheMutex.Unlock()
 
 	// Load question store from file
 	var store QuestionStore
@@ -100,9 +76,6 @@ func (fs *FileStorage) LoadQuestionStore() (*QuestionStore, error) {
 }
 
 func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
-	fs.questionStoreCacheMutex.Lock()
-	defer fs.questionStoreCacheMutex.Unlock()
-
 	err := fs.file.Save(store, fs.questionsFileName)
 	if err != nil {
 		return err
@@ -115,16 +88,10 @@ func (fs *FileStorage) SaveQuestionStore(store *QuestionStore) error {
 }
 
 func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
-	// Try to load from cache first
-	fs.deltasCacheMutex.RLock()
+	// Return from cache if available
 	if fs.deltasCache != nil {
-		fs.deltasCacheMutex.RUnlock()
 		return fs.deltasCache, nil
 	}
-	fs.deltasCacheMutex.RUnlock()
-
-	fs.deltasCacheMutex.Lock()
-	defer fs.deltasCacheMutex.Unlock()
 
 	// Load deltas from file
 	var deltas []core.Delta
@@ -140,9 +107,6 @@ func (fs *FileStorage) LoadDeltas() ([]core.Delta, error) {
 }
 
 func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
-	fs.deltasCacheMutex.Lock()
-	defer fs.deltasCacheMutex.Unlock()
-
 	err := fs.file.Save(deltas, fs.deltasFileName)
 	if err != nil {
 		return err

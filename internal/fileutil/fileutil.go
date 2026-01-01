@@ -14,6 +14,8 @@ type FileUtil interface {
 	// Save writes data to a temporary file and atomically replaces the target file.
 	// This prevents data loss or corruption if the save operation fails or crashes.
 	Save(data interface{}, filename string) error
+	// Delete removes the specified file. Returns nil if file doesn't exist.
+	Delete(filename string) error
 }
 
 type JSONFileUtil struct{}
@@ -78,4 +80,12 @@ func (j *JSONFileUtil) Save(data interface{}, filename string) error {
 		return err
 	}
 	return nil
+}
+
+func (j *JSONFileUtil) Delete(filename string) error {
+	err := os.Remove(filename)
+	if err != nil && os.IsNotExist(err) {
+		return nil // File doesn't exist, nothing to delete
+	}
+	return err
 }

@@ -3,7 +3,6 @@ package storage
 import (
 	"encoding/json"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -206,37 +205,6 @@ func TestFileStorage_SaveAndLoadDeltas(t *testing.T) {
 	}
 }
 
-func TestFileStorage_ConcurrentAccess(t *testing.T) {
-	storage, _ := setupTestStorage(t)
-
-	// Test concurrent access to storage
-	done := make(chan bool, 2)
-
-	go func() {
-		storage.Lock()
-		defer storage.Unlock()
-		defer func() { done <- true }()
-
-		// Simulate some work
-		time.Sleep(10 * time.Millisecond)
-	}()
-
-	go func() {
-		storage.Lock()
-		defer storage.Unlock()
-		defer func() { done <- true }()
-
-		// Simulate some work
-		time.Sleep(10 * time.Millisecond)
-	}()
-
-	// Wait for both goroutines to complete
-	<-done
-	<-done
-
-	// If we get here without deadlock, the test passes
-}
-
 func TestFileStorage_AtomicWrite(t *testing.T) {
 	storage, testConfig := setupTestStorage(t)
 
@@ -372,40 +340,6 @@ func TestFileStorage_FilePermissionIssues(t *testing.T) {
 	err := storageWithBadPath.SaveQuestionStore(store)
 	if err == nil {
 		t.Error("Expected error when saving to non-existent directory")
-	}
-}
-
-func TestFileStorage_ConcurrentFileAccess(t *testing.T) {
-	storage, _ := setupTestStorage(t)
-
-	// Test concurrent file access with actual file operations
-	var wg sync.WaitGroup
-	errors := make(chan error, 10)
-
-	for i := 0; i < 5; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-
-			store := &QuestionStore{
-				MaxID: id,
-				Questions: map[int]*core.Question{
-					id: createTestQuestion(id, "https://leetcode.com/problems/test"),
-				},
-			}
-
-			if err := storage.SaveQuestionStore(store); err != nil {
-				errors <- err
-			}
-		}(i)
-	}
-
-	wg.Wait()
-	close(errors)
-
-	// Check for any errors
-	for err := range errors {
-		t.Errorf("Concurrent access error: %v", err)
 	}
 }
 
@@ -759,44 +693,6 @@ func TestFileStorage_CacheInvalidation(t *testing.T) {
 
 	if len(deltas) != 0 {
 		t.Errorf("Expected 0 deltas after cache invalidation, got %d", len(deltas))
-	}
-}
-
-func TestFileStorage_ConcurrentCacheAccess(t *testing.T) {
-	storage, _ := setupTestStorage(t)
-
-	// Test concurrent access to cache
-	var wg sync.WaitGroup
-	errors := make(chan error, 10)
-
-	// Start multiple goroutines that read from cache
-	for i := 0; i < 5; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-
-			// Load question store (should populate cache on first call)
-			_, err := storage.LoadQuestionStore()
-			if err != nil {
-				errors <- err
-				return
-			}
-
-			// Load deltas (should populate cache on first call)
-			_, err = storage.LoadDeltas()
-			if err != nil {
-				errors <- err
-				return
-			}
-		}(i)
-	}
-
-	wg.Wait()
-	close(errors)
-
-	// Check for any errors
-	for err := range errors {
-		t.Errorf("Concurrent cache access error: %v", err)
 	}
 }
 

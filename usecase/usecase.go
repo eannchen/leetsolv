@@ -223,9 +223,6 @@ func (u *QuestionUseCaseImpl) matchesFilter(question core.Question, filter core.
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance, memory core.MemoryUse) (*core.Delta, error) {
 	u.logger.Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
-	u.Storage.Lock()
-	defer u.Storage.Unlock()
-
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
 		return nil, errs.WrapInternalError(err, "Failed to load question store")
@@ -332,9 +329,6 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {
 	u.logger.Info.Printf("Deleting question: Target=%s", target)
 
-	u.Storage.Lock()
-	defer u.Storage.Unlock()
-
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
 		return nil, errs.WrapInternalError(err, "Failed to load question store")
@@ -381,9 +375,6 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 
 func (u *QuestionUseCaseImpl) Undo() error {
 	u.logger.Info.Printf("Undoing last action")
-
-	u.Storage.Lock()
-	defer u.Storage.Unlock()
 
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
@@ -582,9 +573,6 @@ func (u *QuestionUseCaseImpl) UpdateSetting(settingName string, value any) error
 // This is needed for users upgrading from versions that stored local timezone.
 // Returns the number of questions and deltas migrated.
 func (u *QuestionUseCaseImpl) MigrateToUTC() (int, int, error) {
-	u.Storage.Lock()
-	defer u.Storage.Unlock()
-
 	// Migrate questions
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
