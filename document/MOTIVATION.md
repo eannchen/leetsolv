@@ -183,7 +183,7 @@ func (h *TopKMinHeap) Push(item HeapItem) {
 }
 ```
 
-I also implemented a custom heap to optimize the process further. Instead of using the standard library's `heap.Pop` and `heap.Push` (**two** O`(log k)` operations), my implementation directly replaces the heap's root if a new item has a higher score and performs a **single** `percolateDown` operation.
+I also implemented a custom heap to optimize the process further. Instead of using the standard library's `heap.Pop` and `heap.Push` (**two** `O(log k)` operations), my implementation directly replaces the heap's root if a new item has a higher score and performs a **single** `percolateDown` operation.
 
 ```go
 func (h *TopKMinHeap) Push(item HeapItem) {
