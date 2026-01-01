@@ -125,3 +125,101 @@ func TestClockImpl_Consistency(t *testing.T) {
 		t.Errorf("Multiple calls to Today() returned different results: %v vs %v", today1, today2)
 	}
 }
+
+// MockClock tests
+
+func TestNewMockClock(t *testing.T) {
+	fixedTime := time.Date(2024, 6, 15, 14, 30, 0, 0, time.UTC)
+	mockClock := NewMockClock(fixedTime)
+
+	if mockClock == nil {
+		t.Fatal("NewMockClock returned nil")
+	}
+	if !mockClock.FixedTime.Equal(fixedTime) {
+		t.Errorf("FixedTime = %v, want %v", mockClock.FixedTime, fixedTime)
+	}
+}
+
+func TestMockClock_Now(t *testing.T) {
+	fixedTime := time.Date(2024, 6, 15, 14, 30, 0, 0, time.UTC)
+	mockClock := NewMockClock(fixedTime)
+
+	// Now() should always return the fixed time
+	now1 := mockClock.Now()
+	now2 := mockClock.Now()
+
+	if !now1.Equal(fixedTime) {
+		t.Errorf("Now() = %v, want %v", now1, fixedTime)
+	}
+	if !now1.Equal(now2) {
+		t.Error("MockClock.Now() should return consistent results")
+	}
+}
+
+func TestMockClock_Today(t *testing.T) {
+	fixedTime := time.Date(2024, 6, 15, 14, 30, 45, 123, time.UTC)
+	mockClock := NewMockClock(fixedTime)
+
+	today := mockClock.Today()
+	expected := time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC)
+
+	if !today.Equal(expected) {
+		t.Errorf("Today() = %v, want %v", today, expected)
+	}
+}
+
+func TestMockClock_ToDate(t *testing.T) {
+	mockClock := NewMockClock(time.Now())
+
+	testTime := time.Date(2024, 12, 25, 23, 59, 59, 999, time.UTC)
+	result := mockClock.ToDate(testTime)
+	expected := time.Date(2024, 12, 25, 0, 0, 0, 0, time.UTC)
+
+	if !result.Equal(expected) {
+		t.Errorf("ToDate() = %v, want %v", result, expected)
+	}
+}
+
+func TestMockClock_AddDays(t *testing.T) {
+	mockClock := NewMockClock(time.Now())
+
+	startTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name     string
+		days     int
+		expected time.Time
+	}{
+		{"add positive days", 5, time.Date(2024, 6, 20, 12, 0, 0, 0, time.UTC)},
+		{"add negative days", -3, time.Date(2024, 6, 12, 12, 0, 0, 0, time.UTC)},
+		{"add zero days", 0, startTime},
+		{"cross month boundary", 20, time.Date(2024, 7, 5, 12, 0, 0, 0, time.UTC)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := mockClock.AddDays(startTime, tt.days)
+			if !result.Equal(tt.expected) {
+				t.Errorf("AddDays(%d) = %v, want %v", tt.days, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestMockClock_InterfaceCompliance(t *testing.T) {
+	// Verify MockClock implements Clock interface
+	var _ Clock = NewMockClock(time.Now())
+}
+
+func TestMockClock_Deterministic(t *testing.T) {
+	// The key feature of MockClock: time doesn't change between calls
+	fixedTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
+	mockClock := NewMockClock(fixedTime)
+
+	// Multiple calls should return identical times
+	for i := 0; i < 100; i++ {
+		if !mockClock.Now().Equal(fixedTime) {
+			t.Fatalf("MockClock.Now() changed on call %d", i)
+		}
+	}
+}

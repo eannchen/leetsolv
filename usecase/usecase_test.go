@@ -588,34 +588,173 @@ func TestQuestionUseCase_LargeDataSet(t *testing.T) {
 func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
-	// Add a question with different familiarity levels
-	testCases := []struct {
-		familiarity core.Familiarity
-		expected    string
-	}{
-		{core.VeryHard, "Expected very hard question to be scheduled"},
-		{core.Hard, "Expected hard question to be scheduled"},
-		{core.Medium, "Expected medium question to be scheduled"},
-		{core.Easy, "Expected easy question to be scheduled"},
-		{core.VeryEasy, "Expected very easy question to be scheduled"},
+	// Test that questions with different familiarity levels are scheduled correctly
+	familiarityLevels := []core.Familiarity{
+		core.VeryHard,
+		core.Hard,
+		core.Medium,
+		core.Easy,
+		core.VeryEasy,
 	}
 
-	for i, tc := range testCases {
+	for i, familiarity := range familiarityLevels {
 		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
-		delta, err := useCase.UpsertQuestion(url, "test", tc.familiarity, core.MediumImportance, core.MemoryReasoned)
+		delta, err := useCase.UpsertQuestion(url, "test", familiarity, core.MediumImportance, core.MemoryReasoned)
 		if err != nil {
-			t.Fatalf("Failed to add question with familiarity %d: %v", tc.familiarity, err)
+			t.Fatalf("Failed to add question with familiarity %d: %v", familiarity, err)
 		}
 
 		// Verify the question was scheduled in the future relative to testTime
 		if delta.NewState.NextReview.Before(testTime) {
-			t.Errorf("Expected question to be scheduled in the future, got %v", delta.NewState.NextReview)
+			t.Errorf("Familiarity %d: expected NextReview after %v, got %v",
+				familiarity, testTime, delta.NewState.NextReview)
 		}
 
 		// Clean up for next test
 		_, err = useCase.DeleteQuestion(fmt.Sprintf("%d", delta.NewState.ID))
 		if err != nil {
 			t.Fatalf("Failed to delete question: %v", err)
+		}
+	}
+}
+
+func TestQuestionUseCase_GetHistory(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Initially, history should be empty or return error
+	history, err := useCase.GetHistory()
+	if err != nil {
+		t.Fatalf("Failed to get history: %v", err)
+	}
+	if len(history) != 0 {
+		t.Errorf("Expected empty history, got %d items", len(history))
+	}
+
+	// Add a question
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test1", "note1", core.Medium, core.MediumImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// History should now have 1 entry
+	history, err = useCase.GetHistory()
+	if err != nil {
+		t.Fatalf("Failed to get history: %v", err)
+	}
+	if len(history) != 1 {
+		t.Errorf("Expected 1 history entry, got %d", len(history))
+	}
+	if history[0].Action != core.ActionAdd {
+		t.Errorf("Expected action Add, got %v", history[0].Action)
+	}
+
+	// Update the question
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/test1", "note2", core.Easy, core.HighImportance, core.MemoryPartial)
+	if err != nil {
+		t.Fatalf("Failed to update question: %v", err)
+	}
+
+	// History should have 2 entries, most recent first
+	history, err = useCase.GetHistory()
+	if err != nil {
+		t.Fatalf("Failed to get history: %v", err)
+	}
+	if len(history) != 2 {
+		t.Errorf("Expected 2 history entries, got %d", len(history))
+	}
+	if history[0].Action != core.ActionUpdate {
+		t.Errorf("Expected most recent action to be Update, got %v", history[0].Action)
+	}
+}
+
+func TestQuestionUseCase_SearchQuestions_WithImportanceFilter(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions with different importance levels
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/low", "low importance", core.Medium, core.LowImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add low importance question: %v", err)
+	}
+
+	_, err = useCase.UpsertQuestion("https://leetcode.com/problems/high", "high importance", core.Medium, core.HighImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add high importance question: %v", err)
+	}
+
+	// Search with importance filter
+	importance := core.HighImportance
+	filter := &core.SearchFilter{Importance: &importance}
+	results, err := useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Failed to search: %v", err)
+	}
+
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result, got %d", len(results))
+	}
+	if len(results) > 0 && results[0].Importance != core.HighImportance {
+		t.Errorf("Expected HighImportance, got %v", results[0].Importance)
+	}
+}
+
+func TestQuestionUseCase_SearchQuestions_WithDueOnlyFilter(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add a question (will be scheduled in the future, so not due)
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/future", "future question", core.Medium, core.MediumImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Search with DueOnly filter - should find nothing since question is scheduled for future
+	filter := &core.SearchFilter{DueOnly: true}
+	results, err := useCase.SearchQuestions([]string{}, filter)
+	if err != nil {
+		t.Fatalf("Failed to search: %v", err)
+	}
+
+	// New questions are scheduled in the future, so DueOnly should return 0
+	if len(results) != 0 {
+		t.Errorf("Expected 0 due results, got %d", len(results))
+	}
+
+	// Search without filter should return 1
+	results, err = useCase.SearchQuestions([]string{}, nil)
+	if err != nil {
+		t.Fatalf("Failed to search: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result without filter, got %d", len(results))
+	}
+}
+
+func TestQuestionUseCase_ListQuestionsOrderByDesc_Ordering(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add questions in order
+	for i := 0; i < 5; i++ {
+		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
+		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
+		if err != nil {
+			t.Fatalf("Failed to add question: %v", err)
+		}
+	}
+
+	// Get questions ordered by ID desc
+	questions, err := useCase.ListQuestionsOrderByDesc()
+	if err != nil {
+		t.Fatalf("Failed to list questions: %v", err)
+	}
+
+	if len(questions) != 5 {
+		t.Fatalf("Expected 5 questions, got %d", len(questions))
+	}
+
+	// Verify ordering (highest ID first)
+	for i := 0; i < len(questions)-1; i++ {
+		if questions[i].ID <= questions[i+1].ID {
+			t.Errorf("Questions not in descending order: ID %d should be > ID %d",
+				questions[i].ID, questions[i+1].ID)
 		}
 	}
 }
