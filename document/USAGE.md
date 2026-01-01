@@ -43,6 +43,7 @@ leetsolv upsert https://leetcode.com/problems/example
 | `undo`    | `back`                | Undo the last action                            |
 | `history` | `hist`, `log`         | Show action history                             |
 | `setting` | `config`, `cfg`       | View and modify application settings            |
+| `reset`   |                       | Delete all questions and history                |
 | `version` | `ver`, `v`            | Show application version information            |
 | `help`    | `h`                   | Show help information                           |
 | `clear`   | `cls`                 | Clear the screen                                |

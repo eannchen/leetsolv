@@ -245,6 +245,13 @@ func (m *MockQuestionUseCase) MigrateToUTC() (int, int, error) {
 	return len(m.questions), 0, nil
 }
 
+func (m *MockQuestionUseCase) ResetData() (int, int, error) {
+	if m.shouldError {
+		return 0, 0, m.errorToReturn
+	}
+	return len(m.questions), 0, nil
+}
+
 // setupTestHandler creates a test handler with mocked dependencies
 func setupTestHandler(t *testing.T) (*HandlerImpl, *MockIOHandler, *MockQuestionUseCase) {
 	_, cfg := config.MockEnv(t)

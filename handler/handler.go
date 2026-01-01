@@ -34,6 +34,7 @@ type Handler interface {
 	HandleSetting(scanner *bufio.Scanner, args []string)
 	HandleVersion()
 	HandleMigrate(scanner *bufio.Scanner)
+	HandleReset(scanner *bufio.Scanner)
 }
 
 type HandlerImpl struct {
@@ -572,6 +573,7 @@ func (h *HandlerImpl) HandleHelp() {
 	h.IO.Println("  undo/back                     - Undo the last action")
 	h.IO.Println("  history/hist/log              - Show action history")
 	h.IO.Println("  setting/config/cfg            - View and modify application settings")
+	h.IO.Println("  reset                         - Delete all questions and history")
 	h.IO.Println("  version/ver/v                 - Show version information")
 	h.IO.Println("  help/h                        - Show this help message")
 	h.IO.Println("  clear/cls                     - Clear the screen")
@@ -670,4 +672,29 @@ func (h *HandlerImpl) HandleMigrate(scanner *bufio.Scanner) {
 	}
 
 	h.IO.PrintSuccess(fmt.Sprintf("Migration completed: %d questions, %d deltas converted to UTC.", questionsCount, deltasCount))
+}
+
+func (h *HandlerImpl) HandleReset(scanner *bufio.Scanner) {
+	h.IO.PrintlnColored(ColorWarning, "⚠️  This will permanently delete ALL your data:")
+	h.IO.Println("    • All questions")
+	h.IO.Println("    • All review history (undo history)")
+	h.IO.Println("")
+	h.IO.PrintlnColored(ColorWarning, "This action cannot be undone.")
+	h.IO.Println("")
+
+	confirm := h.IO.ReadLine(scanner, "Type 'yes' to confirm: ")
+	if confirm != "yes" {
+		h.IO.PrintCancel("Reset cancelled.")
+		h.IO.Printf("\n")
+		return
+	}
+
+	questionsCount, deltasCount, err := h.QuestionUseCase.ResetData()
+	if err != nil {
+		h.IO.PrintError(err)
+		return
+	}
+
+	h.IO.PrintSuccess(fmt.Sprintf("Reset completed: %d questions and %d history records deleted.", questionsCount, deltasCount))
+	h.IO.Printf("\n")
 }

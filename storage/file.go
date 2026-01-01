@@ -12,6 +12,7 @@ type Storage interface {
 	SaveQuestionStore(*QuestionStore) error
 	LoadDeltas() ([]core.Delta, error)
 	SaveDeltas([]core.Delta) error
+	DeleteAllData() error
 }
 
 func NewFileStorage(questionsFileName, deltasFileName string, file fileutil.FileUtil) *FileStorage {
@@ -122,4 +123,23 @@ func (fs *FileStorage) SaveDeltas(deltas []core.Delta) error {
 func (fs *FileStorage) InvalidateCache() {
 	fs.questionStoreCache = nil
 	fs.deltasCache = nil
+}
+
+// DeleteAllData deletes both questions and deltas files, and invalidates cache
+func (fs *FileStorage) DeleteAllData() error {
+	// Delete questions file
+	if err := fs.file.Delete(fs.questionsFileName); err != nil {
+		return err
+	}
+
+	// Delete deltas file
+	if err := fs.file.Delete(fs.deltasFileName); err != nil {
+		return err
+	}
+
+	// Invalidate cache
+	fs.questionStoreCache = nil
+	fs.deltasCache = nil
+
+	return nil
 }
