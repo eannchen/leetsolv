@@ -12,7 +12,6 @@ import (
 	"github.com/eannchen/leetsolv/config"
 	"github.com/eannchen/leetsolv/core"
 	"github.com/eannchen/leetsolv/internal/errs"
-	"github.com/eannchen/leetsolv/internal/logger"
 	"github.com/eannchen/leetsolv/internal/tokenizer"
 	"github.com/eannchen/leetsolv/internal/urlparser"
 	"github.com/eannchen/leetsolv/usecase"
@@ -39,16 +38,14 @@ type Handler interface {
 
 type HandlerImpl struct {
 	cfg             *config.Config
-	Logger          *logger.Logger
 	QuestionUseCase usecase.QuestionUseCase
 	IO              IOHandler
 	Version         string
 }
 
-func NewHandler(cfg *config.Config, logger *logger.Logger, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler, version string) *HandlerImpl {
+func NewHandler(cfg *config.Config, questionUseCase usecase.QuestionUseCase, IOHandler IOHandler, version string) *HandlerImpl {
 	return &HandlerImpl{
 		cfg:             cfg,
-		Logger:          logger,
 		QuestionUseCase: questionUseCase,
 		IO:              IOHandler,
 		Version:         version,

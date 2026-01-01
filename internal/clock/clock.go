@@ -34,3 +34,29 @@ func (ClockImpl) ToDate(t time.Time) time.Time {
 func (ClockImpl) AddDays(t time.Time, days int) time.Time {
 	return t.AddDate(0, 0, days)
 }
+
+// MockClock implements Clock for testing with a fixed time.
+type MockClock struct {
+	FixedTime time.Time
+}
+
+// NewMockClock creates a MockClock with the given fixed time.
+func NewMockClock(t time.Time) *MockClock {
+	return &MockClock{FixedTime: t}
+}
+
+func (m *MockClock) Now() time.Time {
+	return m.FixedTime
+}
+
+func (m *MockClock) Today() time.Time {
+	return time.Date(m.FixedTime.Year(), m.FixedTime.Month(), m.FixedTime.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+func (m *MockClock) ToDate(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+func (m *MockClock) AddDays(t time.Time, days int) time.Time {
+	return t.AddDate(0, 0, days)
+}

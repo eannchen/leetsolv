@@ -255,10 +255,10 @@ func (m *MockQuestionUseCase) ResetData() (int, int, error) {
 // setupTestHandler creates a test handler with mocked dependencies
 func setupTestHandler(t *testing.T) (*HandlerImpl, *MockIOHandler, *MockQuestionUseCase) {
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	logger.InitNop()
 	mockIO := NewMockIOHandler("")
 	mockUseCase := NewMockQuestionUseCase()
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 	return handler, mockIO, mockUseCase
 }
 
@@ -531,8 +531,8 @@ func TestHandler_HandleUpsert_Success(t *testing.T) {
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n3\n1\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -690,8 +690,8 @@ func TestHandler_HandleUpsert_NoMemoryPromptForVeryHardFamiliarity(t *testing.T)
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n1\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -740,8 +740,8 @@ func TestHandler_HandleUpsert_NoMemoryPromptForHardFamiliarity(t *testing.T) {
 	mockIO := NewMockIOHandler("https://leetcode.com/problems/two-sum\nTest question\n2\n2\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful upsert
 	upsertedQuestion := &core.Question{
@@ -789,8 +789,8 @@ func TestHandler_HandleDelete_Success(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up successful deletion
 	deletedQuestion := &core.Question{
@@ -862,8 +862,8 @@ func TestHandler_HandleDelete_UseCaseError(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up use case error
 	mockUseCase.shouldError = true
@@ -891,8 +891,8 @@ func TestHandler_HandleUndo_Success(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Simulate user confirmation
 	scanner := bufio.NewScanner(strings.NewReader(""))
@@ -916,8 +916,8 @@ func TestHandler_HandleUndo_Error(t *testing.T) {
 	mockIO := NewMockIOHandler("y\n")
 	mockUseCase := NewMockQuestionUseCase()
 	_, cfg := config.MockEnv(t)
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
-	handler := NewHandler(cfg, logger, mockUseCase, mockIO, "test-version")
+	logger.InitNop()
+	handler := NewHandler(cfg, mockUseCase, mockIO, "test-version")
 
 	// Set up error
 	mockUseCase.shouldError = true

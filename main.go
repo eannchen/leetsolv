@@ -37,12 +37,12 @@ func main() {
 		fmt.Println("Failed to load configuration:", err)
 		os.Exit(1)
 	}
-	logger := logger.NewLogger(cfg.InfoLogFile, cfg.ErrorLogFile)
+	logger.Init(cfg.InfoLogFile, cfg.ErrorLogFile)
 	storage := storage.NewFileStorage(cfg.QuestionsFile, cfg.DeltasFile, fileutil)
 	scheduler := core.NewSM2Scheduler(cfg, clock)
-	questionUseCase := usecase.NewQuestionUseCase(cfg, logger, storage, scheduler, clock)
+	questionUseCase := usecase.NewQuestionUseCase(cfg, storage, scheduler, clock)
 	ioHandler := handler.NewIOHandler(clock)
-	h := handler.NewHandler(cfg, logger, questionUseCase, ioHandler, Version)
+	h := handler.NewHandler(cfg, questionUseCase, ioHandler, Version)
 
 	commandRegistry := command.NewCommandRegistry(h.HandleUnknown)
 

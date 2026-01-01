@@ -38,17 +38,15 @@ type QuestionUseCase interface {
 // QuestionUseCaseImpl struct encapsulates dependencies for use cases
 type QuestionUseCaseImpl struct {
 	cfg       *config.Config
-	logger    *logger.Logger
 	Storage   storage.Storage
 	Scheduler core.Scheduler
 	Clock     clock.Clock
 }
 
 // NewQuestionUseCase creates a new QuestionUseCase instance
-func NewQuestionUseCase(cfg *config.Config, logger *logger.Logger, storage storage.Storage, scheduler core.Scheduler, clock clock.Clock) *QuestionUseCaseImpl {
+func NewQuestionUseCase(cfg *config.Config, storage storage.Storage, scheduler core.Scheduler, clock clock.Clock) *QuestionUseCaseImpl {
 	return &QuestionUseCaseImpl{
 		cfg:       cfg,
-		logger:    logger,
 		Storage:   storage,
 		Scheduler: scheduler,
 		Clock:     clock,
@@ -222,7 +220,7 @@ func (u *QuestionUseCaseImpl) matchesFilter(question core.Question, filter core.
 }
 
 func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.Familiarity, importance core.Importance, memory core.MemoryUse) (*core.Delta, error) {
-	u.logger.Info.Printf("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
+	logger.Infof("Upserting question: URL=%s, Familiarity=%d, Importance=%d", url, familiarity, importance)
 
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
@@ -322,13 +320,13 @@ func (u *QuestionUseCaseImpl) UpsertQuestion(url, note string, familiarity core.
 		return nil, errs.WrapInternalError(err, "Failed to save question store")
 	}
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		u.logger.Error.Printf("Failed to save deltas: %v", err)
+		logger.Errorf("Failed to save deltas: %v", err)
 	}
 	return delta, nil
 }
 
 func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, error) {
-	u.logger.Info.Printf("Deleting question: Target=%s", target)
+	logger.Infof("Deleting question: Target=%s", target)
 
 	store, err := u.Storage.LoadQuestionStore()
 	if err != nil {
@@ -369,13 +367,13 @@ func (u *QuestionUseCaseImpl) DeleteQuestion(target string) (*core.Question, err
 		CreatedAt:  u.Clock.Now(),
 	})
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		u.logger.Error.Printf("Failed to save deltas: %v", err)
+		logger.Errorf("Failed to save deltas: %v", err)
 	}
 	return deletedQuestion, nil
 }
 
 func (u *QuestionUseCaseImpl) Undo() error {
-	u.logger.Info.Printf("Undoing last action")
+	logger.Infof("Undoing last action")
 
 	deltas, err := u.Storage.LoadDeltas()
 	if err != nil {
@@ -415,7 +413,7 @@ func (u *QuestionUseCaseImpl) Undo() error {
 	// Remove the last delta only after successful undo
 	deltas = deltas[:len(deltas)-1]
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
-		u.logger.Error.Printf("Failed to save deltas: %v", err)
+		logger.Errorf("Failed to save deltas: %v", err)
 	}
 
 	return nil
@@ -626,7 +624,7 @@ func (u *QuestionUseCaseImpl) MigrateToUTC() (int, int, error) {
 
 // ResetData deletes all questions and deltas, returning the counts before deletion
 func (u *QuestionUseCaseImpl) ResetData() (int, int, error) {
-	u.logger.Info.Printf("Resetting all data")
+	logger.Infof("Resetting all data")
 
 	// Get counts before deletion
 	store, err := u.Storage.LoadQuestionStore()

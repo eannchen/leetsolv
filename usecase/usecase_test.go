@@ -13,13 +13,16 @@ import (
 	"github.com/eannchen/leetsolv/storage"
 )
 
+// Fixed test time for deterministic tests
+var testTime = time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
 // setupTestEnvironment creates a test environment with temporary files
 func setupTestEnvironment(t *testing.T) (*config.TestConfig, *QuestionUseCaseImpl) {
 	// Create test configuration with temporary files
 	testConfig, cfg := config.MockEnv(t)
 
-	// Create mock clock
-	mockClock := clock.NewClock()
+	// Use mock clock with fixed time for deterministic tests
+	mockClock := clock.NewMockClock(testTime)
 
 	// Create storage with test files
 	storage := storage.NewFileStorage(testConfig.QuestionsFile, testConfig.DeltasFile, &config.MockFileUtil{})
@@ -27,11 +30,11 @@ func setupTestEnvironment(t *testing.T) (*config.TestConfig, *QuestionUseCaseImp
 	// Create scheduler
 	scheduler := core.NewSM2Scheduler(cfg, mockClock)
 
-	// Create logger
-	logger := logger.NewLogger(testConfig.InfoLogFile, testConfig.ErrorLogFile)
+	// Initialize no-op logger for tests (no file I/O)
+	logger.InitNop()
 
 	// Create use case
-	useCase := NewQuestionUseCase(cfg, logger, storage, scheduler, mockClock)
+	useCase := NewQuestionUseCase(cfg, storage, scheduler, mockClock)
 
 	return testConfig, useCase
 }
@@ -44,11 +47,11 @@ func createTestQuestion(id int, url string) *core.Question {
 		Note:         "Test question",
 		Familiarity:  core.Medium,
 		Importance:   core.MediumImportance,
-		LastReviewed: time.Now(),
-		NextReview:   time.Now().Add(24 * time.Hour),
+		LastReviewed: testTime,
+		NextReview:   testTime.AddDate(0, 0, 1),
 		ReviewCount:  0,
 		EaseFactor:   2.5,
-		CreatedAt:    time.Now(),
+		CreatedAt:    testTime,
 	}
 }
 
@@ -213,10 +216,9 @@ func TestQuestionUseCase_ListQuestionsSummary(t *testing.T) {
 	_, useCase := setupTestEnvironment(t)
 
 	// Create test questions with different review dates
-	// Use UTC to match the Clock implementation
-	now := time.Now().UTC()
-	tomorrow := now.AddDate(0, 0, 1)   // Add 1 calendar day
-	yesterday := now.AddDate(0, 0, -1) // Subtract 1 calendar day
+	// Use testTime to match the MockClock
+	tomorrow := testTime.AddDate(0, 0, 1)   // Add 1 calendar day
+	yesterday := testTime.AddDate(0, 0, -1) // Subtract 1 calendar day
 
 	dueQuestion := createTestQuestion(1, "https://leetcode.com/problems/due")
 	dueQuestion.NextReview = yesterday
@@ -605,8 +607,8 @@ func TestQuestionUseCase_SchedulerIntegration(t *testing.T) {
 			t.Fatalf("Failed to add question with familiarity %d: %v", tc.familiarity, err)
 		}
 
-		// Verify the question was scheduled
-		if delta.NewState.NextReview.Before(time.Now()) {
+		// Verify the question was scheduled in the future relative to testTime
+		if delta.NewState.NextReview.Before(testTime) {
 			t.Errorf("Expected question to be scheduled in the future, got %v", delta.NewState.NextReview)
 		}
 
