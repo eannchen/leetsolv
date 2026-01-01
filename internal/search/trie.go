@@ -1,8 +1,6 @@
 // Package search implements the trie for the leetsolv application.
 package search
 
-import "sync"
-
 type TrieNode struct {
 	Children   map[rune]*TrieNode
 	IDs        map[int]struct{} // Questions having this prefix
@@ -20,7 +18,6 @@ func NewTrieNode() *TrieNode {
 type Trie struct {
 	Root            *TrieNode
 	MinPrefixLength int
-	mu              sync.RWMutex
 }
 
 func NewTrie(minPrefixLength int) *Trie {
@@ -30,9 +27,6 @@ func NewTrie(minPrefixLength int) *Trie {
 // Hydrate ensures that the trie and all its nodes have their maps initialized.
 // This is useful after deserializing a trie from a source that might be incomplete.
 func (t *Trie) Hydrate() {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
 	if t.Root == nil {
 		t.Root = NewTrieNode()
 		return
@@ -63,9 +57,6 @@ func hydrateNode(node *TrieNode) {
 }
 
 func (t *Trie) Insert(word string, id int) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
 	node := t.Root
 	// Always add ID to root for empty string case
 	node.IDs[id] = struct{}{}
@@ -81,9 +72,6 @@ func (t *Trie) Insert(word string, id int) {
 }
 
 func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
-
 	// Special case: empty prefix should return all IDs
 	if prefix == "" {
 		// Return a copy to prevent external modification.
@@ -115,9 +103,6 @@ func (t *Trie) SearchPrefix(prefix string) map[int]struct{} {
 }
 
 func (t *Trie) Delete(word string, id int) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
 	// Convert string to a slice of runes once to safely handle Unicode.
 	runes := []rune(word)
 
