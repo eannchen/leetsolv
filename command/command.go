@@ -183,3 +183,12 @@ func (c *MigrateCommand) Execute(scanner *bufio.Scanner, args []string) bool {
 	c.Handler.HandleMigrate(scanner)
 	return false
 }
+
+type ResetCommand struct {
+	Handler handler.Handler
+}
+
+func (c *ResetCommand) Execute(scanner *bufio.Scanner, args []string) bool {
+	c.Handler.HandleReset(scanner)
+	return false
+}

@@ -32,6 +32,7 @@ type QuestionUseCase interface {
 	GetSettings() error
 	UpdateSetting(settingName string, value interface{}) error
 	MigrateToUTC() (int, int, error)
+	ResetData() (questionsCount int, deltasCount int, err error)
 }
 
 // QuestionUseCaseImpl struct encapsulates dependencies for use cases
@@ -618,6 +619,31 @@ func (u *QuestionUseCaseImpl) MigrateToUTC() (int, int, error) {
 
 	if err := u.Storage.SaveDeltas(deltas); err != nil {
 		return questionsCount, 0, errs.WrapInternalError(err, "Failed to save deltas")
+	}
+
+	return questionsCount, deltasCount, nil
+}
+
+// ResetData deletes all questions and deltas, returning the counts before deletion
+func (u *QuestionUseCaseImpl) ResetData() (int, int, error) {
+	u.logger.Info.Printf("Resetting all data")
+
+	// Get counts before deletion
+	store, err := u.Storage.LoadQuestionStore()
+	if err != nil {
+		return 0, 0, errs.WrapInternalError(err, "Failed to load question store")
+	}
+	questionsCount := len(store.Questions)
+
+	deltas, err := u.Storage.LoadDeltas()
+	if err != nil {
+		return 0, 0, errs.WrapInternalError(err, "Failed to load deltas")
+	}
+	deltasCount := len(deltas)
+
+	// Delete all data
+	if err := u.Storage.DeleteAllData(); err != nil {
+		return 0, 0, errs.WrapInternalError(err, "Failed to delete data files")
 	}
 
 	return questionsCount, deltasCount, nil
