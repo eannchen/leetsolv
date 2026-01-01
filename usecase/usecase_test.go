@@ -758,3 +758,132 @@ func TestQuestionUseCase_ListQuestionsOrderByDesc_Ordering(t *testing.T) {
 		}
 	}
 }
+
+func TestQuestionUseCase_GetSettings(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// GetSettings is a no-op, just verify it doesn't return an error
+	err := useCase.GetSettings()
+	if err != nil {
+		t.Errorf("GetSettings should not return error, got: %v", err)
+	}
+}
+
+func TestQuestionUseCase_UpdateSetting(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Test updating a valid setting
+	originalOverdueLimit := useCase.cfg.OverdueLimit
+	err := useCase.UpdateSetting("overduelimit", 20)
+	if err != nil {
+		t.Fatalf("Failed to update setting: %v", err)
+	}
+	if useCase.cfg.OverdueLimit != 20 {
+		t.Errorf("Expected OverdueLimit to be 20, got %d", useCase.cfg.OverdueLimit)
+	}
+
+	// Restore original value
+	useCase.cfg.OverdueLimit = originalOverdueLimit
+
+	// Test updating an unknown setting
+	err = useCase.UpdateSetting("unknownsetting", 123)
+	if err == nil {
+		t.Error("Expected error for unknown setting")
+	}
+}
+
+func TestQuestionUseCase_MigrateToUTC(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Create a question with non-UTC times
+	localTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.FixedZone("EST", -5*60*60))
+	_, err := useCase.UpsertQuestion("https://leetcode.com/problems/test1", "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
+	if err != nil {
+		t.Fatalf("Failed to add question: %v", err)
+	}
+
+	// Manually set non-UTC times to simulate old data
+	store, err := useCase.Storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store: %v", err)
+	}
+	for _, q := range store.Questions {
+		q.LastReviewed = localTime
+		q.NextReview = localTime.Add(24 * time.Hour)
+		q.CreatedAt = localTime
+	}
+	if err := useCase.Storage.SaveQuestionStore(store); err != nil {
+		t.Fatalf("Failed to save store: %v", err)
+	}
+
+	// Migrate to UTC
+	questionsCount, deltasCount, err := useCase.MigrateToUTC()
+	if err != nil {
+		t.Fatalf("Failed to migrate: %v", err)
+	}
+
+	if questionsCount != 1 {
+		t.Errorf("Expected 1 question migrated, got %d", questionsCount)
+	}
+	if deltasCount < 1 {
+		t.Errorf("Expected at least 1 delta migrated, got %d", deltasCount)
+	}
+
+	// Verify times are now UTC
+	store, err = useCase.Storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to reload store: %v", err)
+	}
+	for _, q := range store.Questions {
+		if q.LastReviewed.Location() != time.UTC {
+			t.Errorf("Expected LastReviewed to be UTC, got %v", q.LastReviewed.Location())
+		}
+		if q.CreatedAt.Location() != time.UTC {
+			t.Errorf("Expected CreatedAt to be UTC, got %v", q.CreatedAt.Location())
+		}
+	}
+}
+
+func TestQuestionUseCase_ResetData(t *testing.T) {
+	_, useCase := setupTestEnvironment(t)
+
+	// Add some data first
+	for i := 0; i < 3; i++ {
+		url := fmt.Sprintf("https://leetcode.com/problems/test%d", i)
+		_, err := useCase.UpsertQuestion(url, "test", core.Medium, core.MediumImportance, core.MemoryReasoned)
+		if err != nil {
+			t.Fatalf("Failed to add question: %v", err)
+		}
+	}
+
+	// Verify data exists
+	summary, err := useCase.ListQuestionsSummary()
+	if err != nil {
+		t.Fatalf("Failed to get summary: %v", err)
+	}
+	if summary.Total != 3 {
+		t.Errorf("Expected 3 questions before reset, got %d", summary.Total)
+	}
+
+	// Reset data
+	questionsCount, deltasCount, err := useCase.ResetData()
+	if err != nil {
+		t.Fatalf("Failed to reset data: %v", err)
+	}
+
+	if questionsCount != 3 {
+		t.Errorf("Expected 3 questions deleted, got %d", questionsCount)
+	}
+	if deltasCount < 3 {
+		t.Errorf("Expected at least 3 deltas deleted, got %d", deltasCount)
+	}
+
+	// Verify data is gone
+	summary, err = useCase.ListQuestionsSummary()
+	if err != nil {
+		t.Fatalf("Failed to get summary after reset: %v", err)
+	}
+	if summary.Total != 0 {
+		t.Errorf("Expected 0 questions after reset, got %d", summary.Total)
+	}
+}

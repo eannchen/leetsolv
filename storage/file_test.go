@@ -791,3 +791,65 @@ func TestFileStorage_CacheWithFileModification(t *testing.T) {
 		t.Errorf("Expected MaxID 999 after cache invalidation, got %d", loadedStore.MaxID)
 	}
 }
+
+func TestFileStorage_DeleteAllData(t *testing.T) {
+	storage, _ := setupTestStorage(t)
+
+	// Create and save some data first
+	store := &QuestionStore{
+		MaxID:     3,
+		Questions: map[int]*core.Question{1: createTestQuestion(1, "test1"), 2: createTestQuestion(2, "test2")},
+		URLIndex:  map[string]int{"test1": 1, "test2": 2},
+		URLTrie:   search.NewTrie(3),
+		NoteTrie:  search.NewTrie(3),
+	}
+	if err := storage.SaveQuestionStore(store); err != nil {
+		t.Fatalf("Failed to save question store: %v", err)
+	}
+
+	deltas := []core.Delta{
+		{Action: core.ActionAdd, QuestionID: 1, CreatedAt: testTime, NewState: createTestQuestion(1, "test1")},
+	}
+	if err := storage.SaveDeltas(deltas); err != nil {
+		t.Fatalf("Failed to save deltas: %v", err)
+	}
+
+	// Verify data exists
+	loadedStore, err := storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store: %v", err)
+	}
+	if len(loadedStore.Questions) != 2 {
+		t.Errorf("Expected 2 questions before delete, got %d", len(loadedStore.Questions))
+	}
+
+	loadedDeltas, err := storage.LoadDeltas()
+	if err != nil {
+		t.Fatalf("Failed to load deltas: %v", err)
+	}
+	if len(loadedDeltas) != 1 {
+		t.Errorf("Expected 1 delta before delete, got %d", len(loadedDeltas))
+	}
+
+	// Delete all data
+	if err := storage.DeleteAllData(); err != nil {
+		t.Fatalf("Failed to delete all data: %v", err)
+	}
+
+	// Verify cache is cleared and new load returns empty data
+	loadedStore, err = storage.LoadQuestionStore()
+	if err != nil {
+		t.Fatalf("Failed to load store after delete: %v", err)
+	}
+	if len(loadedStore.Questions) != 0 {
+		t.Errorf("Expected 0 questions after delete, got %d", len(loadedStore.Questions))
+	}
+
+	loadedDeltas, err = storage.LoadDeltas()
+	if err != nil {
+		t.Fatalf("Failed to load deltas after delete: %v", err)
+	}
+	if len(loadedDeltas) != 0 {
+		t.Errorf("Expected 0 deltas after delete, got %d", len(loadedDeltas))
+	}
+}
