@@ -10,33 +10,17 @@
 
 </div>
 
-**LeetSolv** 是一個命令列工具，專為 **資料結構與演算法 (DSA)** 問題複習而設計，帶有 **間隔重複 (spaced repetition)** 功能。支援 [LeetCode](https://leetcode.com) 和 [HackerRank](https://hackerrank.com) 平台的題目。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數，避免死記硬背。
-
-> ***零依賴**: 完全用純 Go 語言實現，沒有第三方庫或外部工具——完全控制底層實現。詳見 [MOTIVATION.md](document/MOTIVATION.md)。*
+**LeetSolv** 是一個命令列工具，專為 資料結構與演算法 (DSA) 問題複習而設計，帶有 **間隔重複 (spaced repetition)** 功能。支援 [LeetCode](https://leetcode.com) 和 [HackerRank](https://hackerrank.com) 平台的題目。它由一個客製化的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 演算法驅動，該演算法結合了 **熟悉度**、**重要性** 和 **推理** 等變數，避免死記硬背。
 
 ![Demo](document/image/DEMO_header.gif)
 
 ## 目錄
-- [LeetSolv](#leetsolv)
-  - [目錄](#目錄)
-  - [安裝](#安裝)
-    - [Scoop (Windows)](#scoop-windows)
-    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
-    - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
-    - [驗證安裝](#驗證安裝)
-  - [複習排程系統](#複習排程系統)
-    - [自適應 SM-2 演算法](#自適應-sm-2-演算法)
-    - [到期優先級評分](#到期優先級評分)
-    - [間隔增長曲線](#間隔增長曲線)
-  - [問題管理](#問題管理)
-    - [功能](#功能)
-    - [資料隱私 \& 安全](#資料隱私--安全)
-  - [使用方法](#使用方法)
-  - [配置](#配置)
-  - [常見問題](#常見問題)
-      - [問：為什麼要使用 LeetSolv 而不是 Anki 卡片？](#問為什麼要使用-leetsolv-而不是-anki-卡片)
-      - [問：我應該加入所有之前解決過的問題嗎？](#問我應該加入所有之前解決過的問題嗎)
-      - [問：使用一段時間後，我累積了太多到期問題。](#問使用一段時間後我累積了太多到期問題)
+- [安裝](#安裝)
+- [使用方法](#使用方法)
+- [複習排程系統](#複習排程系統)
+- [問題管理](#問題管理)
+- [配置](#配置)
+- [常見問題](#常見問題)
 
 ## 安裝
 
@@ -66,11 +50,23 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash -s -- --uninstall
 ```
 
-### 驗證安裝
+## 使用方法
+
+LeetSolv 可以互動方式執行，也可以直接從終端機傳遞命令來執行。
+
 ```bash
-leetsolv version
+# 啟動互動模式
+leetsolv
+
+# 或直接執行命令
+leetsolv add https://leetcode.com/problems/two-sum
+leetsolv status
+
+# 取得說明
 leetsolv help
 ```
+
+[檢視完整使用指南 (USAGE.md)](document/USAGE.md)
 
 ## 複習排程系統
 
@@ -130,29 +126,11 @@ graph TD
 - **無資料收集**：LeetSolv 不會將用戶資料上傳到網際網路。
 - **原子寫入**：所有寫入使用臨時檔案 + 重新命名，保證資料一致性。
 
-## 使用方法
-
-LeetSolv 可以互動方式執行，也可以直接從終端機傳遞命令來執行。
-
-```bash
-# 啟動互動模式
-leetsolv
-
-# 或直接執行命令
-leetsolv add https://leetcode.com/problems/two-sum
-leetsolv status
-
-# 取得說明
-leetsolv help
-```
-
-[檢視完整使用指南 (USAGE.md)](document/USAGE.md)
-
 ## 配置
 
 透過環境變數或 JSON 設定檔自訂。詳見 [CONFIGURATION.md](document/CONFIGURATION.md)。
 
-## 常見問題 
+## 常見問題
 
 #### 問：為什麼要使用 LeetSolv 而不是 Anki 卡片？
 
@@ -165,6 +143,10 @@ leetsolv help
 #### 問：使用一段時間後，我累積了太多到期問題。
 
 答：跳過幾天後 SM-2 會累積到期問題。使用[到期優先級評分](#到期優先級評分)專注於高優先級問題。已掌握的問題可以刪除——目標是持續練習，而非追蹤所有內容。
+
+#### 問：為什麼沒有第三方依賴？
+
+答：LeetSolv 完全用純 Go 語言實現，以完全控制所有實現——沒有外部庫。詳見 [MOTIVATION.md](document/MOTIVATION.md)。
 
 ---
 

@@ -10,33 +10,17 @@
 
 </div>
 
-**LeetSolv** is a CLI tool for **Data Structures and Algorithms (DSA)** problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates **familiarity**, **importance**, and **reasoning** to move beyond rote memorization.
-
-> ***Zero Dependencies**: Implemented in pure Go with no third-party libraries or external tools—full control over all implementations. See [MOTIVATION.md](document/MOTIVATION.md).*
+**LeetSolv** is a CLI tool for Data Structures and Algorithms (DSA) problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates familiarity, importance, and reasoning to move beyond rote memorization.
 
 ![Demo](document/image/DEMO_header.gif)
 
 ## Table of Contents
-- [LeetSolv](#leetsolv)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-    - [Scoop (Windows)](#scoop-windows)
-    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
-    - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
-    - [Verify Installation](#verify-installation)
-  - [Review Scheduling System](#review-scheduling-system)
-    - [Adaptive SM-2 Algorithm](#adaptive-sm-2-algorithm)
-    - [Due Priority Scoring](#due-priority-scoring)
-    - [Interval Growing Curve](#interval-growing-curve)
-  - [Problem Management](#problem-management)
-    - [Functionalities](#functionalities)
-    - [Data Privacy \& Safety](#data-privacy--safety)
-  - [Usage](#usage)
-  - [Configuration](#configuration)
-  - [FAQ](#faq)
-      - [Q: Why use LeetSolv instead of an Anki deck?](#q-why-use-leetsolv-instead-of-an-anki-deck)
-      - [Q: Should I add all my previously solved problems?](#q-should-i-add-all-my-previously-solved-problems)
-      - [Q: After a period of use, I accumulated too many due problems.](#q-after-a-period-of-use-i-accumulated-too-many-due-problems)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Review Scheduling System](#review-scheduling-system)
+- [Problem Management](#problem-management)
+- [Configuration](#configuration)
+- [FAQ](#faq)
 
 ## Installation
 
@@ -66,11 +50,23 @@ To uninstall:
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash -s -- --uninstall
 ```
 
-### Verify Installation
+## Usage
+
+LeetSolv can be run interactively or by passing commands directly from your terminal.
+
 ```bash
-leetsolv version
+# Start interactive mode
+leetsolv
+
+# Or run commands directly
+leetsolv add https://leetcode.com/problems/two-sum
+leetsolv status
+
+# Get help
 leetsolv help
 ```
+
+[View Full Usage Guide (USAGE.md)](document/USAGE.md)
 
 ## Review Scheduling System
 
@@ -130,24 +126,6 @@ Review intervals expand based on importance, familiarity, and reasoning. Higher 
 - **No Data Collection**: LeetSolv does not upload user data to the internet.
 - **Atomic Writes**: All writes use temp file + rename for data consistency.
 
-## Usage
-
-LeetSolv can be run interactively or by passing commands directly from your terminal.
-
-```bash
-# Start interactive mode
-leetsolv
-
-# Or run commands directly
-leetsolv add https://leetcode.com/problems/two-sum
-leetsolv status
-
-# Get help
-leetsolv help
-```
-
-[View Full Usage Guide (USAGE.md)](document/USAGE.md)
-
 ## Configuration
 
 Customize via environment variables or JSON config. See [CONFIGURATION.md](document/CONFIGURATION.md) for all options.
@@ -165,6 +143,10 @@ A: No. Only add problems you want to revisit. The algorithm uses the add date fo
 #### Q: After a period of use, I accumulated too many due problems.
 
 A: SM-2 accumulates dues if you skip days. Use [Due Priority Scoring](#due-priority-scoring) to focus on high-priority problems first. Remove mastered problems—the goal is active practice, not tracking everything.
+
+#### Q: Why zero third-party dependencies?
+
+A: LeetSolv is implemented in pure Go for full control over all implementations—no external libraries. See [MOTIVATION.md](document/MOTIVATION.md) for the design philosophy.
 
 [Open an issue](https://github.com/eannchen/leetsolv/issues) for questions or suggestions.
 

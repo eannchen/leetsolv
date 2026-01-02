@@ -10,33 +10,17 @@
 
 </div>
 
-**LeetSolv** 是一个命令行工具，专为 **数据结构与算法 (DSA)** 问题复习而设计，带有 **间隔重复 (spaced repetition)** 功能。支持 [LeetCode](https://leetcode.com) 和 [HackerRank](https://hackerrank.com) 平台的题目。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了 **熟悉度**、**重要性** 和 **推理** 等变量，避免死记硬背。
-
-> ***零依赖**: 完全用纯 Go 实现，不使用第三方库或外部工具——完全控制底层实现。详见 [MOTIVATION.md](document/MOTIVATION.md)。*
+**LeetSolv** 是一个命令行工具，专为 数据结构与算法 (DSA) 问题复习而设计，带有 **间隔重复 (spaced repetition)** 功能。支持 [LeetCode](https://leetcode.com) 和 [HackerRank](https://hackerrank.com) 平台的题目。它由一个定制的 [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) 算法驱动，该算法结合了 **熟悉度**、**重要性** 和 **推理** 等变量，避免死记硬背。
 
 ![Demo](document/image/DEMO_header.gif)
 
 ## 目录
-- [LeetSolv](#leetsolv)
-  - [目录](#目录)
-  - [安装](#安装)
-    - [Scoop (Windows)](#scoop-windows)
-    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
-    - [Shell Script (macOS/Linux)](#shell-script-macoslinux)
-    - [验证安装](#验证安装)
-  - [复习调度系统](#复习调度系统)
-    - [自适应 SM-2 算法](#自适应-sm-2-算法)
-    - [到期优先级评分](#到期优先级评分)
-    - [间隔增长曲线](#间隔增长曲线)
-  - [问题管理](#问题管理)
-    - [功能](#功能)
-    - [数据隐私 \& 安全](#数据隐私--安全)
-  - [用法](#用法)
-  - [配置](#配置)
-  - [常见问题](#常见问题)
-      - [问：为什么要使用 LeetSolv 而不是 Anki 卡片？](#问为什么要使用-leetsolv-而不是-anki-卡片)
-      - [问：我应该添加所有以前解决过的问题吗？](#问我应该添加所有以前解决过的问题吗)
-      - [问：使用一段时间后，我积累了太多到期问题。](#问使用一段时间后我积累了太多到期问题)
+- [安装](#安装)
+- [用法](#用法)
+- [复习调度系统](#复习调度系统)
+- [问题管理](#问题管理)
+- [配置](#配置)
+- [常见问题](#常见问题)
 
 ## 安装
 
@@ -66,11 +50,23 @@ curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh |
 curl -fsSL https://raw.githubusercontent.com/eannchen/leetsolv/main/install.sh | bash -s -- --uninstall
 ```
 
-### 验证安装
+## 用法
+
+LeetSolv 可以交互式运行，也可以直接从终端传递命令来运行。
+
 ```bash
-leetsolv version
+# 启动交互模式
+leetsolv
+
+# 或者直接运行命令
+leetsolv add https://leetcode.com/problems/two-sum
+leetsolv status
+
+# 获取帮助
 leetsolv help
 ```
+
+[查看完整使用指南 (USAGE.md)](document/USAGE.md)
 
 ## 复习调度系统
 
@@ -130,25 +126,6 @@ graph TD
 - **无数据收集**：LeetSolv 不会将用户数据上传到互联网。
 - **原子写入**：所有写入使用临时文件 + 重命名，保证数据一致性。
 
-## 用法
-
-LeetSolv 可以交互式运行，也可以直接从终端传递命令来运行。
-
-```bash
-# 启动交互模式
-leetsolv
-
-# 或者直接运行命令
-leetsolv add https://leetcode.com/problems/two-sum
-leetsolv status
-
-# 获取帮助
-leetsolv help
-```
-
-[查看完整使用指南 (USAGE.md)](document/USAGE.md)
-
-
 ## 配置
 
 通过环境变量或 JSON 配置文件自定义。详见 [CONFIGURATION.md](document/CONFIGURATION.md)。
@@ -166,6 +143,10 @@ leetsolv help
 #### 问：使用一段时间后，我积累了太多到期问题。
 
 答：跳过几天后 SM-2 会累积到期问题。使用[到期优先级评分](#到期优先级评分)专注于高优先级问题。已掌握的问题可以删除——目标是持续练习，而非追踪所有内容。
+
+#### 问：为什么没有第三方依赖？
+
+答：LeetSolv 完全用纯 Go 实现，以完全控制所有实现——没有外部库。详见 [MOTIVATION.md](document/MOTIVATION.md)。
 
 ---
 
