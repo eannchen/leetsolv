@@ -34,7 +34,6 @@ scoop install leetsolv
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew tap eannchen/tap
 brew install leetsolv
 ```
 

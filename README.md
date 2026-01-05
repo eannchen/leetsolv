@@ -10,7 +10,7 @@
 
 </div>
 
-**LeetSolv** is a CLI tool for Data Structures and Algorithms (DSA) problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates familiarity, importance, and reasoning to move beyond rote memorization.
+**LeetSolv** is a CLI tool for Data Structures and Algorithms (DSA) problem revision with **spaced repetition**. It supports problems from [LeetCode](https://leetcode.com) and [HackerRank](https://hackerrank.com). Powered by a customized [SuperMemo 2](https://en.wikipedia.org/wiki/SuperMemo) algorithm that incorporates **familiarity**, **importance**, and **reasoning** to move beyond rote memorization.
 
 ![Demo](document/image/DEMO_header.gif)
 
@@ -34,7 +34,6 @@ scoop install leetsolv
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew tap eannchen/tap
 brew install leetsolv
 ```
 
@@ -72,7 +71,7 @@ leetsolv help
 
 ### Adaptive SM-2 Algorithm
 
-Unlike standard SM-2 (used by Anki), LeetSolv adds **importance** and **reasoning** factors—designed for DSA practice, not flashcard memorization. Familiarity (5 levels), importance (4 levels), and reasoning (3 levels) determine your next review date. Randomization prevents bunching reviews on the same days.
+Unlike standard SM-2 (used by Anki), LeetSolv adds **importance** and **reasoning** factors—designed for DSA practice, not flashcard memorization. Familiarity (5 levels), Importance (4 levels), and Reasoning (3 levels) determine your next review date. Randomization prevents bunching reviews on the same days.
 
 ```mermaid
 graph TD
