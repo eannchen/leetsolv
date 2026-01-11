@@ -27,8 +27,8 @@
 ### Scoop (Windows)
 
 ```powershell
-scoop bucket add eannchen https://github.com/eannchen/scoop-bucket
-scoop install leetsolv
+scoop bucket add extras
+scoop install extras/leetsolv
 ```
 
 ### Homebrew (macOS/Linux)
